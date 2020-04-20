@@ -54,10 +54,6 @@ protected:
 public:
   virtual ~FlowProbe ();
 
-  /// Register this type.
-  /// \return The TypeId.
-  static TypeId GetTypeId (void);
-  
   /// Structure to hold the statistics of a flow
   struct FlowStats
   {
@@ -100,7 +96,7 @@ public:
   /// \param os the output stream
   /// \param indent number of spaces to use as base indentation level
   /// \param index FlowProbe index
-  void SerializeToXmlStream (std::ostream &os, uint16_t indent, uint32_t index) const;
+  void SerializeToXmlStream (std::ostream &os, int indent, uint32_t index) const;
 
 protected:
   Ptr<FlowMonitor> m_flowMonitor; //!< the FlowMonitor instance

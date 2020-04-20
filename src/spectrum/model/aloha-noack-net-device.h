@@ -39,7 +39,7 @@ namespace ns3 {
 class SpectrumChannel;
 class Channel;
 class SpectrumErrorModel;
-template <typename Item> class Queue;
+class Queue;
 
 
 
@@ -59,20 +59,11 @@ template <typename Item> class Queue;
 class AlohaNoackNetDevice : public NetDevice
 {
 public:
-  /**
-   * State of the NetDevice
-   */
   enum State
   {
-    IDLE, //!< Idle state
-    TX,   //!< Transmitting state
-    RX    //!< Receiving state
+    IDLE, TX, RX
   };
 
-  /**
-   * \brief Get the type ID.
-   * \return the object TypeId
-   */
   static TypeId GetTypeId (void);
 
   AlohaNoackNetDevice ();
@@ -84,7 +75,7 @@ public:
    *
    * @param queue
    */
-  virtual void SetQueue (Ptr<Queue<Packet> > queue);
+  virtual void SetQueue (Ptr<Queue> queue);
 
 
   /**
@@ -183,35 +174,37 @@ public:
   virtual void SetPromiscReceiveCallback (PromiscReceiveCallback cb);
   virtual bool SupportsSendFrom (void) const;
 
+
+
+
+
 private:
-  /**
-   * Notification of Guard Interval end.
-   */
   void NotifyGuardIntervalEnd ();
   virtual void DoDispose (void);
 
   /**
    * start the transmission of a packet by contacting the PHY layer
+   *
    */
   void StartTransmission ();
 
 
-  Ptr<Queue<Packet> > m_queue; //!< packet queue
+  Ptr<Queue> m_queue;
 
-  TracedCallback<Ptr<const Packet> > m_macTxTrace;        //!< Tx trace
-  TracedCallback<Ptr<const Packet> > m_macTxDropTrace;    //!< Tx Drop trace
-  TracedCallback<Ptr<const Packet> > m_macPromiscRxTrace; //!< Promiscuous Rx trace
-  TracedCallback<Ptr<const Packet> > m_macRxTrace;        //!< Rx trace
+  TracedCallback<Ptr<const Packet> > m_macTxTrace;
+  TracedCallback<Ptr<const Packet> > m_macTxDropTrace;
+  TracedCallback<Ptr<const Packet> > m_macPromiscRxTrace;
+  TracedCallback<Ptr<const Packet> > m_macRxTrace;
 
-  Ptr<Node>    m_node;    //!< Node owning this NetDevice
-  Ptr<Channel> m_channel; //!< Channel
+  Ptr<Node>    m_node;
+  Ptr<Channel> m_channel;
 
-  Mac48Address m_address; //!< MAC address
+  Mac48Address m_address;
 
-  NetDevice::ReceiveCallback m_rxCallback;                //!< Rx callback
-  NetDevice::PromiscReceiveCallback m_promiscRxCallback;  //!< Promiscuous Rx callback
+  NetDevice::ReceiveCallback m_rxCallback;
+  NetDevice::PromiscReceiveCallback m_promiscRxCallback;
 
-  GenericPhyTxStartCallback m_phyMacTxStartCallback;      //!< Tx Start callback
+  GenericPhyTxStartCallback m_phyMacTxStartCallback;
 
   /**
    * List of callbacks to fire if the link changes state (up or down).
@@ -219,13 +212,16 @@ private:
   TracedCallback<> m_linkChangeCallbacks;
 
 
-  uint32_t m_ifIndex;     //!< Interface index
-  mutable uint32_t m_mtu; //!< NetDevice MTU
-  bool m_linkUp;          //!< true if the link is up
+  uint32_t m_ifIndex;
+  mutable uint32_t m_mtu;
+  bool m_linkUp;
 
-  State m_state;          //!< State of the NetDevice
-  Ptr<Packet> m_currentPkt;  //!< Current packet
-  Ptr<Object> m_phy;      //!< PHY object
+
+  State m_state;
+
+  Ptr<Packet> m_currentPkt;
+
+  Ptr<Object> m_phy;
 };
 
 

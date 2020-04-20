@@ -50,20 +50,14 @@ public:
   virtual ~SpectrumInterference ();
 
   /**
-   * Register this type.
-   * \return The TypeId.
-   */
-  static TypeId GetTypeId (void);
-  
-  /**
-   * Set the SpectrumErrorModel to be used.
+   * set the SpectrumErrorModel to be used.
    *
-   * @param e the error model
+   * @param e
    */
   void SetErrorModel (Ptr<SpectrumErrorModel> e);
 
   /**
-   * Notify that the PHY is starting a RX attempt
+   * notify that the PHY is starting a RX attempt
    *
    * @param p the packet corresponding to the signal being RX
    * @param rxPsd the power spectral density of the signal being RX
@@ -71,12 +65,12 @@ public:
   void StartRx (Ptr<const Packet> p, Ptr<const SpectrumValue> rxPsd);
 
   /**
-   * Notify that the PHY has aborted RX
+   * notify that the PHY has aborted RX
    */
   void AbortRx ();
 
   /**
-   * Notify that the RX attempt has ended. The receiving PHY must call
+   * notify that the RX attempt has ended. The receiving PHY must call
    * this method upon RX end in order to:
    * 1) know if RX was successful or not
    * 2) free up resources that might eventually be used for the
@@ -90,17 +84,17 @@ public:
 
 
   /**
-   * Notify that a new signal is being perceived in the medium. This
+   * notify that a new signal is being perceived in the medium. This
    * method is to be called for all incoming signal, regardless of
-   * whether they're useful signals or interferers.
+   * wether they're useful signals or interferers.
    *
    * @param spd the power spectral density of the new signal
    * @param duration the duration of the new signal
    */
   void AddSignal (Ptr<const SpectrumValue> spd, const Time duration);
 
+
   /**
-   * Set the Noise Power Spectral Density
    *
    * @param noisePsd the Noise Power Spectral Density in power units
    * (Watt, Pascal...) per Hz.
@@ -112,40 +106,30 @@ protected:
   void DoDispose ();
 
 private:
-
-  /**
-   * Evaluate a Chunk, depending on the Rx status and the last update time
-   */
   void ConditionallyEvaluateChunk ();
-  /**
-   * Adds a signal perceived in the medium.
-   * @param spd the power spectral density of the new signal
-   */
   void DoAddSignal  (Ptr<const SpectrumValue> spd);
-  /**
-    * Removes a signal perceived in the medium.
-    * @param spd the power spectral density of the new signal
-    */
   void DoSubtractSignal  (Ptr<const SpectrumValue> spd);
 
-  bool m_receiving; //!< True if in Rx status
 
-  /**
-   * Stores the power spectral density of the signal whose RX is being attempted
-   */
-  Ptr<const SpectrumValue> m_rxSignal;
 
-  /**
-   * Stores the spectral power density of the sum of incoming signals;
-   * does not include noise, includes the SPD of the signal being RX
-   */
-  Ptr<SpectrumValue> m_allSignals;
+  bool m_receiving;
 
-  Ptr<const SpectrumValue> m_noise; //!< Noise spectral power density
+  Ptr<const SpectrumValue> m_rxSignal; /**< stores the power spectral density of
+                                  * the signal whose RX is being
+                                  * attempted
+                                  */
 
-  Time m_lastChangeTime;     //!< the time of the last change in m_TotalPower
+  Ptr<SpectrumValue> m_allSignals; /**< stores the spectral
+                                    * power density of the sum of incoming signals;
+                                    * does not include noise, includes the SPD of the signal being RX
+                                    */
 
-  Ptr<SpectrumErrorModel> m_errorModel; //!< Error model
+  Ptr<const SpectrumValue> m_noise;
+
+  Time m_lastChangeTime;     /**< the time of the last change in
+                                m_TotalPower */
+
+  Ptr<SpectrumErrorModel> m_errorModel;
 
 
 

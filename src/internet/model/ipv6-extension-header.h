@@ -33,8 +33,7 @@ namespace ns3
 {
 
 /**
- * \ingroup ipv6HeaderExt
- *
+ * \class Ipv6ExtensionHeader
  * \brief Header for IPv6 Extension.
  */
 class Ipv6ExtensionHeader : public Header 
@@ -87,7 +86,7 @@ public:
   uint16_t GetLength () const;
 
   /**
-   * \brief Print some information about the packet.
+   * \brief Print some informations about the packet.
    * \param os output stream
    * \return info about this packet
    */
@@ -112,17 +111,16 @@ public:
    */
   virtual uint32_t Deserialize (Buffer::Iterator start);
 
-protected:
-  /**
-   * \brief The "length" field.
-   */
-  uint8_t m_length;
-
 private:
   /**
    * \brief The "next header" field.
    */
   uint8_t m_nextHeader;
+
+  /**
+   * \brief The "length" field.
+   */
+  uint8_t m_length;
 
   /**
    * \brief The data of the extension.
@@ -131,11 +129,9 @@ private:
 };
 
 /**
- * \ingroup ipv6HeaderExt
- *
- * \brief Option field for an IPv6ExtensionHeader.
- *
- * Enables adding options to an IPv6ExtensionHeader.
+ * \class OptionField
+ * \brief Option field for an IPv6ExtensionHeader
+ * Enables adding options to an IPv6ExtensionHeader
  *
  * Implementor's note: Make sure to add the result of
  * OptionField::GetSerializedSize () to your IPv6ExtensionHeader::GetSerializedSize ()
@@ -216,8 +212,7 @@ private:
 };
 
 /**
- * \ingroup ipv6HeaderExt
- *
+ * \class Ipv6ExtensionHopByHopHeader
  * \brief Header of IPv6 Extension "Hop by Hop"
  */
 class Ipv6ExtensionHopByHopHeader : public Ipv6ExtensionHeader, public OptionField
@@ -246,7 +241,7 @@ public:
   virtual ~Ipv6ExtensionHopByHopHeader ();
 
   /**
-   * \brief Print some information about the packet.
+   * \brief Print some informations about the packet.
    * \param os output stream
    * \return info about this packet
    */
@@ -273,8 +268,7 @@ public:
 };
 
 /**
- * \ingroup ipv6HeaderExt
- *
+ * \class Ipv6ExtensionDestinationHeader
  * \brief Header of IPv6 Extension Destination
  */
 class Ipv6ExtensionDestinationHeader : public Ipv6ExtensionHeader, public OptionField
@@ -303,7 +297,7 @@ public:
   virtual ~Ipv6ExtensionDestinationHeader ();
 
   /**
-   * \brief Print some information about the packet.
+   * \brief Print some informations about the packet.
    * \param os output stream
    * \return info about this packet
    */
@@ -330,8 +324,7 @@ public:
 };
 
 /**
- * \ingroup ipv6HeaderExt
- *
+ * \class Ipv6ExtensionFragmentHeader
  * \brief Header of IPv6 Extension Fragment
  */
 class Ipv6ExtensionFragmentHeader : public Ipv6ExtensionHeader
@@ -396,7 +389,7 @@ public:
   uint32_t GetIdentification () const;
 
   /**
-   * \brief Print some information about the packet.
+   * \brief Print some informations about the packet.
    * \param os output stream
    * \return info about this packet
    */
@@ -434,8 +427,7 @@ private:
 };
 
 /**
- * \ingroup ipv6HeaderExt
- *
+ * \class Ipv6ExtensionRoutingHeader
  * \brief Header of IPv6 Extension Routing
  */
 class Ipv6ExtensionRoutingHeader : public Ipv6ExtensionHeader
@@ -488,7 +480,7 @@ public:
   uint8_t GetSegmentsLeft () const;
 
   /**
-   * \brief Print some information about the packet.
+   * \brief Print some informations about the packet.
    * \param os output stream
    * \return info about this packet
    */
@@ -526,8 +518,7 @@ private:
 };
 
 /**
- * \ingroup ipv6HeaderExt
- *
+ * \class Ipv6ExtensionLooseRoutingHeader
  * \brief Header of IPv6 Extension Routing : Type 0 (Loose Routing)
  */
 class Ipv6ExtensionLooseRoutingHeader : public Ipv6ExtensionRoutingHeader
@@ -588,7 +579,7 @@ public:
   Ipv6Address GetRouterAddress (uint8_t index) const;
 
   /**
-   * \brief Print some information about the packet.
+   * \brief Print some informations about the packet.
    * \param os output stream
    * \return info about this packet
    */
@@ -626,8 +617,7 @@ private:
 };
 
 /**
- * \ingroup ipv6HeaderExt
- *
+ * \class Ipv6ExtensionESPHeader
  * \brief Header of IPv6 Extension ESP
  */
 class Ipv6ExtensionESPHeader : public Ipv6ExtensionHeader
@@ -656,7 +646,7 @@ public:
   virtual ~Ipv6ExtensionESPHeader ();
 
   /**
-   * \brief Print some information about the packet.
+   * \brief Print some informations about the packet.
    * \param os output stream
    * \return info about this packet
    */
@@ -683,8 +673,7 @@ public:
 };
 
 /**
- * \ingroup ipv6HeaderExt
- *
+ * \class Ipv6ExtensionAHHeader
  * \brief Header of IPv6 Extension AH
  */
 class Ipv6ExtensionAHHeader : public Ipv6ExtensionHeader
@@ -713,7 +702,7 @@ public:
   virtual ~Ipv6ExtensionAHHeader ();
 
   /**
-   * \brief Print some information about the packet.
+   * \brief Print some informations about the packet.
    * \param os output stream
    * \return info about this packet
    */

@@ -36,24 +36,23 @@
 #include "ns3/socket.h"
 #include "ns3/log.h"
 
-namespace ns3 {
-
 NS_LOG_COMPONENT_DEFINE ("DsrSendBuffer");
 
+namespace ns3 {
 namespace dsr {
 
 uint32_t
-DsrSendBuffer::GetSize ()
+SendBuffer::GetSize ()
 {
   Purge ();
   return m_sendBuffer.size ();
 }
 
 bool
-DsrSendBuffer::Enqueue (DsrSendBuffEntry & entry)
+SendBuffer::Enqueue (SendBuffEntry & entry)
 {
   Purge ();
-  for (std::vector<DsrSendBuffEntry>::const_iterator i = m_sendBuffer.begin (); i
+  for (std::vector<SendBuffEntry>::const_iterator i = m_sendBuffer.begin (); i
        != m_sendBuffer.end (); ++i)
     {
 //      NS_LOG_DEBUG ("packet id " << i->GetPacket ()->GetUid () << " " << entry.GetPacket ()->GetUid ()
@@ -81,14 +80,14 @@ DsrSendBuffer::Enqueue (DsrSendBuffEntry & entry)
 }
 
 void
-DsrSendBuffer::DropPacketWithDst (Ipv4Address dst)
+SendBuffer::DropPacketWithDst (Ipv4Address dst)
 {
   NS_LOG_FUNCTION (this << dst);
   Purge ();
   /*
    * Drop the packet with destination address dst
    */
-  for (std::vector<DsrSendBuffEntry>::iterator i = m_sendBuffer.begin (); i
+  for (std::vector<SendBuffEntry>::iterator i = m_sendBuffer.begin (); i
        != m_sendBuffer.end (); ++i)
     {
       if (IsEqual (*i, dst))
@@ -97,22 +96,22 @@ DsrSendBuffer::DropPacketWithDst (Ipv4Address dst)
         }
     }
   m_sendBuffer.erase (std::remove_if (m_sendBuffer.begin (), m_sendBuffer.end (),
-                                      std::bind2nd (std::ptr_fun (DsrSendBuffer::IsEqual), dst)), m_sendBuffer.end ());
+                                      std::bind2nd (std::ptr_fun (SendBuffer::IsEqual), dst)), m_sendBuffer.end ());
 }
 
 bool
-DsrSendBuffer::Dequeue (Ipv4Address dst, DsrSendBuffEntry & entry)
+SendBuffer::Dequeue (Ipv4Address dst, SendBuffEntry & entry)
 {
   Purge ();
   /*
    * Dequeue the entry with destination address dst
    */
-  for (std::vector<DsrSendBuffEntry>::iterator i = m_sendBuffer.begin (); i != m_sendBuffer.end (); ++i)
+  for (std::vector<SendBuffEntry>::iterator i = m_sendBuffer.begin (); i != m_sendBuffer.end (); ++i)
     {
       if (i->GetDestination () == dst)
         {
           entry = *i;
-          i = m_sendBuffer.erase (i);
+          m_sendBuffer.erase (i);
           NS_LOG_DEBUG ("Packet size while dequeuing " << entry.GetPacket ()->GetSize ());
           return true;
         }
@@ -121,12 +120,12 @@ DsrSendBuffer::Dequeue (Ipv4Address dst, DsrSendBuffEntry & entry)
 }
 
 bool
-DsrSendBuffer::Find (Ipv4Address dst)
+SendBuffer::Find (Ipv4Address dst)
 {
   /*
    * Make sure if the send buffer contains entry with certain dst
    */
-  for (std::vector<DsrSendBuffEntry>::const_iterator i = m_sendBuffer.begin (); i
+  for (std::vector<SendBuffEntry>::const_iterator i = m_sendBuffer.begin (); i
        != m_sendBuffer.end (); ++i)
     {
       if (i->GetDestination () == dst)
@@ -140,13 +139,8 @@ DsrSendBuffer::Find (Ipv4Address dst)
 
 struct IsExpired
 {
-  /**
-   * comparison operator
-   * \param e entry to compare
-   * \return true if expired
-   */
   bool
-  operator() (DsrSendBuffEntry const & e) const
+  operator() (SendBuffEntry const & e) const
   {
     // NS_LOG_DEBUG("Expire time for packet in req queue: "<<e.GetExpireTime ());
     return (e.GetExpireTime () < Seconds (0));
@@ -154,14 +148,14 @@ struct IsExpired
 };
 
 void
-DsrSendBuffer::Purge ()
+SendBuffer::Purge ()
 {
   /*
    * Purge the buffer to eliminate expired entries
    */
   NS_LOG_INFO ("The send buffer size " << m_sendBuffer.size ());
   IsExpired pred;
-  for (std::vector<DsrSendBuffEntry>::iterator i = m_sendBuffer.begin (); i
+  for (std::vector<SendBuffEntry>::iterator i = m_sendBuffer.begin (); i
        != m_sendBuffer.end (); ++i)
     {
       if (pred (*i))
@@ -175,7 +169,7 @@ DsrSendBuffer::Purge ()
 }
 
 void
-DsrSendBuffer::Drop (DsrSendBuffEntry en, std::string reason)
+SendBuffer::Drop (SendBuffEntry en, std::string reason)
 {
   NS_LOG_LOGIC (reason << en.GetPacket ()->GetUid () << " " << en.GetDestination ());
 //  en.GetErrorCallback () (en.GetPacket (), en.GetDestination (),

@@ -22,17 +22,12 @@
 #include "assert.h"
 #include "log.h"
 
-/**
- * \file
- * \ingroup scheduler
- * ns3::Scheduler implementation.
- */
+NS_LOG_COMPONENT_DEFINE ("Scheduler");
 
 namespace ns3 {
 
-NS_LOG_COMPONENT_DEFINE ("Scheduler");
-
-NS_OBJECT_ENSURE_REGISTERED (Scheduler);
+NS_OBJECT_ENSURE_REGISTERED (Scheduler)
+  ;
 
 Scheduler::~Scheduler ()
 {
@@ -44,7 +39,6 @@ Scheduler::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::Scheduler")
     .SetParent<Object> ()
-    .SetGroupName ("Core")
   ;
   return tid;
 }

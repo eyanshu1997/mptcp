@@ -30,11 +30,6 @@ int
 main (int argc, char *argv[])
 {
 #ifdef NS3_CLICK
-  std::string clickConfigFolder = "src/click/examples";
-
-  CommandLine cmd;
-  cmd.AddValue ("clickConfigFolder", "Base folder for click configuration files", clickConfigFolder);
-  cmd.Parse (argc, argv);
 
 //
 // Explicitly create the nodes required by the topology (shown above).
@@ -52,7 +47,7 @@ main (int argc, char *argv[])
   defines["OUTPUT"] = "\"Hello World!\"";
   
   ClickInternetStackHelper clickinternet;
-  clickinternet.SetClickFile (n, clickConfigFolder + "/nsclick-defines.click");
+  clickinternet.SetClickFile (n, "src/click/examples/nsclick-defines.click");
   clickinternet.SetRoutingTableElement (n, "rt");
   clickinternet.SetDefines(n, defines);
   clickinternet.Install (n);

@@ -55,7 +55,7 @@ public:
   virtual ~RvBatteryModel ();
 
   /**
-   * \return Initial energy stored (theoretical capacity) in the battery, in Joules.
+   * \return Initial energy stored (theoretical capacity) in the battery.
    *
    * Implements GetInitialEnergy.
    */
@@ -245,8 +245,6 @@ private:
    * definition. In the paper, battery level = 1 when the battery is drained.
    */
   TracedValue<double> m_batteryLevel;
-
-  double m_lowBatteryTh;           // low battery threshold, as a fraction of the initial energy
 
   /**
    * (1 / sampling interval) = sampling frequency

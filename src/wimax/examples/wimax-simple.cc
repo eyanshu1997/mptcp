@@ -54,9 +54,9 @@
 #include "ns3/service-flow.h"
 #include <iostream>
 
-using namespace ns3;
-
 NS_LOG_COMPONENT_DEFINE ("WimaxSimpleExample");
+
+using namespace ns3;
 
 int main (int argc, char *argv[])
 {

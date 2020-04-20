@@ -26,7 +26,6 @@ namespace ns3 {
 
 /**
  * \ingroup address
- * \ingroup ipv6
  *
  * \brief This generator assigns addresses sequentially from a provided
  * network address; used in topology code. It also keeps track of all
@@ -145,23 +144,6 @@ public:
    * \returns true on success
    */
   static bool AddAllocated (const Ipv6Address addr);
-
-  /**
-   * \brief Check the Ipv6Address allocation in the list of IPv6 entries
-   *
-   * \param addr The Ipv6Address to be checked in the list of Ipv4 entries
-   * \returns true if the address is already allocated
-   */
-  static bool IsAddressAllocated (const Ipv6Address addr);
-
-  /**
-   * \brief Check if a network has already allocated addresses
-   *
-   * \param addr The Ipv6 network to be checked
-   * \param prefix The Ipv6 network prefix
-   * \returns true if the network is already allocated
-   */
-  static bool IsNetworkAllocated (const Ipv6Address addr, const Ipv6Prefix prefix);
 
   /**
    * \brief Used to turn off fatal errors and assertions, for testing

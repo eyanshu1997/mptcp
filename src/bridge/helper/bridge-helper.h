@@ -31,7 +31,6 @@ class Node;
 class AttributeValue;
 
 /**
- * \ingroup bridge
  * \brief Add capability to bridge multiple LAN segments (IEEE 802.1D bridging)
  */
 class BridgeHelper
@@ -72,7 +71,7 @@ public:
    */
   NetDeviceContainer Install (std::string nodeName, NetDeviceContainer c);
 private:
-  ObjectFactory m_deviceFactory; //!< Object factory
+  ObjectFactory m_deviceFactory;
 };
 
 } // namespace ns3

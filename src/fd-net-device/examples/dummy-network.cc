@@ -26,7 +26,7 @@
 #include "ns3/network-module.h"
 #include "ns3/internet-module.h"
 #include "ns3/fd-net-device-module.h"
-#include "ns3/internet-apps-module.h"
+#include "ns3/applications-module.h"
 
 using namespace ns3;
 
@@ -35,9 +35,6 @@ NS_LOG_COMPONENT_DEFINE ("DummyNetworkExample");
 int
 main (int argc, char *argv[])
 {
-  CommandLine cmd;
-  cmd.Parse (argc, argv);
-  
   NodeContainer nodes;
   nodes.Create (2);
 
@@ -72,7 +69,7 @@ main (int argc, char *argv[])
   app->SetStartTime (Seconds (0.0));
   app->SetStopTime (Seconds (4.0));
 
-  fd.EnablePcapAll ("dummy-network", true);
+  fd.EnablePcapAll ("dummy-network", false);
 
   Simulator::Stop (Seconds (5.));
   Simulator::Run ();

@@ -80,10 +80,18 @@ UdpEchoClientHelper::UdpEchoClientHelper (Address address, uint16_t port)
   SetAttribute ("RemotePort", UintegerValue (port));
 }
 
-UdpEchoClientHelper::UdpEchoClientHelper (Address address)
+UdpEchoClientHelper::UdpEchoClientHelper (Ipv4Address address, uint16_t port)
 {
   m_factory.SetTypeId (UdpEchoClient::GetTypeId ());
-  SetAttribute ("RemoteAddress", AddressValue (address));
+  SetAttribute ("RemoteAddress", AddressValue (Address(address)));
+  SetAttribute ("RemotePort", UintegerValue (port));
+}
+
+UdpEchoClientHelper::UdpEchoClientHelper (Ipv6Address address, uint16_t port)
+{
+  m_factory.SetTypeId (UdpEchoClient::GetTypeId ());
+  SetAttribute ("RemoteAddress", AddressValue (Address(address)));
+  SetAttribute ("RemotePort", UintegerValue (port));
 }
 
 void 

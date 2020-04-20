@@ -27,23 +27,24 @@
 #include "socket-factory.h"
 #include <limits>
 
-namespace ns3 {
-
 NS_LOG_COMPONENT_DEFINE ("Socket");
 
-NS_OBJECT_ENSURE_REGISTERED (Socket);
+namespace ns3 {
+
+NS_OBJECT_ENSURE_REGISTERED (Socket)
+  ;
 
 TypeId
 Socket::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::Socket")
-    .SetParent<Object> ()
-    .SetGroupName("Network");
+    .SetParent<Object> ();
   return tid;
 }
 
 Socket::Socket (void)
-  : m_manualIpTtl (false),
+  : m_manualIpTos (false),
+    m_manualIpTtl (false),
     m_ipRecvTos (false),
     m_ipRecvTtl (false),
     m_manualIpv6Tclass (false),
@@ -55,7 +56,6 @@ Socket::Socket (void)
   m_boundnetdevice = 0;
   m_recvPktInfo = false;
 
-  m_priority = 0;
   m_ipTos = 0;
   m_ipTtl = 0;
   m_ipv6Tclass = 0;
@@ -368,6 +368,12 @@ bool Socket::IsRecvPktInfo () const
 }
 
 bool
+Socket::IsManualIpTos (void) const
+{
+  return m_manualIpTos;
+}
+
+bool
 Socket::IsManualIpv6Tclass (void) const
 {
   return m_manualIpv6Tclass;
@@ -386,73 +392,12 @@ Socket::IsManualIpv6HopLimit (void) const
 }
 
 void
-Socket::SetPriority (uint8_t priority)
-{
-  if (priority <= 7)
-    {
-      m_priority = priority;
-    }
-  else
-    {
-      NS_LOG_ERROR ("Cannot set a priority higher than 6");
-    }
-}
-
-uint8_t
-Socket::GetPriority (void) const
-{
-  return m_priority;
-}
-
-uint8_t
-Socket::IpTos2Priority (uint8_t ipTos)
-{
-  uint8_t prio = NS3_PRIO_BESTEFFORT;
-  ipTos &= 0x1e;
-  switch (ipTos >> 1)
-    {
-    case 0:
-    case 1:
-    case 2:
-    case 3:
-      prio = NS3_PRIO_BESTEFFORT;
-      break;
-    case 4:
-    case 5:
-    case 6:
-    case 7:
-      prio = NS3_PRIO_BULK;
-      break;
-    case 8:
-    case 9:
-    case 10:
-    case 11:
-      prio = NS3_PRIO_INTERACTIVE;
-      break;
-    case 12:
-    case 13:
-    case 14:
-    case 15:
-      prio = NS3_PRIO_INTERACTIVE_BULK;
-      break;
-    }
-  return prio;
-}
-
-void
 Socket::SetIpTos (uint8_t tos)
 {
   Address address;
   GetSockName (address);
-  if (GetSocketType () == NS3_SOCK_STREAM)
-    {
-      // preserve the least two significant bits of the current TOS
-      // value, which are used for ECN
-      tos &= 0xfc;
-      tos |= m_ipTos & 0x3;
-    }
+  m_manualIpTos = true;
   m_ipTos = tos;
-  m_priority = IpTos2Priority (tos);
 }
 
 uint8_t
@@ -565,41 +510,70 @@ Socket::IsIpv6RecvHopLimit (void) const
   return m_ipv6RecvHopLimit;
 }
 
-void
-Socket::Ipv6JoinGroup (Ipv6Address address, Ipv6MulticastFilterMode filterMode, std::vector<Ipv6Address> sourceAddresses)
-{
-  NS_LOG_FUNCTION (this<<address<<&filterMode<<&sourceAddresses);
-  NS_ASSERT_MSG (false,"Ipv6JoinGroup not implemented on this socket");
-}
-
-void
-Socket::Ipv6JoinGroup (Ipv6Address address)
-{
-  NS_LOG_FUNCTION (this<<address);
-
-  // Join Group. Note that joining a group with no sources means joining without source restrictions.
-  std::vector<Ipv6Address> sourceAddresses;
-  Ipv6JoinGroup (address, EXCLUDE, sourceAddresses);
-}
-
-void
-Socket::Ipv6LeaveGroup (void)
-{
-  NS_LOG_FUNCTION (this);
-  if(m_ipv6MulticastGroupAddress.IsAny () )
-    {
-      NS_LOG_INFO (" The socket was not bound to any group.");
-      return;
-    }
-  // Leave Group. Note that joining a group with no sources means leaving it.
-  std::vector<Ipv6Address> sourceAddresses;
-  Ipv6JoinGroup (m_ipv6MulticastGroupAddress, INCLUDE, sourceAddresses);
-  m_ipv6MulticastGroupAddress = Ipv6Address::GetAny ();
-}
-
 /***************************************************************
  *           Socket Tags
  ***************************************************************/
+
+SocketAddressTag::SocketAddressTag ()
+{
+  NS_LOG_FUNCTION (this);
+}
+
+void 
+SocketAddressTag::SetAddress (Address addr)
+{
+  NS_LOG_FUNCTION (this << addr);
+  m_address = addr;
+}
+
+Address 
+SocketAddressTag::GetAddress (void) const
+{
+  NS_LOG_FUNCTION (this);
+  return m_address;
+}
+
+NS_OBJECT_ENSURE_REGISTERED (SocketAddressTag)
+  ;
+
+TypeId
+SocketAddressTag::GetTypeId (void)
+{
+  static TypeId tid = TypeId ("ns3::SocketAddressTag")
+    .SetParent<Tag> ()
+    .AddConstructor<SocketAddressTag> ()
+  ;
+  return tid;
+}
+TypeId
+SocketAddressTag::GetInstanceTypeId (void) const
+{
+  return GetTypeId ();
+}
+uint32_t
+SocketAddressTag::GetSerializedSize (void) const
+{
+  NS_LOG_FUNCTION (this);
+  return m_address.GetSerializedSize ();
+}
+void
+SocketAddressTag::Serialize (TagBuffer i) const
+{
+  NS_LOG_FUNCTION (this << &i);
+  m_address.Serialize (i);
+}
+void
+SocketAddressTag::Deserialize (TagBuffer i)
+{
+  NS_LOG_FUNCTION (this << &i);
+  m_address.Deserialize (i);
+}
+void
+SocketAddressTag::Print (std::ostream &os) const
+{
+  NS_LOG_FUNCTION (this << &os);
+  os << "address=" << m_address;
+}
 
 SocketIpTtlTag::SocketIpTtlTag ()
 {
@@ -620,14 +594,14 @@ SocketIpTtlTag::GetTtl (void) const
   return m_ttl;
 }
 
-NS_OBJECT_ENSURE_REGISTERED (SocketIpTtlTag);
+NS_OBJECT_ENSURE_REGISTERED (SocketIpTtlTag)
+  ;
 
 TypeId
 SocketIpTtlTag::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::SocketIpTtlTag")
     .SetParent<Tag> ()
-    .SetGroupName("Network")
     .AddConstructor<SocketIpTtlTag> ()
   ;
   return tid;
@@ -679,14 +653,14 @@ SocketIpv6HopLimitTag::GetHopLimit (void) const
   return m_hopLimit;
 }
 
-NS_OBJECT_ENSURE_REGISTERED (SocketIpv6HopLimitTag);
+NS_OBJECT_ENSURE_REGISTERED (SocketIpv6HopLimitTag)
+  ;
 
 TypeId
 SocketIpv6HopLimitTag::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::SocketIpv6HopLimitTag")
     .SetParent<Tag> ()
-    .SetGroupName("Network")
     .AddConstructor<SocketIpv6HopLimitTag> ()
   ;
   return tid;
@@ -741,14 +715,14 @@ SocketSetDontFragmentTag::IsEnabled (void) const
   return m_dontFragment;
 }
 
-NS_OBJECT_ENSURE_REGISTERED (SocketSetDontFragmentTag);
+NS_OBJECT_ENSURE_REGISTERED (SocketSetDontFragmentTag)
+  ;
 
 TypeId 
 SocketSetDontFragmentTag::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::SocketSetDontFragmentTag")
     .SetParent<Tag> ()
-    .SetGroupName("Network")
     .AddConstructor<SocketSetDontFragmentTag> ();
   return tid;
 }
@@ -804,7 +778,6 @@ SocketIpTosTag::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::SocketIpTosTag")
     .SetParent<Tag> ()
-    .SetGroupName("Network")
     .AddConstructor<SocketIpTosTag> ()
     ;
   return tid;
@@ -840,64 +813,6 @@ SocketIpTosTag::Print (std::ostream &os) const
 }
 
 
-SocketPriorityTag::SocketPriorityTag ()
-{
-}
-
-void
-SocketPriorityTag::SetPriority (uint8_t priority)
-{
-  m_priority = priority;
-}
-
-uint8_t
-SocketPriorityTag::GetPriority (void) const
-{
-  return m_priority;
-}
-
-TypeId
-SocketPriorityTag::GetTypeId (void)
-{
-  static TypeId tid = TypeId ("ns3::SocketPriorityTag")
-    .SetParent<Tag> ()
-    .SetGroupName("Network")
-    .AddConstructor<SocketPriorityTag> ()
-    ;
-  return tid;
-}
-
-TypeId
-SocketPriorityTag::GetInstanceTypeId (void) const
-{
-  return GetTypeId ();
-}
-
-uint32_t
-SocketPriorityTag::GetSerializedSize (void) const
-{
-  return sizeof (uint8_t);
-}
-
-void
-SocketPriorityTag::Serialize (TagBuffer i) const
-{
-  i.WriteU8 (m_priority);
-}
-
-void
-SocketPriorityTag::Deserialize (TagBuffer i)
-{
-  m_priority = i.ReadU8();
-}
-
-void
-SocketPriorityTag::Print (std::ostream &os) const
-{
-  os << "SO_PRIORITY = " << m_priority;
-}
-
-
 SocketIpv6TclassTag::SocketIpv6TclassTag ()
 {
 }
@@ -919,7 +834,6 @@ SocketIpv6TclassTag::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::SocketIpv6TclassTag")
     .SetParent<Tag> ()
-    .SetGroupName("Network") 
     .AddConstructor<SocketIpv6TclassTag> ()
     ;
   return tid;

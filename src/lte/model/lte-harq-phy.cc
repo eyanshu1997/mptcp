@@ -23,9 +23,9 @@
 #include <ns3/log.h>
 #include <ns3/assert.h>
 
-namespace ns3 {
-
 NS_LOG_COMPONENT_DEFINE ("LteHarqPhy");
+
+namespace ns3 {
 
 //NS_OBJECT_ENSURE_REGISTERED (LteHarqPhy)
 //  ;
@@ -56,7 +56,7 @@ LteHarqPhy::SubframeIndication (uint32_t frameNo, uint32_t subframeNo)
   NS_LOG_FUNCTION (this);
 
   // left shift UL HARQ buffers
-  std::map <uint16_t, std::vector <HarqProcessInfoList_t> >::iterator it;
+  std::map <uint16_t, std::vector <HarqProcessInfoList_t> >:: iterator it;
   for (it = m_miUlHarqProcessesInfoMap.begin (); it != m_miUlHarqProcessesInfoMap.end (); it++)
     {
       (*it).second.erase ((*it).second.begin ());
@@ -176,19 +176,11 @@ LteHarqPhy::UpdateUlHarqProcessStatus (uint16_t rnti, double mi, uint16_t infoBy
     }
   else
     {
-      if ((*it).second.at (0).size () == 3) // MAX HARQ RETX
+      if ((*it).second.at (7).size () == 3) // MAX HARQ RETX
         {
           // HARQ should be disabled -> discard info
           return;
         }
-      
-//       move current status back at the end to maintain full history
-      HarqProcessInfoList_t list = (*it).second.at (0);
-      for (uint8_t i = 0; i < list.size (); i++)
-        {
-          (*it).second.at (7).push_back (list.at (i));
-        }
-      
       HarqProcessInfoElement_t el;
       el.m_mi = mi;
       el.m_infoBits = infoBytes * 8;

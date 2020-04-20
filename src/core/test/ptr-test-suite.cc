@@ -21,110 +21,59 @@
 #include "ns3/test.h"
 #include "ns3/ptr.h"
 
-/**
- * \file
- * \ingroup core-tests
- * \ingroup ptr
- * \ingroup ptr-tests
- * Smart pointer test suite.
- */
-
-/**
- * \ingroup core-tests
- * \defgroup ptr-tests Smart pointer test suite
- */
-
-namespace ns3 {
-
-  namespace tests {
-    
+using namespace ns3;
 
 class PtrTestCase;
 
-/**
- * \ingroup ptr-tests
- * Pointer base test class
- */
-class PtrTestBase
+class Base
 {
 public:
-  /** Constructor. */
-  PtrTestBase ();
-  /** Destructor. */
-  virtual ~PtrTestBase ();
-  /** Increment the reference count. */
+  Base ();
+  virtual ~Base ();
   void Ref (void) const;
-  /** Decrement the reference count, and delete if necessary. */
   void Unref (void) const;
 private:
-  mutable uint32_t m_count; //!< The reference count.
+  mutable uint32_t m_count;
 };
 
-/**
- * \ingroup ptr-tests
- * No Count class
- */
-class NoCount : public PtrTestBase
+class NoCount : public Base
 {
 public:
-  /**
-   * Constructor
-   *
-   * \param [in] test The object to track.
-   */
   NoCount (PtrTestCase *test);
-  /**
-   * Destructor.
-   * The object being tracked will also be destroyed,
-   * by calling DestroyNotify()
-   */
   ~NoCount ();
-  /** Noop function. */
   void Nothing (void) const;
 private:
-  PtrTestCase *m_test; //!< The object being tracked.
+  PtrTestCase *m_test;
 };
 
 
-/**
- * \ingroup ptr-tests
- * Test case for pointer
- */
 class PtrTestCase : public TestCase
 {
 public:
-  /** Constructor. */
   PtrTestCase ();
-  /** Count the destruction of an object. */
   void DestroyNotify (void);
 private:
   virtual void DoRun (void);
-  /**
-   * Test that \p p is a valid object, by calling a member function.
-   * \param [in] p The object pointer to test.
-   * \returns The object pointer.
-   */
   Ptr<NoCount> CallTest (Ptr<NoCount> p);
-  /** \copydoc CallTest(Ptr<NoCount>) */
   Ptr<NoCount> const CallTestConst (Ptr<NoCount> const p);
-  uint32_t m_nDestroyed; //!< Counter of number of objects destroyed.
+  uint32_t m_nDestroyed;
 };
 
 
-PtrTestBase::PtrTestBase ()
+Base::Base ()
   : m_count (1)
 {
 }
-PtrTestBase::~PtrTestBase ()
+Base::~Base ()
 {
 }
 void
-PtrTestBase::Ref (void) const
+Base::Ref (void) const
 {
   m_count++;
 }
 void
-PtrTestBase::Unref (void) const
+Base::Unref (void) const
 {
   m_count--;
   if (m_count == 0)
@@ -307,35 +256,19 @@ PtrTestCase::DoRun (void)
   NS_TEST_EXPECT_MSG_EQ (m_nDestroyed, 1, "013");
 
   {
-    Ptr<PtrTestBase> p0 = Create<NoCount> (this);
+    Ptr<Base> p0 = Create<NoCount> (this);
     Ptr<NoCount> p1 = Create<NoCount> (this);
     NS_TEST_EXPECT_MSG_EQ ((p0 == p1), false, "operator == failed");
     NS_TEST_EXPECT_MSG_EQ ((p0 != p1), true, "operator != failed");
   }
 }
 
-/**
- * \ingroup ptr-tests
- * Test suite for pointer
- */
-class PtrTestSuite : public TestSuite
+static class PtrTestSuite : public TestSuite
 {
 public:
-  /** Constructor. */
   PtrTestSuite ()
-    : TestSuite ("ptr")
+    : TestSuite ("ptr", UNIT)
   {
-    AddTestCase (new PtrTestCase ());  
+    AddTestCase (new PtrTestCase (), TestCase::QUICK);
   }
-};
-
-/**
- * \ingroup ptr-tests
- * PtrTestSuite instance variable.
- */
-static PtrTestSuite g_ptrTestSuite;  
-
-
-  }  // namespace tests
-
-}  // namespace ns3
+} g_ptrTestSuite;

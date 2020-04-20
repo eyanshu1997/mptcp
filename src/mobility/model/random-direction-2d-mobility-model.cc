@@ -25,11 +25,14 @@
 #include "ns3/pointer.h"
 #include "random-direction-2d-mobility-model.h"
 
-namespace ns3 {
-
 NS_LOG_COMPONENT_DEFINE ("RandomDirection2dMobilityModel");
 
-NS_OBJECT_ENSURE_REGISTERED (RandomDirection2dMobilityModel);
+namespace ns3 {
+
+const double RandomDirection2dMobilityModel::PI = 3.14159265358979323846;
+
+NS_OBJECT_ENSURE_REGISTERED (RandomDirection2dMobilityModel)
+  ;
 
 
 TypeId
@@ -76,7 +79,7 @@ RandomDirection2dMobilityModel::DoInitialize (void)
 void
 RandomDirection2dMobilityModel::DoInitializePrivate (void)
 {
-  double direction = m_direction->GetValue (0, 2 * M_PI);
+  double direction = m_direction->GetValue (0, 2 * PI);
   SetDirectionAndSpeed (direction);
 }
 
@@ -113,20 +116,20 @@ RandomDirection2dMobilityModel::SetDirectionAndSpeed (double direction)
 void
 RandomDirection2dMobilityModel::ResetDirectionAndSpeed (void)
 {
-  double direction = m_direction->GetValue (0, M_PI);
+  double direction = m_direction->GetValue (0, PI);
 
   m_helper.UpdateWithBounds (m_bounds);
   Vector position = m_helper.GetCurrentPosition ();
   switch (m_bounds.GetClosestSide (position))
     {
     case Rectangle::RIGHT:
-      direction += M_PI / 2;
+      direction += PI / 2;
       break;
     case Rectangle::LEFT:
-      direction += -M_PI / 2;
+      direction += -PI / 2;
       break;
     case Rectangle::TOP:
-      direction += M_PI;
+      direction += PI;
       break;
     case Rectangle::BOTTOM:
       direction += 0.0;

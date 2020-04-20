@@ -71,11 +71,6 @@ int
 main (int argc, char *argv[])
 {
 #ifdef NS3_CLICK
-  std::string clickConfigFolder = "src/click/examples";
-
-  CommandLine cmd;
-  cmd.AddValue ("clickConfigFolder", "Base folder for click configuration files", clickConfigFolder);
-  cmd.Parse (argc, argv);
 
   //
   // Enable logging
@@ -111,7 +106,7 @@ main (int argc, char *argv[])
   // set it to zero; otherwise, gain will be added
   wifiPhy.Set ("RxGain", DoubleValue (0) );
   // ns-3 supports RadioTap and Prism tracing extensions for 802.11b
-  wifiPhy.SetPcapDataLinkType (WifiPhyHelper::DLT_IEEE802_11_RADIO);
+  wifiPhy.SetPcapDataLinkType (YansWifiPhyHelper::DLT_IEEE802_11_RADIO);
 
   YansWifiChannelHelper wifiChannel;
   wifiChannel.SetPropagationDelay ("ns3::ConstantSpeedPropagationDelayModel");
@@ -120,8 +115,8 @@ main (int argc, char *argv[])
   wifiChannel.AddPropagationLoss ("ns3::FixedRssLossModel","Rss",DoubleValue (-80));
   wifiPhy.SetChannel (wifiChannel.Create ());
 
-  // Add an upper mac and disable rate control
-  WifiMacHelper wifiMac;
+  // Add a non-QoS upper mac, and disable rate control
+  NqosWifiMacHelper wifiMac = NqosWifiMacHelper::Default ();
   wifi.SetRemoteStationManager ("ns3::ConstantRateWifiManager",
                                 "DataMode",StringValue (phyMode),
                                 "ControlMode",StringValue (phyMode));
@@ -143,14 +138,14 @@ main (int argc, char *argv[])
   // Install Click on the nodes
   //
   ClickInternetStackHelper clickinternet;
-  clickinternet.SetClickFile (n.Get (0), clickConfigFolder + "/nsclick-wifi-single-interface.click");
-  clickinternet.SetClickFile (n.Get (1), clickConfigFolder + "/nsclick-wifi-single-interface.click");
-  clickinternet.SetClickFile (n.Get (2), clickConfigFolder + "/nsclick-wifi-single-interface.click");
+  clickinternet.SetClickFile (n.Get (0), "src/click/examples/nsclick-wifi-single-interface.click");
+  clickinternet.SetClickFile (n.Get (1), "src/click/examples/nsclick-wifi-single-interface.click");
+  clickinternet.SetClickFile (n.Get (2), "src/click/examples/nsclick-wifi-single-interface.click");
 
   // Node 4 is to run in promiscuous mode. This can be verified
   // from the pcap trace Node4_in_eth0.pcap generated after running
   // this script.
-  clickinternet.SetClickFile (n.Get (3), clickConfigFolder + "/nsclick-wifi-single-interface-promisc.click");
+  clickinternet.SetClickFile (n.Get (3), "src/click/examples/nsclick-wifi-single-interface-promisc.click");
   clickinternet.SetRoutingTableElement (n, "rt");
   clickinternet.Install (n);
   Ipv4AddressHelper ipv4;

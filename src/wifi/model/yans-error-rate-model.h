@@ -17,11 +17,13 @@
  *
  * Author: Mathieu Lacage <mathieu.lacage@sophia.inria.fr>
  */
-
 #ifndef YANS_ERROR_RATE_MODEL_H
 #define YANS_ERROR_RATE_MODEL_H
 
+#include <stdint.h>
+#include "wifi-mode.h"
 #include "error-rate-model.h"
+#include "dsss-error-rate-model.h"
 
 namespace ns3 {
 
@@ -39,7 +41,7 @@ namespace ns3 {
  *
  * The 802.11b modulations:
  *    - 1 Mbps mode is based on DBPSK. BER is from equation 5.2-69 from John G. Proakis
- *      Digital Communications, 2001 edition
+ *      Digitial Communications, 2001 edition
  *    - 2 Mbps model is based on DQPSK. Equation 8 from "Tight bounds and accurate
  *      approximations for dqpsk transmission bit error rate", G. Ferrari and G.E. Corazza
  *      ELECTRONICS LETTERS, 40(20):1284-1285, September 2004
@@ -53,93 +55,87 @@ namespace ns3 {
 class YansErrorRateModel : public ErrorRateModel
 {
 public:
-  /**
-   * \brief Get the type ID.
-   * \return the object TypeId
-   */
   static TypeId GetTypeId (void);
 
   YansErrorRateModel ();
 
-  virtual double GetChunkSuccessRate (WifiMode mode, WifiTxVector txVector, double snr, uint64_t nbits) const;
-
+  virtual double GetChunkSuccessRate (WifiMode mode, double snr, uint32_t nbits) const;
 
 private:
   /**
+   * Return the logarithm of the given value to base 2.
+   *
+   * \param val
+   * \return the logarithm of val to base 2.
+   */
+  double Log2 (double val) const;
+  /**
    * Return BER of BPSK with the given parameters.
    *
-   * \param snr SNR ratio (not dB)
+   * \param snr snr value
    * \param signalSpread
    * \param phyRate
-   *
    * \return BER of BPSK at the given SNR
    */
-  double GetBpskBer (double snr, uint32_t signalSpread, uint64_t phyRate) const;
+  double GetBpskBer (double snr, uint32_t signalSpread, uint32_t phyRate) const;
   /**
    * Return BER of QAM-m with the given parameters.
    *
-   * \param snr SNR ratio (not dB)
+   * \param snr snr value
    * \param m
    * \param signalSpread
    * \param phyRate
-   *
    * \return BER of BPSK at the given SNR
    */
-  double GetQamBer (double snr, unsigned int m, uint32_t signalSpread, uint64_t phyRate) const;
+  double GetQamBer (double snr, unsigned int m, uint32_t signalSpread, uint32_t phyRate) const;
   /**
    * Return k!
    *
    * \param k
-   *
    * \return k!
    */
   uint32_t Factorial (uint32_t k) const;
   /**
    * Return Binomial distribution for a given k, p, and n
-   *
+   * 
    * \param k
    * \param p
    * \param n
-   *
    * \return a Binomial distribution
    */
   double Binomial (uint32_t k, double p, uint32_t n) const;
   /**
    * \param ber
    * \param d
-   *
    * \return double
    */
   double CalculatePdOdd (double ber, unsigned int d) const;
   /**
    * \param ber
    * \param d
-   *
    * \return double
    */
   double CalculatePdEven (double ber, unsigned int d) const;
   /**
    * \param ber
    * \param d
-   *
    * \return double
    */
   double CalculatePd (double ber, unsigned int d) const;
   /**
-   * \param snr SNR ratio (not dB)
+   * \param snr
    * \param nbits
    * \param signalSpread
    * \param phyRate
    * \param dFree
    * \param adFree
-   *
    * \return double
    */
-  double GetFecBpskBer (double snr, uint64_t nbits,
-                        uint32_t signalSpread, uint64_t phyRate,
+  double GetFecBpskBer (double snr, double nbits,
+                        uint32_t signalSpread, uint32_t phyRate,
                         uint32_t dFree, uint32_t adFree) const;
   /**
-   * \param snr SNR ratio (not dB)
+   * \param snr
    * \param nbits
    * \param signalSpread
    * \param phyRate
@@ -147,16 +143,16 @@ private:
    * \param dfree
    * \param adFree
    * \param adFreePlusOne
-   *
    * \return double
    */
-  double GetFecQamBer (double snr, uint64_t nbits,
+  double GetFecQamBer (double snr, uint32_t nbits,
                        uint32_t signalSpread,
-                       uint64_t phyRate,
+                       uint32_t phyRate,
                        uint32_t m, uint32_t dfree,
                        uint32_t adFree, uint32_t adFreePlusOne) const;
 };
 
-} //namespace ns3
+
+} // namespace ns3
 
 #endif /* YANS_ERROR_RATE_MODEL_H */

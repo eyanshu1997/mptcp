@@ -17,20 +17,29 @@
  *
  * Author: Dean Armstrong <deanarm@gmail.com>
  */
-
-#include "ns3/string.h"
 #include "ns3/test.h"
-#include "ns3/uinteger.h"
+#include "ns3/simulator.h"
+#include "ns3/log.h"
+
 #include "ns3/boolean.h"
+#include "ns3/string.h"
 #include "ns3/double.h"
+
 #include "ns3/ssid.h"
+#include "ns3/data-rate.h"
+#include "ns3/inet-socket-address.h"
 #include "ns3/packet-sink.h"
+
+#include "ns3/wifi-helper.h"
+#include "ns3/qos-wifi-mac-helper.h"
 #include "ns3/yans-wifi-helper.h"
 #include "ns3/mobility-helper.h"
 #include "ns3/internet-stack-helper.h"
 #include "ns3/ipv4-address-helper.h"
 #include "ns3/packet-sink-helper.h"
 #include "ns3/on-off-helper.h"
+
+NS_LOG_COMPONENT_DEFINE ("WifiMsduAggregatorThroughputTest");
 
 using namespace ns3;
 
@@ -53,8 +62,9 @@ WifiMsduAggregatorThroughputTest::WifiMsduAggregatorThroughputTest ()
 void
 WifiMsduAggregatorThroughputTest::DoRun (void)
 {
-  WifiHelper wifi;
-  WifiMacHelper wifiMac;
+  WifiHelper wifi = WifiHelper::Default ();
+
+  QosWifiMacHelper wifiMac = QosWifiMacHelper::Default ();
   YansWifiPhyHelper wifiPhy = YansWifiPhyHelper::Default ();
   YansWifiChannelHelper wifiChannel = YansWifiChannelHelper::Default ();
   wifiPhy.SetChannel (wifiChannel.Create ());
@@ -75,19 +85,17 @@ WifiMsduAggregatorThroughputTest::DoRun (void)
   NodeContainer ap;
   ap.Create (1);
   wifiMac.SetType ("ns3::ApWifiMac",
-                   "QosSupported", BooleanValue (true),
                    "Ssid", SsidValue (ssid),
                    "BeaconGeneration", BooleanValue (true),
-                   "BeaconInterval", TimeValue (MicroSeconds (102400)),
-                   "BE_MaxAmsduSize", UintegerValue (4000));
-
+                   "BeaconInterval", TimeValue (MicroSeconds (102400)));
+  wifiMac.SetMsduAggregatorForAc (AC_BE, "ns3::MsduStandardAggregator",
+                                  "MaxAmsduSize", UintegerValue (4000));
   NetDeviceContainer apDev = wifi.Install (wifiPhy, wifiMac, ap);
 
   // Setup one STA, which will be the sink for traffic in this test.
   NodeContainer sta;
   sta.Create (1);
   wifiMac.SetType ("ns3::StaWifiMac",
-                   "QosSupported", BooleanValue (true),
                    "Ssid", SsidValue (ssid),
                    "ActiveProbing", BooleanValue (false));
   NetDeviceContainer staDev = wifi.Install (wifiPhy, wifiMac, sta);
@@ -134,7 +142,7 @@ WifiMsduAggregatorThroughputTest::DoRun (void)
 
   // The packet source is an on-off application on the AP
   // device. Given that we have fixed the transmit rate at 1 Mbps
-  // above, a 1 Mbps stream at the transport layer should be sufficient
+  // above, a 1 Mbps stream at the transport layer should be sufficent
   // to determine whether aggregation is working or not.
   //
   // We configure this traffic stream to operate between 1 and 9 seconds.

@@ -80,22 +80,21 @@ namespace ns3 {
 class A2A4RsrqHandoverAlgorithm : public LteHandoverAlgorithm
 {
 public:
-  /// Creates an A2-A4-RSRQ handover algorithm instance.
+  /**
+   * \brief Creates an A2-A4-RSRQ handover algorithm instance.
+   */
   A2A4RsrqHandoverAlgorithm ();
 
   virtual ~A2A4RsrqHandoverAlgorithm ();
 
-  /**
-   * \brief Get the type ID.
-   * \return the object TypeId
-   */
+  // inherited from Object
   static TypeId GetTypeId ();
 
   // inherited from LteHandoverAlgorithm
   virtual void SetLteHandoverManagementSapUser (LteHandoverManagementSapUser* s);
   virtual LteHandoverManagementSapProvider* GetLteHandoverManagementSapProvider ();
 
-  /// let the forwarder class access the protected and private members
+  // let the forwarder class access the protected and private members
   friend class MemberLteHandoverManagementSapProvider<A2A4RsrqHandoverAlgorithm>;
 
 protected:
@@ -107,86 +106,41 @@ protected:
   void DoReportUeMeas (uint16_t rnti, LteRrcSap::MeasResults measResults);
 
 private:
-  /**
-   * Called when Event A2 is detected, then trigger a handover if needed.
-   *
-   * \param rnti The RNTI of the UE who reported the event.
-   * \param servingCellRsrq The RSRQ of this cell as reported by the UE.
-   */
+  // Internal methods
   void EvaluateHandover (uint16_t rnti, uint8_t servingCellRsrq);
-
-  /**
-   * Determines if a neighbour cell is a valid destination for handover.
-   * Currently always return true.
-   *
-   * \param cellId The cell ID of the neighbour cell.
-   * \return True if the cell is a valid destination for handover.
-   */
   bool IsValidNeighbour (uint16_t cellId);
-
-  /**
-   * Called when Event A4 is reported, then update the measurements table.
-   * If the RNTI and/or cell ID is not found in the table, a corresponding
-   * entry will be created. Only the latest measurements are stored in the
-   * table.
-   *
-   * \param rnti The RNTI of the UE who reported the event.
-   * \param cellId The cell ID of the measured cell.
-   * \param rsrq The RSRQ of the cell as measured by the UE.
-   */
   void UpdateNeighbourMeasurements (uint16_t rnti, uint16_t cellId,
                                     uint8_t rsrq);
 
-  /// The expected measurement identity for A2 measurements.
+  // The expected measurement identities
   uint8_t m_a2MeasId;
-  /// The expected measurement identity for A4 measurements.
   uint8_t m_a4MeasId;
 
   /**
-   * Measurements reported by a UE for a cell ID. The values are quantized
-   * according 3GPP TS 36.133 section 9.1.4 and 9.1.7.
+   * \brief Measurements reported by a UE for a cell ID.
+   *
+   * The values are quantized according 3GPP TS 36.133 section 9.1.4 and 9.1.7.
    */
   class UeMeasure : public SimpleRefCount<UeMeasure>
   {
   public:
-    uint16_t m_cellId;  ///< Cell ID.
-    uint8_t m_rsrp;     ///< RSRP in quantized format. \todo Can be removed?
-    uint8_t m_rsrq;     ///< RSRQ in quantized format.
+    uint16_t m_cellId;
+    uint8_t m_rsrp;
+    uint8_t m_rsrq;
   };
 
-  /**
-   * Measurements reported by a UE for several cells. The structure is a map
-   * indexed by the cell ID.
-   */
+  //               cellId
   typedef std::map<uint16_t, Ptr<UeMeasure> > MeasurementRow_t;
-
-  /**
-   * Measurements reported by several UEs. The structure is a map indexed by
-   * the RNTI of the UE.
-   */
+  //               rnti
   typedef std::map<uint16_t, MeasurementRow_t> MeasurementTable_t;
-
-  /// Table of measurement reports from all UEs.
   MeasurementTable_t m_neighbourCellMeasures;
 
-  /**
-   * The `ServingCellThreshold` attribute. If the RSRQ of the serving cell is
-   * worse than this threshold, neighbour cells are consider for handover.
-   * Expressed in quantized range of [0..34] as per Section 9.1.7 of
-   * 3GPP TS 36.133.
-   */
+  // Class attributes
   uint8_t m_servingCellThreshold;
-
-  /**
-   * The `NeighbourCellOffset` attribute. Minimum offset between the serving
-   * and the best neighbour cell to trigger the handover. Expressed in
-   * quantized range of [0..34] as per Section 9.1.7 of 3GPP TS 36.133.
-   */
   uint8_t m_neighbourCellOffset;
 
-  /// Interface to the eNodeB RRC instance.
+  // Handover Management SAPs
   LteHandoverManagementSapUser* m_handoverManagementSapUser;
-  /// Receive API calls from the eNodeB RRC instance.
   LteHandoverManagementSapProvider* m_handoverManagementSapProvider;
 
 }; // end of class A2A4RsrqHandoverAlgorithm

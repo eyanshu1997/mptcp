@@ -49,19 +49,19 @@ EnergySourceHelper::Install (NodeContainer c) const
        * Check if EnergySourceContainer is already aggregated to target node. If
        * not, create a new EnergySourceContainer and aggregate it to node.
        */
-      Ptr<EnergySourceContainer> EnergySourceContainerOnNode =
+      Ptr<EnergySourceContainer> EnergySourceContrainerOnNode =
         (*i)->GetObject<EnergySourceContainer> ();
-      if (EnergySourceContainerOnNode == NULL)
+      if (EnergySourceContrainerOnNode == NULL)
         {
           ObjectFactory fac;
           fac.SetTypeId ("ns3::EnergySourceContainer");
-          EnergySourceContainerOnNode = fac.Create<EnergySourceContainer> ();
-          EnergySourceContainerOnNode->Add (src);
-          (*i)->AggregateObject (EnergySourceContainerOnNode);
+          EnergySourceContrainerOnNode = fac.Create<EnergySourceContainer> ();
+          EnergySourceContrainerOnNode->Add (src);
+          (*i)->AggregateObject (EnergySourceContrainerOnNode);
         }
       else
         {
-          EnergySourceContainerOnNode->Add (src);  // append new EnergySource
+          EnergySourceContrainerOnNode->Add (src);  // append new EnergySource
         }
     }
   return container;

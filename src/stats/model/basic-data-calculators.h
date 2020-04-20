@@ -23,7 +23,6 @@
 
 #include "data-calculator.h"
 #include "data-output-interface.h"
-#include "ns3/type-name.h"
 
 namespace ns3 {
 
@@ -43,12 +42,6 @@ public:
   virtual ~MinMaxAvgTotalCalculator();
 
   /**
-   * Register this type.
-   * \return The TypeId.
-   */
-  static TypeId GetTypeId (void);
-  
-  /**
    * Updates all variables of MinMaxAvgTotalCalculator
    * \param i value of type T to use for updating the calculator
    */
@@ -58,10 +51,6 @@ public:
    */
   void Reset ();
 
-  /**
-   * Outputs the data based on the provided callback
-   * \param callback
-   */
   virtual void Output (DataOutputCallback &callback) const;
 
   /**
@@ -146,7 +135,6 @@ template <typename T>
 MinMaxAvgTotalCalculator<T>::~MinMaxAvgTotalCalculator()
 {
 }
-  
 template <typename T>
 void
 MinMaxAvgTotalCalculator<T>::DoDispose (void)
@@ -155,21 +143,6 @@ MinMaxAvgTotalCalculator<T>::DoDispose (void)
   // MinMaxAvgTotalCalculator::DoDispose
 }
 
-/* static */
-template <typename T>
-TypeId
-MinMaxAvgTotalCalculator<T>::GetTypeId (void)
-{
-  static TypeId tid = TypeId ( ("ns3::MinMaxAvgTotalCalculator<"
-                                + TypeNameGet<T> ()
-                                + ">").c_str () )
-    .SetParent<Object> ()
-    .SetGroupName ("Stats")
-    .AddConstructor<MinMaxAvgTotalCalculator<T> > ()
-    ;
-  return tid;
-}
-  
 template <typename T>
 void
 MinMaxAvgTotalCalculator<T>::Update (const T i)
@@ -187,8 +160,14 @@ MinMaxAvgTotalCalculator<T>::Update (const T i)
         }
       else
         {
-          m_min = (i < m_min) ? i : m_min;
-          m_max = (i > m_max) ? i : m_max;
+          if (i < m_min)
+            {
+              m_min = i;
+            }
+          if (i > m_max)
+            {
+              m_max = i;
+            }
         }
 
       // Calculate the variance based on equations (15) and (16) on
@@ -271,12 +250,6 @@ public:
   virtual ~CounterCalculator();
 
   /**
-   * Register this type.
-   * \return The TypeId.
-   */
-  static TypeId GetTypeId (void);
-  
-  /**
    * Increments count by 1
    */
   void Update ();
@@ -318,21 +291,6 @@ template <typename T>
 CounterCalculator<T>::~CounterCalculator()
 {
 }
-/* static */
-template <typename T>
-TypeId
-CounterCalculator<T>::GetTypeId (void)
-{
-  static TypeId tid = TypeId ( ("ns3::CounterCalculator<"
-                                + TypeNameGet<T> ()
-                                + ">").c_str () )
-    .SetParent<Object> ()
-    .SetGroupName ("Stats")
-    .AddConstructor<CounterCalculator<T> > ()
-    ;
-  return tid;
-}
-
 template <typename T>
 void
 CounterCalculator<T>::DoDispose (void)

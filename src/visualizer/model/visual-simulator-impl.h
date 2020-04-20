@@ -36,6 +36,7 @@ namespace ns3 {
  * \ingroup simulator
  *
  * \brief A replacement simulator that starts the visualizer
+ * \internal
  *
  * To use this class, run any ns-3 simulation with the command-line
  * argument --SimulatorImplementationType=ns3::VisualSimulatorImpl.
@@ -44,10 +45,6 @@ namespace ns3 {
 class VisualSimulatorImpl : public SimulatorImpl
 {
 public:
-  /**
-   * \brief Get the type ID.
-   * \return the object TypeId
-   */
   static TypeId GetTypeId (void);
 
   VisualSimulatorImpl ();
@@ -56,14 +53,14 @@ public:
   virtual void Destroy ();
   virtual bool IsFinished (void) const;
   virtual void Stop (void);
-  virtual void Stop (Time const &delay);
-  virtual EventId Schedule (Time const &delay, EventImpl *event);
-  virtual void ScheduleWithContext (uint32_t context, Time const &delay, EventImpl *event);
+  virtual void Stop (Time const &time);
+  virtual EventId Schedule (Time const &time, EventImpl *event);
+  virtual void ScheduleWithContext (uint32_t context, Time const &time, EventImpl *event);
   virtual EventId ScheduleNow (EventImpl *event);
   virtual EventId ScheduleDestroy (EventImpl *event);
-  virtual void Remove (const EventId &id);
-  virtual void Cancel (const EventId &id);
-  virtual bool IsExpired (const EventId &id) const;
+  virtual void Remove (const EventId &ev);
+  virtual void Cancel (const EventId &ev);
+  virtual bool IsExpired (const EventId &ev) const;
   virtual void Run (void);
   virtual Time Now (void) const;
   virtual Time GetDelayLeft (const EventId &id) const;
@@ -80,9 +77,9 @@ protected:
   void NotifyConstructionCompleted (void);
 
 private:
-  Ptr<SimulatorImpl> GetSim (); ///< get the simulator implementation
-  Ptr<SimulatorImpl> m_simulator; ///< the simulator implementation
-  ObjectFactory m_simulatorImplFactory; ///< simulator implementation factory
+  Ptr<SimulatorImpl> GetSim ();
+  Ptr<SimulatorImpl> m_simulator;
+  ObjectFactory m_simulatorImplFactory;
 
 };
 

@@ -34,34 +34,27 @@
 
 namespace ns3 {
 
-NS_LOG_COMPONENT_DEFINE ("PacketSink");
-
-NS_OBJECT_ENSURE_REGISTERED (PacketSink);
+NS_LOG_COMPONENT_DEFINE ("PacketSink")
+  ;
+NS_OBJECT_ENSURE_REGISTERED (PacketSink)
+  ;
 
 TypeId 
 PacketSink::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::PacketSink")
     .SetParent<Application> ()
-    .SetGroupName("Applications")
     .AddConstructor<PacketSink> ()
-    .AddAttribute ("Local",
-                   "The Address on which to Bind the rx socket.",
+    .AddAttribute ("Local", "The Address on which to Bind the rx socket.",
                    AddressValue (),
                    MakeAddressAccessor (&PacketSink::m_local),
                    MakeAddressChecker ())
-    .AddAttribute ("Protocol",
-                   "The type id of the protocol to use for the rx socket.",
+    .AddAttribute ("Protocol", "The type id of the protocol to use for the rx socket.",
                    TypeIdValue (UdpSocketFactory::GetTypeId ()),
                    MakeTypeIdAccessor (&PacketSink::m_tid),
                    MakeTypeIdChecker ())
-    .AddTraceSource ("Rx",
-                     "A packet has been received",
-                     MakeTraceSourceAccessor (&PacketSink::m_rxTrace),
-                     "ns3::Packet::AddressTracedCallback")
-    .AddTraceSource ("RxWithAddresses", "A packet has been received",
-                     MakeTraceSourceAccessor (&PacketSink::m_rxTraceWithAddresses),
-                     "ns3::Packet::TwoAddressTracedCallback")
+    .AddTraceSource ("Rx", "A packet has been received",
+                     MakeTraceSourceAccessor (&PacketSink::m_rxTrace))
   ;
   return tid;
 }
@@ -78,7 +71,7 @@ PacketSink::~PacketSink()
   NS_LOG_FUNCTION (this);
 }
 
-uint64_t PacketSink::GetTotalRx () const
+uint32_t PacketSink::GetTotalRx () const
 {
   NS_LOG_FUNCTION (this);
   return m_totalRx;
@@ -117,10 +110,7 @@ void PacketSink::StartApplication ()    // Called at time specified by Start
   if (!m_socket)
     {
       m_socket = Socket::CreateSocket (GetNode (), m_tid);
-      if (m_socket->Bind (m_local) == -1)
-        {
-          NS_FATAL_ERROR ("Failed to bind socket");
-        }
+      m_socket->Bind (m_local);
       m_socket->Listen ();
       m_socket->ShutdownSend ();
       if (addressUtils::IsMulticast (m_local))
@@ -168,7 +158,6 @@ void PacketSink::HandleRead (Ptr<Socket> socket)
   NS_LOG_FUNCTION (this << socket);
   Ptr<Packet> packet;
   Address from;
-  Address localAddress;
   while ((packet = socket->RecvFrom (from)))
     {
       if (packet->GetSize () == 0)
@@ -194,9 +183,7 @@ void PacketSink::HandleRead (Ptr<Socket> socket)
                        << " port " << Inet6SocketAddress::ConvertFrom (from).GetPort ()
                        << " total Rx " << m_totalRx << " bytes");
         }
-      socket->GetSockName (localAddress);
       m_rxTrace (packet, from);
-      m_rxTraceWithAddresses (packet, from, localAddress);
     }
 }
 

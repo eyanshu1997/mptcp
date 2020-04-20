@@ -34,10 +34,6 @@ class Tag;
 class LteRadioBearerTag : public Tag
 {
 public:
-  /**
-   * \brief Get the type ID.
-   * \return the object TypeId
-   */
   static TypeId GetTypeId (void);
   virtual TypeId GetInstanceTypeId (void) const;
 
@@ -48,16 +44,11 @@ public:
 
   /**
    * Create a LteRadioBearerTag with the given RNTI and LC id
-   * \param rnti the RNTI
-   * \param lcId the LCID
    */
   LteRadioBearerTag (uint16_t  rnti, uint8_t lcId);
   
   /**
   * Create a LteRadioBearerTag with the given RNTI, LC id and layer
-   * \param rnti the RNTI
-   * \param lcId the LCID
-   * \param layer the layer
   */
   LteRadioBearerTag (uint16_t  rnti, uint8_t lcId, uint8_t layer);
 
@@ -88,29 +79,14 @@ public:
   virtual uint32_t GetSerializedSize () const;
   virtual void Print (std::ostream &os) const;
 
-  /**
-   * Get RNTI function
-   *
-   * \returns RNTI
-   */
   uint16_t GetRnti (void) const;
-  /**
-   * Get LCID function
-   *
-   * \returns LCID
-   */
   uint8_t GetLcid (void) const;
-  /**
-   * Get layer function
-   *
-   * \returns layer
-   */
   uint8_t GetLayer (void) const;
 
 private:
-  uint16_t m_rnti; ///< RNTI
-  uint8_t m_lcid; ///< LCID
-  uint8_t m_layer; ///< layer
+  uint16_t m_rnti;
+  uint8_t m_lcid;
+  uint8_t m_layer;
 
 };
 

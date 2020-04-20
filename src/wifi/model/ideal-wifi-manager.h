@@ -17,11 +17,12 @@
  *
  * Author: Mathieu Lacage <mathieu.lacage@sophia.inria.fr>
  */
-
 #ifndef IDEAL_WIFI_MANAGER_H
 #define IDEAL_WIFI_MANAGER_H
 
-#include "ns3/traced-value.h"
+#include <stdint.h>
+#include <vector>
+#include "wifi-mode.h"
 #include "wifi-remote-station-manager.h"
 
 namespace ns3 {
@@ -44,75 +45,55 @@ namespace ns3 {
 class IdealWifiManager : public WifiRemoteStationManager
 {
 public:
-  /**
-   * \brief Get the type ID.
-   * \return the object TypeId
-   */
   static TypeId GetTypeId (void);
   IdealWifiManager ();
   virtual ~IdealWifiManager ();
 
-  void SetupPhy (const Ptr<WifiPhy> phy);
-
+  virtual void SetupPhy (Ptr<WifiPhy> phy);
 
 private:
-  //overridden from base class
-  void DoInitialize (void);
-  WifiRemoteStation* DoCreateStation (void) const;
-  void DoReportRxOk (WifiRemoteStation *station,
-                     double rxSnr, WifiMode txMode);
-  void DoReportRtsFailed (WifiRemoteStation *station);
-  void DoReportDataFailed (WifiRemoteStation *station);
-  void DoReportRtsOk (WifiRemoteStation *station,
-                      double ctsSnr, WifiMode ctsMode, double rtsSnr);
-  void DoReportDataOk (WifiRemoteStation *station,
-                       double ackSnr, WifiMode ackMode, double dataSnr);
-  void DoReportAmpduTxStatus (WifiRemoteStation *station,
-                              uint8_t nSuccessfulMpdus, uint8_t nFailedMpdus,
-                              double rxSnr, double dataSnr);
-  void DoReportFinalRtsFailed (WifiRemoteStation *station);
-  void DoReportFinalDataFailed (WifiRemoteStation *station);
-  WifiTxVector DoGetDataTxVector (WifiRemoteStation *station);
-  WifiTxVector DoGetRtsTxVector (WifiRemoteStation *station);
-  bool IsLowLatency (void) const;
+  // overriden from base class
+  virtual WifiRemoteStation* DoCreateStation (void) const;
+  virtual void DoReportRxOk (WifiRemoteStation *station,
+                             double rxSnr, WifiMode txMode);
+  virtual void DoReportRtsFailed (WifiRemoteStation *station);
+  virtual void DoReportDataFailed (WifiRemoteStation *station);
+  virtual void DoReportRtsOk (WifiRemoteStation *station,
+                              double ctsSnr, WifiMode ctsMode, double rtsSnr);
+  virtual void DoReportDataOk (WifiRemoteStation *station,
+                               double ackSnr, WifiMode ackMode, double dataSnr);
+  virtual void DoReportFinalRtsFailed (WifiRemoteStation *station);
+  virtual void DoReportFinalDataFailed (WifiRemoteStation *station);
+  virtual WifiTxVector DoGetDataTxVector (WifiRemoteStation *station, uint32_t size);
+  virtual WifiTxVector DoGetRtsTxVector (WifiRemoteStation *station);
+  virtual bool IsLowLatency (void) const;
 
   /**
    * Return the minimum SNR needed to successfully transmit
-   * data with this WifiTxVector at the specified BER.
+   * data with this mode at the specified BER.
    *
-   * \param txVector WifiTxVector (containing valid mode, width, and nss)
-   *
-   * \return the minimum SNR for the given WifiTxVector
+   * \param mode WifiMode
+   * \return the minimum SNR for the given mode
    */
-  double GetSnrThreshold (WifiTxVector txVector) const;
+  double GetSnrThreshold (WifiMode mode) const;
   /**
-   * Adds a pair of WifiTxVector and the minimum SNR for that given vector
+   * Adds a pair of WifiMode and the minimum SNR for that given mode
    * to the list.
    *
-   * \param txVector the WifiTxVector storing mode, channel width, and nss
-   * \param snr the minimum SNR for the given txVector
+   * \param mode WifiMode
+   * \param snr the minimum SNR for the given mode
    */
-  void AddSnrThreshold (WifiTxVector txVector, double snr);
+  void AddModeSnrThreshold (WifiMode mode, double snr);
 
   /**
-   * Convenience function for selecting a channel width for legacy mode
-   * \param mode legacy WifiMode
-   * \return the channel width (MHz) for the selected mode
+   * A vector of <snr, mode> pair that holds the minimum SNR for different mode
    */
-  uint16_t GetChannelWidthForMode (WifiMode mode) const;
+  typedef std::vector<std::pair<double,WifiMode> > Thresholds;
 
-  /**
-   * A vector of <snr, WifiTxVector> pair holding the minimum SNR for the
-   * WifiTxVector
-   */
-  typedef std::vector<std::pair<double, WifiTxVector> > Thresholds;
-
-  double m_ber;             //!< The maximum Bit Error Rate acceptable at any transmission mode
-  Thresholds m_thresholds;  //!< List of WifiTxVector and the minimum SNR pair
-
-  TracedValue<uint64_t> m_currentRate; //!< Trace rate changes
+  double m_ber;  //!< The maximum Bit Error Rate acceptable at any transmission mode
+  Thresholds m_thresholds;  //!< List of WifiMode and the minimum SNR pair
 };
 
-} //namespace ns3
+} // namespace ns3
 
 #endif /* IDEAL_WIFI_MANAGER_H */

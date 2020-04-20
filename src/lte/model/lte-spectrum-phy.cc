@@ -31,7 +31,7 @@
 #include "lte-spectrum-signal-parameters.h"
 #include "lte-net-device.h"
 #include "lte-radio-bearer-tag.h"
-#include "lte-chunk-processor.h"
+#include "lte-sinr-chunk-processor.h"
 #include "lte-phy-tag.h"
 #include <ns3/lte-mi-error-model.h>
 #include <ns3/lte-radio-bearer-tag.h>
@@ -39,21 +39,21 @@
 #include <ns3/double.h>
 #include <ns3/config.h>
 
-namespace ns3 {
-
 NS_LOG_COMPONENT_DEFINE ("LteSpectrumPhy");
 
+namespace ns3 {
 
-/// duration of SRS portion of UL subframe  
-/// = 1 symbol for SRS -1ns as margin to avoid overlapping simulator events
+
+
+// duration of SRS portion of UL subframe  
+// = 1 symbol for SRS -1ns as margin to avoid overlapping simulator events
 static const Time UL_SRS_DURATION = NanoSeconds (71429 -1);  
 
-/// duration of the control portion of a subframe
-/// = 0.001 / 14 * 3 (ctrl fixed to 3 symbols) -1ns as margin to avoid overlapping simulator events
+// duration of the control portion of a subframe
+// = 0.001 / 14 * 3 (ctrl fixed to 3 symbols) -1ns as margin to avoid overlapping simulator events
 static const Time DL_CTRL_DURATION = NanoSeconds (214286 -1);
 
-/// Effective coding rate
-static const double EffectiveCodingRate[29] = {
+double EffectiveCodingRate[29] = {
   0.08,
   0.1,
   0.11,
@@ -98,40 +98,26 @@ TbId_t::TbId_t (const uint16_t a, const uint8_t b)
 {
 }
 
-/**
- * Equality operator
- *
- * \param a lhs
- * \param b rhs
- * \returns true if rnti and layer are equal
- */
 bool
 operator == (const TbId_t &a, const TbId_t &b)
 {
   return ( (a.m_rnti == b.m_rnti) && (a.m_layer == b.m_layer) );
 }
 
-/**
- * Less than operator
- *
- * \param a lhs
- * \param b rhs
- * \returns true if rnti less than ro rnti equal and layer less than
- */
 bool
 operator < (const TbId_t& a, const TbId_t& b)
 {
   return ( (a.m_rnti < b.m_rnti) || ( (a.m_rnti == b.m_rnti) && (a.m_layer < b.m_layer) ) );
 }
 
-NS_OBJECT_ENSURE_REGISTERED (LteSpectrumPhy);
+NS_OBJECT_ENSURE_REGISTERED (LteSpectrumPhy)
+  ;
 
 LteSpectrumPhy::LteSpectrumPhy ()
   : m_state (IDLE),
     m_cellId (0),
-    m_componentCarrierId (0),
-    m_transmissionMode (0),
-    m_layersNum (1)
+  m_transmissionMode (0),
+  m_layersNum (1)
 {
   NS_LOG_FUNCTION (this);
   m_random = CreateObject<UniformRandomVariable> ();
@@ -164,6 +150,7 @@ void LteSpectrumPhy::DoDispose ()
   m_interferenceData = 0;
   m_interferenceCtrl->Dispose ();
   m_interferenceCtrl = 0;
+  m_ltePhyTxEndCallback      = MakeNullCallback< void, Ptr<const Packet> > ();
   m_ltePhyRxDataEndErrorCallback = MakeNullCallback< void > ();
   m_ltePhyRxDataEndOkCallback    = MakeNullCallback< void, Ptr<Packet> >  ();
   m_ltePhyRxCtrlEndOkCallback = MakeNullCallback< void, std::list<Ptr<LteControlMessage> > > ();
@@ -174,13 +161,6 @@ void LteSpectrumPhy::DoDispose ()
   SpectrumPhy::DoDispose ();
 } 
 
-/**
- * Output stream output operator
- *
- * \param os output stream
- * \param s state
- * \returns output stream
- */
 std::ostream& operator<< (std::ostream& os, LteSpectrumPhy::State s)
 {
   switch (s)
@@ -191,17 +171,11 @@ std::ostream& operator<< (std::ostream& os, LteSpectrumPhy::State s)
     case LteSpectrumPhy::RX_DATA:
       os << "RX_DATA";
       break;
-    case LteSpectrumPhy::RX_DL_CTRL:
-      os << "RX_DL_CTRL";
+    case LteSpectrumPhy::RX_CTRL:
+      os << "RX_CTRL";
       break;
-    case LteSpectrumPhy::TX_DATA:
-      os << "TX_DATA";
-      break;
-    case LteSpectrumPhy::TX_DL_CTRL:
-      os << "TX_DL_CTRL";
-      break;
-    case LteSpectrumPhy::TX_UL_SRS:
-      os << "TX_UL_SRS";
+    case LteSpectrumPhy::TX:
+      os << "TX";
       break;
     default:
       os << "UNKNOWN";
@@ -215,27 +189,21 @@ LteSpectrumPhy::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::LteSpectrumPhy")
     .SetParent<SpectrumPhy> ()
-    .SetGroupName("Lte")
     .AddTraceSource ("TxStart",
                      "Trace fired when a new transmission is started",
-                     MakeTraceSourceAccessor (&LteSpectrumPhy::m_phyTxStartTrace),
-                     "ns3::PacketBurst::TracedCallback")
+                     MakeTraceSourceAccessor (&LteSpectrumPhy::m_phyTxStartTrace))
     .AddTraceSource ("TxEnd",
-                     "Trace fired when a previously started transmission is finished",
-                     MakeTraceSourceAccessor (&LteSpectrumPhy::m_phyTxEndTrace),
-                     "ns3::PacketBurst::TracedCallback")
+                     "Trace fired when a previosuly started transmission is finished",
+                     MakeTraceSourceAccessor (&LteSpectrumPhy::m_phyTxEndTrace))
     .AddTraceSource ("RxStart",
                      "Trace fired when the start of a signal is detected",
-                     MakeTraceSourceAccessor (&LteSpectrumPhy::m_phyRxStartTrace),
-                     "ns3::PacketBurst::TracedCallback")
+                     MakeTraceSourceAccessor (&LteSpectrumPhy::m_phyRxStartTrace))
     .AddTraceSource ("RxEndOk",
-                     "Trace fired when a previously started RX terminates successfully",
-                     MakeTraceSourceAccessor (&LteSpectrumPhy::m_phyRxEndOkTrace),
-                     "ns3::Packet::TracedCallback")
+                     "Trace fired when a previosuly started RX terminates successfully",
+                     MakeTraceSourceAccessor (&LteSpectrumPhy::m_phyRxEndOkTrace))
     .AddTraceSource ("RxEndError",
-                     "Trace fired when a previously started RX terminates with an error",
-                     MakeTraceSourceAccessor (&LteSpectrumPhy::m_phyRxEndErrorTrace),
-                     "ns3::Packet::TracedCallback")
+                     "Trace fired when a previosuly started RX terminates with an error",
+                     MakeTraceSourceAccessor (&LteSpectrumPhy::m_phyRxEndErrorTrace))
     .AddAttribute ("DataErrorModelEnabled",
                     "Activate/Deactivate the error model of data (TBs of PDSCH and PUSCH) [by default is active].",
                     BooleanValue (true),
@@ -248,12 +216,10 @@ LteSpectrumPhy::GetTypeId (void)
                     MakeBooleanChecker ())
     .AddTraceSource ("DlPhyReception",
                      "DL reception PHY layer statistics.",
-                     MakeTraceSourceAccessor (&LteSpectrumPhy::m_dlPhyReception),
-                     "ns3::PhyReceptionStatParameters::TracedCallback")
+                     MakeTraceSourceAccessor (&LteSpectrumPhy::m_dlPhyReception))
     .AddTraceSource ("UlPhyReception",
                      "DL reception PHY layer statistics.",
-                     MakeTraceSourceAccessor (&LteSpectrumPhy::m_ulPhyReception),
-                     "ns3::PhyReceptionStatParameters::TracedCallback")
+                     MakeTraceSourceAccessor (&LteSpectrumPhy::m_ulPhyReception))
   ;
   return tid;
 }
@@ -261,7 +227,7 @@ LteSpectrumPhy::GetTypeId (void)
 
 
 Ptr<NetDevice>
-LteSpectrumPhy::GetDevice () const
+LteSpectrumPhy::GetDevice ()
 {
   NS_LOG_FUNCTION (this);
   return m_device;
@@ -350,6 +316,15 @@ LteSpectrumPhy::Reset ()
   m_rxPacketBurstList.clear ();
   m_txPacketBurst = 0;
   m_rxSpectrumModel = 0;
+}
+
+
+
+void
+LteSpectrumPhy::SetLtePhyTxEndCallback (LtePhyTxEndCallback c)
+{
+  NS_LOG_FUNCTION (this);
+  m_ltePhyTxEndCallback = c;
 }
 
 
@@ -451,23 +426,20 @@ LteSpectrumPhy::StartTxDataFrame (Ptr<PacketBurst> pb, std::list<Ptr<LteControlM
   m_phyTxStartTrace (pb);
   
   switch (m_state)
-    {
+  {
     case RX_DATA:
-    case RX_DL_CTRL:
-    case RX_UL_SRS:
-      NS_FATAL_ERROR ("cannot TX while RX: according to FDD channel access, the physical layer for transmission cannot be used for reception");
+    case RX_CTRL:
+      NS_FATAL_ERROR ("cannot TX while RX: according to FDD channel acces, the physical layer for transmission cannot be used for reception");
       break;
-
-    case TX_DATA:
-    case TX_DL_CTRL:      
-    case TX_UL_SRS:
+      
+    case TX:
       NS_FATAL_ERROR ("cannot TX while already TX: the MAC should avoid this");
       break;
       
     case IDLE:
     {
       /*
-      m_txPsd must be set by the device, according to
+      m_txPsd must be setted by the device, according to
       (i) the available subchannel for transmission
       (ii) the power transmission
       */
@@ -478,7 +450,7 @@ LteSpectrumPhy::StartTxDataFrame (Ptr<PacketBurst> pb, std::list<Ptr<LteControlM
       // to be used for simulation purposes (e.g., the CellId). This
       // is done by setting the ctrlMsgList parameter of
       // LteSpectrumSignalParametersDataFrame
-      ChangeState (TX_DATA);
+      ChangeState (TX);
       NS_ASSERT (m_channel);
       Ptr<LteSpectrumSignalParametersDataFrame> txParams = Create<LteSpectrumSignalParametersDataFrame> ();
       txParams->duration = duration;
@@ -489,7 +461,7 @@ LteSpectrumPhy::StartTxDataFrame (Ptr<PacketBurst> pb, std::list<Ptr<LteControlM
       txParams->ctrlMsgList = ctrlMsgList;
       txParams->cellId = m_cellId;
       m_channel->StartTx (txParams);
-      m_endTxEvent = Simulator::Schedule (duration, &LteSpectrumPhy::EndTxData, this);
+      m_endTxEvent = Simulator::Schedule (duration, &LteSpectrumPhy::EndTx, this);
     }
     return false;
     break;
@@ -507,24 +479,24 @@ LteSpectrumPhy::StartTxDlCtrlFrame (std::list<Ptr<LteControlMessage> > ctrlMsgLi
   NS_LOG_FUNCTION (this << " PSS " << (uint16_t)pss);
   NS_LOG_LOGIC (this << " state: " << m_state);
   
+  
+//   m_phyTxStartTrace (pb);
+  
   switch (m_state)
   {
     case RX_DATA:
-    case RX_DL_CTRL:
-    case RX_UL_SRS:
-      NS_FATAL_ERROR ("cannot TX while RX: according to FDD channel access, the physical layer for transmission cannot be used for reception");
+    case RX_CTRL:
+      NS_FATAL_ERROR ("cannot TX while RX: according to FDD channel acces, the physical layer for transmission cannot be used for reception");
       break;
       
-    case TX_DATA:
-    case TX_DL_CTRL:
-    case TX_UL_SRS:
+    case TX:
       NS_FATAL_ERROR ("cannot TX while already TX: the MAC should avoid this");
       break;
       
     case IDLE:
     {
       /*
-      m_txPsd must be set by the device, according to
+      m_txPsd must be setted by the device, according to
       (i) the available subchannel for transmission
       (ii) the power transmission
       */
@@ -534,7 +506,7 @@ LteSpectrumPhy::StartTxDlCtrlFrame (std::list<Ptr<LteControlMessage> > ctrlMsgLi
       // to be used for simulation purposes (e.g., the CellId). This
       // is done by setting the cellId parameter of
       // LteSpectrumSignalParametersDlCtrlFrame
-      ChangeState (TX_DL_CTRL);
+      ChangeState (TX);
       NS_ASSERT (m_channel);
 
       Ptr<LteSpectrumSignalParametersDlCtrlFrame> txParams = Create<LteSpectrumSignalParametersDlCtrlFrame> ();
@@ -546,7 +518,7 @@ LteSpectrumPhy::StartTxDlCtrlFrame (std::list<Ptr<LteControlMessage> > ctrlMsgLi
       txParams->pss = pss;
       txParams->ctrlMsgList = ctrlMsgList;
       m_channel->StartTx (txParams);
-      m_endTxEvent = Simulator::Schedule (DL_CTRL_DURATION, &LteSpectrumPhy::EndTxDlCtrl, this);
+      m_endTxEvent = Simulator::Schedule (DL_CTRL_DURATION, &LteSpectrumPhy::EndTx, this);
     }
     return false;
     break;
@@ -565,24 +537,23 @@ LteSpectrumPhy::StartTxUlSrsFrame ()
   NS_LOG_FUNCTION (this);
   NS_LOG_LOGIC (this << " state: " << m_state);
   
+  //   m_phyTxStartTrace (pb);
+  
   switch (m_state)
-    {
+  {
     case RX_DATA:
-    case RX_DL_CTRL:
-    case RX_UL_SRS:
-      NS_FATAL_ERROR ("cannot TX while RX: according to FDD channel access, the physical layer for transmission cannot be used for reception");
+    case RX_CTRL:
+      NS_FATAL_ERROR ("cannot TX while RX: according to FDD channel acces, the physical layer for transmission cannot be used for reception");
       break;
       
-    case TX_DL_CTRL:
-    case TX_DATA:
-    case TX_UL_SRS:
+    case TX:
       NS_FATAL_ERROR ("cannot TX while already TX: the MAC should avoid this");
       break;
       
     case IDLE:
     {
       /*
-      m_txPsd must be set by the device, according to
+      m_txPsd must be setted by the device, according to
       (i) the available subchannel for transmission
       (ii) the power transmission
       */
@@ -593,7 +564,7 @@ LteSpectrumPhy::StartTxUlSrsFrame ()
       // to be used for simulation purposes (e.g., the CellId). This
       // is done by setting the cellId parameter of 
       // LteSpectrumSignalParametersDlCtrlFrame
-      ChangeState (TX_UL_SRS);
+      ChangeState (TX);
       NS_ASSERT (m_channel);
       Ptr<LteSpectrumSignalParametersUlSrsFrame> txParams = Create<LteSpectrumSignalParametersUlSrsFrame> ();
       txParams->duration = UL_SRS_DURATION;
@@ -602,7 +573,7 @@ LteSpectrumPhy::StartTxUlSrsFrame ()
       txParams->psd = m_txPsd;
       txParams->cellId = m_cellId;
       m_channel->StartTx (txParams);
-      m_endTxEvent = Simulator::Schedule (UL_SRS_DURATION, &LteSpectrumPhy::EndTxUlSrs, this);
+      m_endTxEvent = Simulator::Schedule (UL_SRS_DURATION, &LteSpectrumPhy::EndTx, this);
     }
     return false;
     break;
@@ -617,40 +588,28 @@ LteSpectrumPhy::StartTxUlSrsFrame ()
 
 
 void
-LteSpectrumPhy::EndTxData ()
+LteSpectrumPhy::EndTx ()
 {
   NS_LOG_FUNCTION (this);
   NS_LOG_LOGIC (this << " state: " << m_state);
 
-  NS_ASSERT (m_state == TX_DATA);
+  NS_ASSERT (m_state == TX);
+
   m_phyTxEndTrace (m_txPacketBurst);
+
+  if (!m_ltePhyTxEndCallback.IsNull ())
+    {
+      for (std::list<Ptr<Packet> >::const_iterator iter = m_txPacketBurst->Begin (); iter
+           != m_txPacketBurst->End (); ++iter)
+        {
+          Ptr<Packet> packet = (*iter)->Copy ();
+          m_ltePhyTxEndCallback (packet);
+        }
+    }
+
   m_txPacketBurst = 0;
   ChangeState (IDLE);
 }
-
-void
-LteSpectrumPhy::EndTxDlCtrl ()
-{
-  NS_LOG_FUNCTION (this);
-  NS_LOG_LOGIC (this << " state: " << m_state);
-
-  NS_ASSERT (m_state == TX_DL_CTRL);
-  NS_ASSERT (m_txPacketBurst == 0);
-  ChangeState (IDLE);
-}
-
-void
-LteSpectrumPhy::EndTxUlSrs ()
-{
-  NS_LOG_FUNCTION (this);
-  NS_LOG_LOGIC (this << " state: " << m_state);
-
-  NS_ASSERT (m_state == TX_UL_SRS);
-  NS_ASSERT (m_txPacketBurst == 0);
-  ChangeState (IDLE);
-}
-
-
 
 
 void
@@ -665,29 +624,28 @@ LteSpectrumPhy::StartRx (Ptr<SpectrumSignalParameters> spectrumRxParams)
   // the device might start RX only if the signal is of a type
   // understood by this device - in this case, an LTE signal.
   Ptr<LteSpectrumSignalParametersDataFrame> lteDataRxParams = DynamicCast<LteSpectrumSignalParametersDataFrame> (spectrumRxParams);
-  Ptr<LteSpectrumSignalParametersDlCtrlFrame> lteDlCtrlRxParams = DynamicCast<LteSpectrumSignalParametersDlCtrlFrame> (spectrumRxParams);
-  Ptr<LteSpectrumSignalParametersUlSrsFrame> lteUlSrsRxParams = DynamicCast<LteSpectrumSignalParametersUlSrsFrame> (spectrumRxParams);
   if (lteDataRxParams != 0)
     {
       m_interferenceData->AddSignal (rxPsd, duration);
       StartRxData (lteDataRxParams);
     }
-  else if (lteDlCtrlRxParams!=0)
-    {
-      m_interferenceCtrl->AddSignal (rxPsd, duration);
-      StartRxDlCtrl (lteDlCtrlRxParams);
-    }
-  else if (lteUlSrsRxParams!=0)
-    {
-      m_interferenceCtrl->AddSignal (rxPsd, duration);
-      StartRxUlSrs (lteUlSrsRxParams);
-    }
   else
     {
-      // other type of signal (could be 3G, GSM, whatever) -> interference
-      m_interferenceData->AddSignal (rxPsd, duration);
-      m_interferenceCtrl->AddSignal (rxPsd, duration);
-    }    
+      Ptr<LteSpectrumSignalParametersDlCtrlFrame> lteDlCtrlRxParams = DynamicCast<LteSpectrumSignalParametersDlCtrlFrame> (spectrumRxParams);
+      Ptr<LteSpectrumSignalParametersUlSrsFrame> lteUlSrsRxParams = DynamicCast<LteSpectrumSignalParametersUlSrsFrame> (spectrumRxParams);
+      if ((lteDlCtrlRxParams!=0)||(lteUlSrsRxParams!=0))
+        {
+          m_interferenceCtrl->AddSignal (rxPsd, duration);
+          StartRxCtrl (spectrumRxParams);
+        }
+      else
+        {
+          // other type of signal (could be 3G, GSM, whatever) -> interference
+          m_interferenceData->AddSignal (rxPsd, duration);
+          m_interferenceCtrl->AddSignal (rxPsd, duration);
+        }
+    }
+
 }
 
 void
@@ -696,12 +654,10 @@ LteSpectrumPhy::StartRxData (Ptr<LteSpectrumSignalParametersDataFrame> params)
   NS_LOG_FUNCTION (this);
   switch (m_state)
     {
-      case TX_DATA:
-      case TX_DL_CTRL:
-      case TX_UL_SRS:
+      case TX:
         NS_FATAL_ERROR ("cannot RX while TX: according to FDD channel access, the physical layer for transmission cannot be used for reception");
         break;
-      case RX_DL_CTRL:
+      case RX_CTRL:
         NS_FATAL_ERROR ("cannot RX Data while receiving control");
         break;
       case IDLE:
@@ -769,155 +725,101 @@ LteSpectrumPhy::StartRxData (Ptr<LteSpectrumSignalParametersDataFrame> params)
 
 
 void
-LteSpectrumPhy::StartRxDlCtrl (Ptr<LteSpectrumSignalParametersDlCtrlFrame> lteDlCtrlRxParams)
-{
-  NS_LOG_FUNCTION (this);
-
-  // To check if we're synchronized to this signal, we check
-  // for the CellId which is reported in the
-  // LteSpectrumSignalParametersDlCtrlFrame
-  uint16_t cellId;        
-  NS_ASSERT (lteDlCtrlRxParams != 0);
-  cellId = lteDlCtrlRxParams->cellId;
-
-  switch (m_state)
-    {
-    case TX_DATA:
-    case TX_DL_CTRL:
-    case TX_UL_SRS:
-    case RX_DATA:
-    case RX_UL_SRS:
-      NS_FATAL_ERROR ("unexpected event in state " << m_state);
-      break;
-
-    case RX_DL_CTRL:
-    case IDLE:
-
-      // common code for the two states
-      // check presence of PSS for UE measuerements
-      if (lteDlCtrlRxParams->pss == true)
-        {
-          if (!m_ltePhyRxPssCallback.IsNull ())
-              {
-                m_ltePhyRxPssCallback (cellId, lteDlCtrlRxParams->psd);
-              }
-        }   
-
-      // differentiated code for the two states
-      switch (m_state)
-        {
-        case RX_DL_CTRL:
-          NS_ASSERT_MSG (m_cellId != cellId, "any other DlCtrl should be from a different cell");
-          NS_LOG_LOGIC (this << " ignoring other DlCtrl (cellId=" 
-                        << cellId  << ", m_cellId=" << m_cellId << ")");      
-          break;
-          
-        case IDLE:
-          if (cellId  == m_cellId)
-            {
-              NS_LOG_LOGIC (this << " synchronized with this signal (cellId=" << cellId << ")");
-              
-              NS_ASSERT (m_rxControlMessageList.empty ());
-              m_firstRxStart = Simulator::Now ();
-              m_firstRxDuration = lteDlCtrlRxParams->duration;
-              NS_LOG_LOGIC (this << " scheduling EndRx with delay " << lteDlCtrlRxParams->duration);
-              
-              // store the DCIs
-              m_rxControlMessageList = lteDlCtrlRxParams->ctrlMsgList;
-              m_endRxDlCtrlEvent = Simulator::Schedule (lteDlCtrlRxParams->duration, &LteSpectrumPhy::EndRxDlCtrl, this);
-              ChangeState (RX_DL_CTRL);
-              m_interferenceCtrl->StartRx (lteDlCtrlRxParams->psd);            
-            }
-          else
-            {
-              NS_LOG_LOGIC (this << " not synchronizing with this signal (cellId=" 
-                            << cellId  << ", m_cellId=" << m_cellId << ")");          
-            }
-          break;
-          
-        default:
-          NS_FATAL_ERROR ("unexpected event in state " << m_state);
-          break;
-        }
-      break; // case RX_DL_CTRL or IDLE
-      
-    default:
-      NS_FATAL_ERROR ("unknown state");
-      break;
-    }
-  
-  NS_LOG_LOGIC (this << " state: " << m_state);
-}
-
-
-
-
-void
-LteSpectrumPhy::StartRxUlSrs (Ptr<LteSpectrumSignalParametersUlSrsFrame> lteUlSrsRxParams)
+LteSpectrumPhy::StartRxCtrl (Ptr<SpectrumSignalParameters> params)
 {
   NS_LOG_FUNCTION (this);
   switch (m_state)
-    {
-    case TX_DATA:
-    case TX_DL_CTRL:
-    case TX_UL_SRS:
+  {
+    case TX:
       NS_FATAL_ERROR ("cannot RX while TX: according to FDD channel access, the physical layer for transmission cannot be used for reception");
       break;
-
     case RX_DATA:
-    case RX_DL_CTRL:
-      NS_FATAL_ERROR ("cannot RX SRS while receiving something else");
+      NS_FATAL_ERROR ("cannot RX data while receing control");
       break;
-
     case IDLE:
-    case RX_UL_SRS:
+    case RX_CTRL:
       // the behavior is similar when
-      // we're IDLE or RX_UL_SRS because we can receive more signals
-      // simultaneously at the eNB
+      // we're IDLE or RX because we can receive more signals
+      // simultaneously (e.g., at the eNB).
       {
         // To check if we're synchronized to this signal, we check
         // for the CellId which is reported in the
         // LteSpectrumSignalParametersDlCtrlFrame
         uint16_t cellId;
-        cellId = lteUlSrsRxParams->cellId;
-        if (cellId  == m_cellId)
+        bool dl;
+        Ptr<LteSpectrumSignalParametersDlCtrlFrame> lteDlCtrlRxParams = DynamicCast<LteSpectrumSignalParametersDlCtrlFrame> (params);
+        if (lteDlCtrlRxParams!=0)
           {
-            NS_LOG_LOGIC (this << " synchronized with this signal (cellId=" << cellId << ")");
-            if (m_state == IDLE)
-              {
-                // first transmission, i.e., we're IDLE and we
-                // start RX
-                NS_ASSERT (m_rxControlMessageList.empty ());
-                m_firstRxStart = Simulator::Now ();
-                m_firstRxDuration = lteUlSrsRxParams->duration;
-                NS_LOG_LOGIC (this << " scheduling EndRx with delay " << lteUlSrsRxParams->duration);
-
-                m_endRxUlSrsEvent = Simulator::Schedule (lteUlSrsRxParams->duration, &LteSpectrumPhy::EndRxUlSrs, this);
-              }
-            else if (m_state == RX_UL_SRS)
-              {
-                // sanity check: if there are multiple RX events, they
-                // should occur at the same time and have the same
-                // duration, otherwise the interference calculation
-                // won't be correct
-                NS_ASSERT ((m_firstRxStart == Simulator::Now ()) 
-                           && (m_firstRxDuration == lteUlSrsRxParams->duration));
-              }            
-            ChangeState (RX_UL_SRS);
-            m_interferenceCtrl->StartRx (lteUlSrsRxParams->psd);          
+            cellId = lteDlCtrlRxParams->cellId;
+            dl = true;
           }
         else
           {
-            NS_LOG_LOGIC (this << " not in sync with this signal (cellId=" 
-                          << cellId  << ", m_cellId=" << m_cellId << ")");          
+            Ptr<LteSpectrumSignalParametersUlSrsFrame> lteUlSrsRxParams = DynamicCast<LteSpectrumSignalParametersUlSrsFrame> (params);
+            cellId = lteUlSrsRxParams->cellId;
+            dl = false;
           }
+        if (dl)
+            {
+              // check presence of PSS for UE measuerements
+              if (lteDlCtrlRxParams->pss == true)
+                {
+                  SpectrumValue pssPsd = *params->psd;
+                  if (!m_ltePhyRxPssCallback.IsNull ())
+                    {
+                      m_ltePhyRxPssCallback (cellId, params->psd);
+                    }
+                }
+            }
+        if (cellId  == m_cellId)
+        {
+          NS_LOG_LOGIC (this << " synchronized with this signal (cellId=" << cellId << ")");
+          if (m_state == IDLE)
+          {
+            // first transmission, i.e., we're IDLE and we
+            // start RX
+            NS_ASSERT (m_rxControlMessageList.empty ());
+            m_firstRxStart = Simulator::Now ();
+            m_firstRxDuration = params->duration;
+            NS_LOG_LOGIC (this << " scheduling EndRx with delay " << params->duration);
+            if (dl==true)
+              {
+                // store the DCIs
+                m_rxControlMessageList = lteDlCtrlRxParams->ctrlMsgList;
+                m_endRxDlCtrlEvent = Simulator::Schedule (params->duration, &LteSpectrumPhy::EndRxDlCtrl, this);
+              }
+            else
+              {
+                m_endRxUlSrsEvent = Simulator::Schedule (params->duration, &LteSpectrumPhy::EndRxUlSrs, this);
+              }
+          }
+          else if (m_state == RX_CTRL)
+          {
+            // sanity check: if there are multiple RX events, they
+            // should occur at the same time and have the same
+            // duration, otherwise the interference calculation
+            // won't be correct
+            NS_ASSERT ((m_firstRxStart == Simulator::Now ()) 
+            && (m_firstRxDuration == params->duration));
+          }
+          
+          ChangeState (RX_CTRL);
+          m_interferenceCtrl->StartRx (params->psd);
+          
+//           NS_LOG_LOGIC (this << " numSimultaneousRxEvents = " << m_rxPacketBurstList.size ());
+        }
+        else
+        {
+          NS_LOG_LOGIC (this << " not in sync with this signal (cellId=" 
+          << cellId  << ", m_cellId=" << m_cellId << ")");          
+        }
       }
       break;
       
-    default:
-      NS_FATAL_ERROR ("unknown state");
-      break;
-    }
+      default:
+        NS_FATAL_ERROR ("unknown state");
+        break;
+  }
   
   NS_LOG_LOGIC (this << " state: " << m_state);
 }
@@ -1007,7 +909,6 @@ LteSpectrumPhy::EndRxData ()
           params.m_rv = (*itTb).second.rv;
           params.m_ndi = (*itTb).second.ndi;
           params.m_correctness = (uint8_t)!(*itTb).second.corrupt;
-          params.m_ccId = m_componentCarrierId;
           if ((*itTb).second.downlink)
             {
               // DL
@@ -1086,7 +987,7 @@ LteSpectrumPhy::EndRxData ()
                         if (itHarq==harqDlInfoMap.end ())
                           {
                             DlInfoListElement_s harqDlInfo;
-                            harqDlInfo.m_harqStatus.resize (m_layersNum, DlInfoListElement_s::ACK);
+                            harqDlInfo.m_harqStatus.resize (m_layersNum, DlInfoListElement_s::NACK);
                             harqDlInfo.m_rnti = tbId.m_rnti;
                             harqDlInfo.m_harqProcessId = (*itTb).second.harqProcessId;
                             if ((*itTb).second.corrupt)
@@ -1156,7 +1057,7 @@ LteSpectrumPhy::EndRxDlCtrl ()
   NS_LOG_FUNCTION (this);
   NS_LOG_LOGIC (this << " state: " << m_state);
   
-  NS_ASSERT (m_state == RX_DL_CTRL);
+  NS_ASSERT (m_state == RX_CTRL);
   
   // this will trigger CQI calculation and Error Model evaluation
   // as a side effect, the error model should update the error status of all TBs
@@ -1174,6 +1075,7 @@ LteSpectrumPhy::EndRxDlCtrl ()
   if (m_ctrlErrorModelEnabled)
     {
       double  errorRate = LteMiErrorModel::GetPcfichPdcchError (m_sinrPerceived);
+      errorRate = LteMiErrorModel::GetPcfichPdcchError (m_sinrPerceived);
       error = m_random->GetValue () > errorRate ? false : true;
       NS_LOG_DEBUG (this << " PCFICH-PDCCH Decodification, errorRate " << errorRate << " error " << error);
     }
@@ -1201,7 +1103,7 @@ LteSpectrumPhy::EndRxDlCtrl ()
 void
 LteSpectrumPhy::EndRxUlSrs ()
 {
-  NS_ASSERT (m_state == RX_UL_SRS);
+  NS_ASSERT (m_state == RX_CTRL);
   ChangeState (IDLE);
   m_interferenceCtrl->EndRx ();
   // nothing to do (used only for SRS at this stage)
@@ -1213,44 +1115,34 @@ LteSpectrumPhy::SetCellId (uint16_t cellId)
   m_cellId = cellId;
 }
 
-void
-LteSpectrumPhy::SetComponentCarrierId (uint8_t componentCarrierId)
-{
-  m_componentCarrierId = componentCarrierId;
-}
 
 void
-LteSpectrumPhy::AddRsPowerChunkProcessor (Ptr<LteChunkProcessor> p)
+LteSpectrumPhy::AddRsPowerChunkProcessor (Ptr<LteSinrChunkProcessor> p)
 {
   m_interferenceCtrl->AddRsPowerChunkProcessor (p);
 }
 
-void
-LteSpectrumPhy::AddDataPowerChunkProcessor (Ptr<LteChunkProcessor> p)
-{
-  m_interferenceData->AddRsPowerChunkProcessor (p);
-}
 
 void
-LteSpectrumPhy::AddDataSinrChunkProcessor (Ptr<LteChunkProcessor> p)
+LteSpectrumPhy::AddDataSinrChunkProcessor (Ptr<LteSinrChunkProcessor> p)
 {
   m_interferenceData->AddSinrChunkProcessor (p);
 }
 
 void
-LteSpectrumPhy::AddInterferenceCtrlChunkProcessor (Ptr<LteChunkProcessor> p)
+LteSpectrumPhy::AddInterferenceCtrlChunkProcessor (Ptr<LteSinrChunkProcessor> p)
 {
   m_interferenceCtrl->AddInterferenceChunkProcessor (p);
 }
 
 void
-LteSpectrumPhy::AddInterferenceDataChunkProcessor (Ptr<LteChunkProcessor> p)
+LteSpectrumPhy::AddInterferenceDataChunkProcessor (Ptr<LteSinrChunkProcessor> p)
 {
   m_interferenceData->AddInterferenceChunkProcessor (p);
 }
 
 void
-LteSpectrumPhy::AddCtrlSinrChunkProcessor (Ptr<LteChunkProcessor> p)
+LteSpectrumPhy::AddCtrlSinrChunkProcessor (Ptr<LteSinrChunkProcessor> p)
 {
   m_interferenceCtrl->AddSinrChunkProcessor (p);
 }

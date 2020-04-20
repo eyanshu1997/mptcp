@@ -53,7 +53,8 @@
 
 using namespace ns3;
 
-NS_LOG_COMPONENT_DEFINE ("UanCwExample");
+NS_LOG_COMPONENT_DEFINE ("UanCwExample")
+  ;
 
 Experiment::Experiment () 
   : m_numNodes (15),
@@ -266,8 +267,9 @@ int
 main (int argc, char **argv)
 {
 
+  LogComponentEnable ("UanCwExample", LOG_LEVEL_ALL);
+
   Experiment exp;
-  bool quiet = false;
 
   std::string gnudatfile ("cwexpgnuout.dat");
   std::string perModel = "ns3::UanPhyPerGenDefault";
@@ -286,13 +288,7 @@ main (int argc, char **argv)
   cmd.AddValue ("GnuFile", "Name for GNU Plot output", exp.m_gnudatfile);
   cmd.AddValue ("PerModel", "PER model name", perModel);
   cmd.AddValue ("SinrModel", "SINR model name", sinrModel);
-  cmd.AddValue ("Quiet", "Run in quiet mode (disable logging)", quiet);
   cmd.Parse (argc, argv);
-
-  if (!quiet)
-    {
-      LogComponentEnable ("UanCwExample", LOG_LEVEL_ALL);
-    }
 
   ObjectFactory obf;
   obf.SetTypeId (perModel);

@@ -28,9 +28,10 @@
 
 #include "spectrum-test.h"
 
-using namespace ns3;
-
 // NS_LOG_COMPONENT_DEFINE ("SpectrumValueTest");
+
+namespace ns3 {
+
 
 #define TOLERANCE 1e-6
 
@@ -339,3 +340,7 @@ SpectrumConverterTestSuite::SpectrumConverterTestSuite ()
 // static instance of test suites
 static SpectrumValueTestSuite g_SpectrumValueTestSuite;
 static SpectrumConverterTestSuite g_SpectrumConverterTestSuite;
+
+
+
+} // namespace ns3

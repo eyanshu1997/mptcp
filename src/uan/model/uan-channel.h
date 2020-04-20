@@ -61,8 +61,8 @@ public:
   static TypeId GetTypeId (void);
 
   // Inherited methods
-  virtual std::size_t GetNDevices (void) const;
-  virtual Ptr<NetDevice> GetDevice (std::size_t i) const;
+  virtual uint32_t GetNDevices (void) const;
+  virtual Ptr<NetDevice> GetDevice (uint32_t i) const;
 
   /**
    * Send a packet out on the channel.
@@ -72,8 +72,8 @@ public:
    * \param txPowerDb Transmission power in dB.
    * \param txmode UanTxMode defining modulation of transmitted packet.
    */
-  virtual void TxPacket  (Ptr<UanTransducer> src, Ptr<Packet> packet, double txPowerDb,
-                          UanTxMode txmode);
+  void TxPacket  (Ptr<UanTransducer> src, Ptr<Packet> packet, double txPowerDb,
+                  UanTxMode txmode);
 
   /**
    * Adds device to receiver list for this channel.
@@ -111,12 +111,12 @@ public:
    * Clear all pointer references. */
   void Clear (void);
 
-protected:
+private:
   UanDeviceList m_devList;     //!< The list of devices on this channel.
   Ptr<UanPropModel> m_prop;    //!< The propagation model.
   Ptr<UanNoiseModel> m_noise;  //!< The noise model.
   /** Has Clear ever been called on the channel. */
-  bool m_cleared;
+  bool m_cleared;              
 
   /**
    * Send a packet up to the receiving UanTransducer.
@@ -128,7 +128,8 @@ protected:
    * \param pdp PDP of arriving signal.
    */
   void SendUp (uint32_t i, Ptr<Packet> packet, double rxPowerDb, UanTxMode txMode, UanPdp pdp);
-
+  
+protected:
   virtual void DoDispose (void);
 
 };  // class UanChannel

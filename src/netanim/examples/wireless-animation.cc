@@ -16,19 +16,20 @@
  * Author: Vikas Pushkar (Adapted from third.cc)
  */
 
+
 #include "ns3/core-module.h"
 #include "ns3/point-to-point-module.h"
 #include "ns3/csma-module.h"
 #include "ns3/network-module.h"
 #include "ns3/applications-module.h"
+#include "ns3/wifi-module.h"
 #include "ns3/mobility-module.h"
 #include "ns3/internet-module.h"
 #include "ns3/netanim-module.h"
 #include "ns3/basic-energy-source.h"
 #include "ns3/simple-device-energy-model.h"
-#include "ns3/yans-wifi-helper.h"
-#include "ns3/ssid.h"
-#include "ns3/wifi-radio-energy-model.h"
+
+
 
 using namespace ns3;
 
@@ -40,6 +41,7 @@ main (int argc, char *argv[])
   uint32_t nWifi = 20;
   CommandLine cmd;
   cmd.AddValue ("nWifi", "Number of wifi STA devices", nWifi);
+  
 
   cmd.Parse (argc,argv);
   NodeContainer allNodes;
@@ -54,10 +56,11 @@ main (int argc, char *argv[])
   YansWifiPhyHelper phy = YansWifiPhyHelper::Default ();
   phy.SetChannel (channel.Create ());
 
-  WifiHelper wifi;
+  WifiHelper wifi = WifiHelper::Default ();
   wifi.SetRemoteStationManager ("ns3::AarfWifiManager");
 
-  WifiMacHelper mac;
+  NqosWifiMacHelper mac = NqosWifiMacHelper::Default ();
+
   Ssid ssid = Ssid ("ns-3-ssid");
   mac.SetType ("ns3::StaWifiMac",
                "Ssid", SsidValue (ssid),
@@ -115,11 +118,12 @@ main (int argc, char *argv[])
   AnimationInterface::SetConstantPosition (csmaNodes.Get (1), 10, 33); 
 
   Ptr<BasicEnergySource> energySource = CreateObject<BasicEnergySource>();
-  Ptr<WifiRadioEnergyModel> energyModel = CreateObject<WifiRadioEnergyModel>();
+  Ptr<SimpleDeviceEnergyModel> energyModel = CreateObject<SimpleDeviceEnergyModel>();
 
   energySource->SetInitialEnergy (300);
   energyModel->SetEnergySource (energySource);
   energySource->AppendDeviceEnergyModel (energyModel);
+  energyModel->SetCurrentA (20);
 
   // aggregate energy source to node
   wifiApNode.Get (0)->AggregateObject (energySource);
@@ -160,28 +164,18 @@ main (int argc, char *argv[])
 
   Ipv4GlobalRoutingHelper::PopulateRoutingTables ();
   Simulator::Stop (Seconds (15.0));
+  AnimationInterface::SetNodeDescription (wifiApNode, "AP"); // Optional
+  AnimationInterface::SetNodeDescription (wifiStaNodes, "STA"); //b Optional
+  AnimationInterface::SetNodeDescription (csmaNodes, "CSMA"); // Optional
+  AnimationInterface::SetNodeColor (wifiApNode, 0, 255, 0); // Optional
+  AnimationInterface::SetNodeColor (wifiStaNodes, 255, 0, 0); // Optional
+  AnimationInterface::SetNodeColor (csmaNodes, 0, 0, 255); // Optional
+  AnimationInterface::SetBoundary (0, 0, 35, 35); // Optional
 
   AnimationInterface anim ("wireless-animation.xml"); // Mandatory
-  for (uint32_t i = 0; i < wifiStaNodes.GetN (); ++i)
-    {
-      anim.UpdateNodeDescription (wifiStaNodes.Get (i), "STA"); // Optional
-      anim.UpdateNodeColor (wifiStaNodes.Get (i), 255, 0, 0); // Optional
-    }
-  for (uint32_t i = 0; i < wifiApNode.GetN (); ++i)
-    {
-      anim.UpdateNodeDescription (wifiApNode.Get (i), "AP"); // Optional
-      anim.UpdateNodeColor (wifiApNode.Get (i), 0, 255, 0); // Optional
-    }
-  for (uint32_t i = 0; i < csmaNodes.GetN (); ++i)
-    {
-      anim.UpdateNodeDescription (csmaNodes.Get (i), "CSMA"); // Optional
-      anim.UpdateNodeColor (csmaNodes.Get (i), 0, 0, 255); // Optional 
-    }
 
-  anim.EnablePacketMetadata (); // Optional
+  anim.EnablePacketMetadata (true); // Optional
   anim.EnableIpv4RouteTracking ("routingtable-wireless.xml", Seconds (0), Seconds (5), Seconds (0.25)); //Optional
-  anim.EnableWifiMacCounters (Seconds (0), Seconds (10)); //Optional
-  anim.EnableWifiPhyCounters (Seconds (0), Seconds (10)); //Optional
   Simulator::Run ();
   Simulator::Destroy ();
   return 0;

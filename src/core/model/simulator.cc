@@ -23,7 +23,6 @@
 #include "scheduler.h"
 #include "map-scheduler.h"
 #include "event-impl.h"
-#include "des-metrics.h"
 
 #include "ptr.h"
 #include "string.h"
@@ -37,92 +36,35 @@
 #include <list>
 #include <vector>
 #include <iostream>
-#include <iomanip>
-
-/**
- * \file
- * \ingroup simulator
- * ns3::Simulator implementation, as well as implementation pointer,
- * global scheduler implementation, and default ns3::NodePrinter
- * and ns3::TimePrinter.
- */
-
-namespace ns3 {
 
 // Note:  Logging in this file is largely avoided due to the
 // number of calls that are made to these functions and the possibility
 // of causing recursions leading to stack overflow
+
 NS_LOG_COMPONENT_DEFINE ("Simulator");
 
-/**
- * \ingroup simulator
- * The specific simulator implementation to use.
- *
- * Must be derived from SimulatorImpl.
- */
-static GlobalValue g_simTypeImpl = GlobalValue
-  ("SimulatorImplementationType",
-   "The object class to use as the simulator implementation",
-   StringValue ("ns3::DefaultSimulatorImpl"),
-   MakeStringChecker ());
+namespace ns3 {
 
-/**
- * \ingroup scheduler
- * The specific event scheduler implementation to use.
- *
- * Must be derived from Scheduler.
- */
-static GlobalValue g_schedTypeImpl = GlobalValue ("SchedulerType",
-                                                  "The object class to use as the scheduler implementation",
-                                                  TypeIdValue (MapScheduler::GetTypeId ()),
-                                                  MakeTypeIdChecker ());
+GlobalValue g_simTypeImpl = GlobalValue ("SimulatorImplementationType", 
+                                         "The object class to use as the simulator implementation",
+                                         StringValue ("ns3::DefaultSimulatorImpl"),
+                                         MakeStringChecker ());
 
-/**
- * \ingroup logging
- * Default TimePrinter implementation.
- *
- * \param [in,out] os The output stream to print the time on.
- */
+GlobalValue g_schedTypeImpl = GlobalValue ("SchedulerType", 
+                                           "The object class to use as the scheduler implementation",
+                                           TypeIdValue (MapScheduler::GetTypeId ()),
+                                           MakeTypeIdChecker ());
+
 static void
 TimePrinter (std::ostream &os)
 {
-  std::ios_base::fmtflags ff = os.flags (); // Save stream flags
-  std::streamsize oldPrecision = os.precision ();
-  if (Time::GetResolution () == Time::NS)
-    {
-      os << std::fixed << std::setprecision (9) << Simulator::Now ().As (Time::S);
-    }
-  else if (Time::GetResolution () == Time::PS) 
-    {
-      os << std::fixed << std::setprecision (12) << Simulator::Now ().As (Time::S);
-    }
-  else if (Time::GetResolution () == Time::FS) 
-    {
-      os << std::fixed << std::setprecision (15) << Simulator::Now ().As (Time::S);
-    }
-  else if (Time::GetResolution () == Time::US) 
-    {
-      os << std::fixed << std::setprecision (6) << Simulator::Now ().As (Time::S);
-    }
-  else
-    {
-      // default C++ precision of 5
-      os << std::fixed << std::setprecision (5) << Simulator::Now ().As (Time::S);
-    }
-  os << std::setprecision (oldPrecision);
-  os.flags (ff); // Restore stream flags
+  os << Simulator::Now ().GetSeconds () << "s";
 }
 
-/**
- * \ingroup logging
- * Default node id printer implementation.
- * 
- * \param [in,out] os The output stream to print the node id on.
- */
 static void
 NodePrinter (std::ostream &os)
 {
-  if (Simulator::GetContext () == Simulator::NO_CONTEXT)
+  if (Simulator::GetContext () == 0xffffffff)
     {
       os << "-1";
     }
@@ -132,23 +74,12 @@ NodePrinter (std::ostream &os)
     }
 }
 
-/**
- * \ingroup simulator
- * \brief Get the static SimulatorImpl instance.
- * \return The SimulatorImpl instance pointer.
- */
 static SimulatorImpl **PeekImpl (void)
 {
   static SimulatorImpl *impl = 0;
   return &impl;
 }
 
-/**
- * \ingroup simulator
- * \brief Get the SimulatorImpl singleton.
- * \return The singleton pointer.
- * \see Simulator::GetImplementation()
- */
 static SimulatorImpl * GetImpl (void)
 {
   SimulatorImpl **pimpl = PeekImpl ();
@@ -239,10 +170,10 @@ Simulator::Stop (void)
 }
 
 void 
-Simulator::Stop (Time const &delay)
+Simulator::Stop (Time const &time)
 {
-  NS_LOG_FUNCTION (delay);
-  GetImpl ()->Stop (delay);
+  NS_LOG_FUNCTION (time);
+  GetImpl ()->Stop (time);
 }
 
 Time
@@ -262,9 +193,9 @@ Simulator::GetDelayLeft (const EventId &id)
 }
 
 EventId
-Simulator::Schedule (Time const &delay, const Ptr<EventImpl> &event)
+Simulator::Schedule (Time const &time, const Ptr<EventImpl> &ev)
 {
-  return DoSchedule (delay, GetPointer (event));
+  return DoSchedule (time, GetPointer (ev));
 }
 
 EventId
@@ -273,12 +204,9 @@ Simulator::ScheduleNow (const Ptr<EventImpl> &ev)
   return DoScheduleNow (GetPointer (ev));
 }
 void
-Simulator::ScheduleWithContext (uint32_t context, const Time &delay, EventImpl *impl)
+Simulator::ScheduleWithContext (uint32_t context, const Time &time, EventImpl *impl)
 {
-#ifdef ENABLE_DES_METRICS
-  DesMetrics::Get ()->TraceWithContext (context, Now (), delay);
-#endif
-  return GetImpl ()->ScheduleWithContext (context, delay, impl);
+  return GetImpl ()->ScheduleWithContext (context, time, impl);
 }
 EventId
 Simulator::ScheduleDestroy (const Ptr<EventImpl> &ev)
@@ -288,17 +216,11 @@ Simulator::ScheduleDestroy (const Ptr<EventImpl> &ev)
 EventId 
 Simulator::DoSchedule (Time const &time, EventImpl *impl)
 {
-#ifdef ENABLE_DES_METRICS
-  DesMetrics::Get ()->Trace (Now (), time);
-#endif
   return GetImpl ()->Schedule (time, impl);
 }
 EventId 
 Simulator::DoScheduleNow (EventImpl *impl)
 {
-#ifdef ENABLE_DES_METRICS
-  DesMetrics::Get ()->Trace (Now (), Time (0));
-#endif
   return GetImpl ()->ScheduleNow (impl);
 }
 EventId 
@@ -309,15 +231,15 @@ Simulator::DoScheduleDestroy (EventImpl *impl)
 
 
 EventId
-Simulator::Schedule (Time const &delay, void (*f)(void))
+Simulator::Schedule (Time const &time, void (*f)(void))
 {
-  return DoSchedule (delay, MakeEvent (f));
+  return DoSchedule (time, MakeEvent (f));
 }
 
 void
-Simulator::ScheduleWithContext (uint32_t context, Time const &delay, void (*f)(void))
+Simulator::ScheduleWithContext (uint32_t context, Time const &time, void (*f)(void))
 {
-  return ScheduleWithContext (context, delay, MakeEvent (f));
+  return ScheduleWithContext (context, time, MakeEvent (f));
 }
 
 EventId
@@ -333,23 +255,23 @@ Simulator::ScheduleDestroy (void (*f)(void))
 }
 
 void
-Simulator::Remove (const EventId &id)
+Simulator::Remove (const EventId &ev)
 {
   if (*PeekImpl () == 0)
     {
       return;
     }
-  return GetImpl ()->Remove (id);
+  return GetImpl ()->Remove (ev);
 }
 
 void
-Simulator::Cancel (const EventId &id)
+Simulator::Cancel (const EventId &ev)
 {
   if (*PeekImpl () == 0)
     {
       return;
     }
-  return GetImpl ()->Cancel (id);
+  return GetImpl ()->Cancel (ev);
 }
 
 bool 
@@ -420,7 +342,6 @@ Simulator::SetImplementation (Ptr<SimulatorImpl> impl)
   LogSetTimePrinter (&TimePrinter);
   LogSetNodePrinter (&NodePrinter);
 }
-
 Ptr<SimulatorImpl>
 Simulator::GetImplementation (void)
 {

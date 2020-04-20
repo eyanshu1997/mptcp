@@ -26,15 +26,9 @@
 # include <signal.h>
 #endif
 
-namespace ns3 {
-
-/**
- * \file
- * \ingroup breakpoint
- * ns3::BreakpointFallback function implementation.
- */
-
 NS_LOG_COMPONENT_DEFINE ("Breakpoint");
+
+namespace ns3 {
 
 #if defined (HAVE_SIGNAL_H) && defined (SIGTRAP)
 
@@ -51,7 +45,7 @@ BreakpointFallback (void)
 void
 BreakpointFallback (void)
 {
-  NS_LOG_FUNCTION_NOARGS ();
+  NS_LOG_FUNCTION (this);
 
   int *a = 0;
   /**

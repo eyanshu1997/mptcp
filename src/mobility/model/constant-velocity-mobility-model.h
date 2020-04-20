@@ -30,15 +30,11 @@ namespace ns3 {
 /**
  * \ingroup mobility
  *
- * \brief Mobility model for which the current speed does not change once it has been set and until it is set again explicitly to a new value.
+ * \brief Mobility model for which the current speed does not change once it has been set and until it is set again explicitely to a new value.
  */
 class ConstantVelocityMobilityModel : public MobilityModel 
 {
 public:
-  /**
-   * Register this type with the TypeId system.
-   * \return the object TypeId
-   */
   static TypeId GetTypeId (void);
   /**
    * Create position located at coordinates (0,0,0) with
@@ -58,7 +54,8 @@ private:
   virtual Vector DoGetPosition (void) const;
   virtual void DoSetPosition (const Vector &position);
   virtual Vector DoGetVelocity (void) const;
-  ConstantVelocityHelper m_helper;  //!< helper object for this model
+  void Update (void) const;
+  ConstantVelocityHelper m_helper;
 };
 
 } // namespace ns3

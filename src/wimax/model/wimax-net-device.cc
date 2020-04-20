@@ -39,11 +39,12 @@
 #include "connection-manager.h"
 #include "bandwidth-manager.h"
 
-namespace ns3 {
-
 NS_LOG_COMPONENT_DEFINE ("WimaxNetDevice");
 
-NS_OBJECT_ENSURE_REGISTERED (WimaxNetDevice);
+namespace ns3 {
+
+NS_OBJECT_ENSURE_REGISTERED (WimaxNetDevice)
+  ;
 
 uint32_t WimaxNetDevice::m_nrFrames = 0;
 uint8_t WimaxNetDevice::m_direction = ~0;
@@ -56,9 +57,6 @@ TypeId WimaxNetDevice::GetTypeId (void)
     TypeId ("ns3::WimaxNetDevice")
 
     .SetParent<NetDevice> ()
-    .SetGroupName ("Wimax")
-
-    // No AddConstructor because this is an abstract class.
 
     .AddAttribute ("Mtu", "The MAC-level Maximum Transmission Unit",
                    UintegerValue (DEFAULT_MSDU_SIZE),
@@ -123,15 +121,9 @@ TypeId WimaxNetDevice::GetTypeId (void)
                    MakePointerAccessor (&WimaxNetDevice::m_broadcastConnection),
                    MakePointerChecker<WimaxConnection> ())
 
-    .AddTraceSource ("Rx",
-                     "Receive trace",
-                     MakeTraceSourceAccessor (&WimaxNetDevice::m_traceRx),
-                     "ns3::WimaxNetDevice::TxRxTracedCallback")
+    .AddTraceSource ("Rx", "Receive trace", MakeTraceSourceAccessor (&WimaxNetDevice::m_traceRx))
 
-    .AddTraceSource ("Tx",
-                     "Transmit trace",
-                     MakeTraceSourceAccessor (&WimaxNetDevice::m_traceTx),
-                     "ns3::WimaxNetDevice::TxRxTracedCallback");
+    .AddTraceSource ("Tx", "Transmit trace", MakeTraceSourceAccessor (&WimaxNetDevice::m_traceTx));
   return tid;
 }
 

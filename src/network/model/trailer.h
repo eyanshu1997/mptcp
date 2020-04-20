@@ -40,10 +40,6 @@ namespace ns3 {
 class Trailer : public Chunk
 {
 public:
-  /**
-   * \brief Get the type ID.
-   * \return the object TypeId
-   */
   static TypeId GetTypeId (void);
   virtual ~Trailer ();
   /**
@@ -79,27 +75,9 @@ public:
    * representation of this trailer in real networks.
    * The input iterator points to the end of the area where the 
    * data shall be written. This method is thus expected to call
-   * Buffer::Iterator::Prev prior to actually reading any data.
+   * Buffer::Iterator::Prev prio to actually reading any data.
    */
   virtual uint32_t Deserialize (Buffer::Iterator end) = 0;
-  /**
-   * \param start an iterator which points to the start of the buffer
-   *        where the trailer should be read from.
-   * \param end an iterator which points to the end of the buffer
-   *        where the trailer should be read from.
-   * \returns the number of bytes read.
-   *
-   * This method is used by Packet::RemoveTrailer to
-   * re-create a trailer from the byte buffer of a packet. 
-   * The data read is expected to match bit-for-bit the 
-   * representation of this trailer in real networks.
-   * The input iterator end points to the end of the area where the 
-   * data shall be written. 
-   *
-   * This variant should be provided by any variable-sized trailer subclass
-   * (i.e. if GetSerializedSize () does not return a constant). 
-   */
-  virtual uint32_t Deserialize (Buffer::Iterator start, Buffer::Iterator end);
   /**
    * \param os output stream
    * This method is used by Packet::Print to print the 
@@ -115,13 +93,6 @@ public:
   virtual void Print (std::ostream &os) const = 0;
 };
 
-/**
- * \brief Stream insertion operator.
- *
- * \param os the stream
- * \param trailer the trailer
- * \returns a reference to the stream
- */
 std::ostream & operator << (std::ostream &os, const Trailer &trailer);
 
 } // namespace ns3

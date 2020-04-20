@@ -41,17 +41,16 @@
 #include <iomanip>
 #include <list>
 
-namespace ns3 {
-
 NS_LOG_COMPONENT_DEFINE ("NullMessageMpiInterface");
+
+namespace ns3 {
 
 /**
  * maximum MPI message size for easy
  * buffer creation
  */
-#ifdef NS3_MPI
 const uint32_t NULL_MESSAGE_MAX_MPI_MSG_SIZE = 2000;
-#endif
+
 
 NullMessageSentBuffer::NullMessageSentBuffer ()
 {
@@ -145,10 +144,7 @@ void
 NullMessageMpiInterface::Enable (int* pargc, char*** pargv)
 {
   NS_LOG_FUNCTION (this << *pargc);
-
-#ifndef NS3_MPI
-  NS_UNUSED(pargv);
-#else
+#ifdef NS3_MPI
 
   // Initialize the MPI interface
   MPI_Init (pargc, pargv);
@@ -342,7 +338,7 @@ NullMessageMpiInterface::ReceiveMessages (bool blocking)
           Time rxTime (time);
 
           // rxtime == 0 means this is a Null Message
-          if (rxTime > Time (0))
+          if (rxTime > 0)
             {
               count -= sizeof (time) + sizeof (guaranteeUpdate) + sizeof (node) + sizeof (dev);
 

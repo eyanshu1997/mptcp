@@ -26,11 +26,14 @@
 #include <vector>
 #include <algorithm>
 
-namespace ns3 {
+namespace ns3
+{
 
-NS_LOG_COMPONENT_DEFINE ("RadioBearerStatsCalculator");
+NS_LOG_COMPONENT_DEFINE ("RadioBearerStatsCalculator")
+  ;
 
-NS_OBJECT_ENSURE_REGISTERED ( RadioBearerStatsCalculator);
+NS_OBJECT_ENSURE_REGISTERED ( RadioBearerStatsCalculator)
+  ;
 
 RadioBearerStatsCalculator::RadioBearerStatsCalculator ()
   : m_firstWrite (true),
@@ -59,7 +62,6 @@ RadioBearerStatsCalculator::GetTypeId (void)
   static TypeId tid =
     TypeId ("ns3::RadioBearerStatsCalculator")
     .SetParent<LteStatsCalculator> ().AddConstructor<RadioBearerStatsCalculator> ()
-    .SetGroupName("Lte")
     .AddAttribute ("StartTime", "Start time of the on going epoch.", 
                    TimeValue (Seconds (0.)),
                    MakeTimeAccessor (&RadioBearerStatsCalculator::SetStartTime,
@@ -272,17 +274,10 @@ RadioBearerStatsCalculator::WriteUlResults (std::ofstream& outFile)
 {
   NS_LOG_FUNCTION (this);
 
-  // Get the unique IMSI/LCID pairs list
+  // Get the unique IMSI / LCID list
+
   std::vector < ImsiLcidPair_t > pairVector;
   for (Uint32Map::iterator it = m_ulTxPackets.begin (); it != m_ulTxPackets.end (); ++it)
-    {
-      if (find (pairVector.begin (), pairVector.end (), (*it).first) == pairVector.end ())
-        {
-          pairVector.push_back ((*it).first);
-        }
-    }
-
-  for (Uint32Map::iterator it = m_ulRxPackets.begin (); it != m_ulRxPackets.end (); ++it)
     {
       if (find (pairVector.begin (), pairVector.end (), (*it).first) == pairVector.end ())
         {
@@ -294,20 +289,12 @@ RadioBearerStatsCalculator::WriteUlResults (std::ofstream& outFile)
   for (std::vector<ImsiLcidPair_t>::iterator it = pairVector.begin (); it != pairVector.end (); ++it)
     {
       ImsiLcidPair_t p = *it;
-      FlowIdMap::const_iterator flowIdIt = m_flowId.find (p);
-      // \TODO Temporary workaround until traces are connected correctly in LteEnbRrc and LteUeRrc
-      if (flowIdIt == m_flowId.end ()) continue;
-//       NS_ASSERT_MSG (flowIdIt != m_flowId.end (),
-//                      "FlowId (imsi " << p.m_imsi << " lcid " << (uint32_t) p.m_lcId << ") is missing");
-      LteFlowId_t flowId = flowIdIt->second;
-      NS_ASSERT_MSG (flowId.m_lcId == p.m_lcId, "lcid mismatch");
-
       outFile << m_startTime.GetNanoSeconds () / 1.0e9 << "\t";
       outFile << endTime.GetNanoSeconds () / 1.0e9 << "\t";
       outFile << GetUlCellId (p.m_imsi, p.m_lcId) << "\t";
       outFile << p.m_imsi << "\t";
-      outFile << flowId.m_rnti << "\t";
-      outFile << (uint32_t) flowId.m_lcId << "\t";
+      outFile << m_flowId[p].m_rnti << "\t";
+      outFile << (uint32_t) m_flowId[p].m_lcId << "\t";
       outFile << GetUlTxPackets (p.m_imsi, p.m_lcId) << "\t";
       outFile << GetUlTxData (p.m_imsi, p.m_lcId) << "\t";
       outFile << GetUlRxPackets (p.m_imsi, p.m_lcId) << "\t";
@@ -333,17 +320,9 @@ RadioBearerStatsCalculator::WriteDlResults (std::ofstream& outFile)
 {
   NS_LOG_FUNCTION (this);
 
-  // Get the unique IMSI/LCID pairs list
+  // Get the unique IMSI list
   std::vector < ImsiLcidPair_t > pairVector;
   for (Uint32Map::iterator it = m_dlTxPackets.begin (); it != m_dlTxPackets.end (); ++it)
-    {
-      if (find (pairVector.begin (), pairVector.end (), (*it).first) == pairVector.end ())
-        {
-          pairVector.push_back ((*it).first);
-        }
-    }
-
-  for (Uint32Map::iterator it = m_dlRxPackets.begin (); it != m_dlRxPackets.end (); ++it)
     {
       if (find (pairVector.begin (), pairVector.end (), (*it).first) == pairVector.end ())
         {
@@ -355,20 +334,12 @@ RadioBearerStatsCalculator::WriteDlResults (std::ofstream& outFile)
   for (std::vector<ImsiLcidPair_t>::iterator pair = pairVector.begin (); pair != pairVector.end (); ++pair)
     {
       ImsiLcidPair_t p = *pair;
-      FlowIdMap::const_iterator flowIdIt = m_flowId.find (p);
-      // \TODO Temporary workaround until traces are connected correctly in LteEnbRrc and LteUeRrc
-      if (flowIdIt == m_flowId.end ()) continue;
-//       NS_ASSERT_MSG (flowIdIt != m_flowId.end (),
-//                      "FlowId (imsi " << p.m_imsi << " lcid " << (uint32_t) p.m_lcId << ") is missing");
-      LteFlowId_t flowId = flowIdIt->second;
-      NS_ASSERT_MSG (flowId.m_lcId == p.m_lcId, "lcid mismatch");
-
       outFile << m_startTime.GetNanoSeconds () / 1.0e9 << "\t";
       outFile << endTime.GetNanoSeconds () / 1.0e9 << "\t";
       outFile << GetDlCellId (p.m_imsi, p.m_lcId) << "\t";
       outFile << p.m_imsi << "\t";
-      outFile << flowId.m_rnti << "\t";
-      outFile << (uint32_t) flowId.m_lcId << "\t";
+      outFile << m_flowId[p].m_rnti << "\t";
+      outFile << (uint32_t) m_flowId[p].m_lcId << "\t";
       outFile << GetDlTxPackets (p.m_imsi, p.m_lcId) << "\t";
       outFile << GetDlTxData (p.m_imsi, p.m_lcId) << "\t";
       outFile << GetDlRxPackets (p.m_imsi, p.m_lcId) << "\t";

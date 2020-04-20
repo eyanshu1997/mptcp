@@ -49,25 +49,21 @@ public:
   SpectrumPhy ();
   virtual ~SpectrumPhy ();
 
-  /**
-   * \brief Get the type ID.
-   * \return the object TypeId
-   */
   static TypeId GetTypeId (void);
 
   /**
-   * Set the associated NetDevice instance
+   * set the associated NetDevice instance
    *
    * @param d the NetDevice instance
    */
   virtual void SetDevice (Ptr<NetDevice> d) = 0;
 
   /**
-   * Get the associated NetDevice instance
+   * get the associated NetDevice instance
    *
    * @return a Ptr to the associated NetDevice instance
    */
-  virtual Ptr<NetDevice> GetDevice () const = 0;
+  virtual Ptr<NetDevice> GetDevice () = 0;
 
   /**
    * Set the mobility model associated with this device.
@@ -77,7 +73,7 @@ public:
   virtual void SetMobility (Ptr<MobilityModel> m) = 0;
 
   /**
-   * Get the associated MobilityModel instance
+   * get the associated MobilityModel instance
    *
    * @return a Ptr to the associated MobilityModel instance
    */
@@ -99,7 +95,7 @@ public:
   virtual Ptr<const SpectrumModel> GetRxSpectrumModel () const = 0;
 
   /**
-   * Get the AntennaModel used by the NetDevice for reception
+   * get the AntennaModel used by the NetDevice for reception
    *
    * @return a Ptr to the AntennaModel used by the NetDevice for reception
    */
@@ -113,18 +109,7 @@ public:
   virtual void StartRx (Ptr<SpectrumSignalParameters> params) = 0;
 
 private:
-  /**
-   * \brief Copy constructor
-   *
-   * Defined and unimplemented to avoid misuse
-   */
   SpectrumPhy (SpectrumPhy const &);
-  /**
-   * \brief Copy constructor
-   *
-   * Defined and unimplemented to avoid misuse
-   * \returns
-   */
   SpectrumPhy& operator= (SpectrumPhy const &);
 };
 

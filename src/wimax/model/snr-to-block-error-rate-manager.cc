@@ -26,11 +26,10 @@
 #include "ns3/log.h"
 #include "ns3/assert.h"
 #include <fstream>
-#include <sstream>
-
-namespace ns3 {
 
 NS_LOG_COMPONENT_DEFINE ("SNRToBlockErrorRateManager");
+
+namespace ns3 {
 
 SNRToBlockErrorRateManager::SNRToBlockErrorRateManager (void)
 {
@@ -40,7 +39,7 @@ SNRToBlockErrorRateManager::SNRToBlockErrorRateManager (void)
       m_recordModulation[i] = new std::vector<SNRToBlockErrorRateRecord*> ();
     }
   m_activateLoss = false;
-  m_traceFilePath = "DefaultTraces";
+  std::strcpy (m_traceFilePath,"DefaultTraces");
 }
 
 SNRToBlockErrorRateManager::~SNRToBlockErrorRateManager (void)
@@ -80,25 +79,25 @@ SNRToBlockErrorRateManager::ActivateLoss (bool loss)
 void
 SNRToBlockErrorRateManager::LoadTraces (void)
 {
-  std::ifstream traceFile;
+  std::ifstream m_ifTraceFile;
   ClearRecords ();
   double snrValue, bitErrorRate, burstErrorRate, sigma2, I1, I2;
 
   for (int i = 0; i < 7; i++)
     {
-      std::stringstream traceFilePath;
-      traceFilePath << m_traceFilePath << "/modulation" << i << ".txt";
+      char traceFile[1024];
+      sprintf (traceFile, "%s/modulation%d.txt", m_traceFilePath, i);
 
-      traceFile.open (traceFilePath.str ().c_str (), std::ifstream::in);
-      if (traceFile.good () == false)
+      m_ifTraceFile.open (traceFile, std::ifstream::in);
+      if (m_ifTraceFile.good () == false)
         {
-          NS_LOG_INFO ("Unable to load " << traceFilePath.str () << "!! Loading default traces...");
+          NS_LOG_INFO ("Unable to load " << traceFile << "!! Loading default traces...");
           LoadDefaultTraces ();
           return;
         }
-      while (traceFile.good ())
+      while (m_ifTraceFile.good ())
         {
-          traceFile >> snrValue >> bitErrorRate >> burstErrorRate >> sigma2 >> I1 >> I2;
+          m_ifTraceFile >> snrValue >> bitErrorRate >> burstErrorRate >> sigma2 >> I1 >> I2;
           SNRToBlockErrorRateRecord *record = new SNRToBlockErrorRateRecord (snrValue,
                                                                              bitErrorRate,
                                                                              burstErrorRate,
@@ -108,7 +107,7 @@ SNRToBlockErrorRateManager::LoadTraces (void)
           m_recordModulation[i]->push_back (record);
 
         }
-      traceFile.close ();
+      m_ifTraceFile.close ();
     }
   m_activateLoss = true;
 }
@@ -240,23 +239,23 @@ SNRToBlockErrorRateManager::ReLoadTraces (void)
 
   ClearRecords ();
 
-  std::ifstream traceFile;
+  std::ifstream m_ifTraceFile;
 
   for (int i = 0; i < 7; i++)
     {
-      std::stringstream traceFilePath;
-      traceFilePath << m_traceFilePath << "/Modulation" << i << ".txt";
+      char traceFile[1024];
+      sprintf (traceFile, "%s/Modulation%d.txt", m_traceFilePath, i);
 
-      traceFile.open (traceFilePath.str ().c_str (), std::ifstream::in);
-      if (traceFile.good () == false)
+      m_ifTraceFile.open (traceFile, std::ifstream::in);
+      if (m_ifTraceFile.good () == false)
         {
-          NS_LOG_INFO ("Unable to load " << traceFilePath.str () << "!!Loading default traces...");
+          NS_LOG_INFO ("Unable to load " << traceFile << "!!Loading default traces...");
           LoadDefaultTraces ();
           return;
         }
-      while (traceFile.good ())
+      while (m_ifTraceFile.good ())
         {
-          traceFile >> snrValue >> bitErrorRate >> burstErrorRate >> sigma2 >> I1 >> I2;
+          m_ifTraceFile >> snrValue >> bitErrorRate >> burstErrorRate >> sigma2 >> I1 >> I2;
           SNRToBlockErrorRateRecord *record = new SNRToBlockErrorRateRecord (snrValue,
                                                                              bitErrorRate,
                                                                              burstErrorRate,
@@ -267,7 +266,7 @@ SNRToBlockErrorRateManager::ReLoadTraces (void)
           m_recordModulation[i]->push_back (record);
 
         }
-      traceFile.close ();
+      m_ifTraceFile.close ();
     }
   m_activateLoss = true;
 }
@@ -275,13 +274,15 @@ SNRToBlockErrorRateManager::ReLoadTraces (void)
 void
 SNRToBlockErrorRateManager::SetTraceFilePath (char *traceFilePath)
 {
-  m_traceFilePath = traceFilePath;
+  NS_ASSERT_MSG (std::strlen (traceFilePath) < TRACE_FILE_PATH_SIZE,
+                 "char * traceFilePath too long");
+  std::strcpy (m_traceFilePath, traceFilePath);
 }
 
 std::string
 SNRToBlockErrorRateManager::GetTraceFilePath (void)
 {
-  return m_traceFilePath;
+  return (std::string (m_traceFilePath));
 }
 
 double
@@ -306,6 +307,7 @@ SNRToBlockErrorRateManager::GetBlockErrorRate (double SNR, uint8_t modulation)
       return 0;
     }
 
+  std::vector<SNRToBlockErrorRateRecord*>::const_iterator iter;
   unsigned int i;
   for (i = 0; i < record->size (); i++)
     {
@@ -345,6 +347,7 @@ SNRToBlockErrorRateManager::GetSNRToBlockErrorRateRecord (double SNR,
         record->at (record->size () - 1)->Copy ();
     }
 
+  std::vector<SNRToBlockErrorRateRecord*>::const_iterator iter;
   unsigned int i;
   for (i = 0; i < record->size (); i++)
     {

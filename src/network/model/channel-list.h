@@ -38,7 +38,6 @@ class CallbackBase;
 class ChannelList
 {
 public:
-  /// Channel container iterator
   typedef std::vector< Ptr<Channel> >::const_iterator Iterator;
 
   /**

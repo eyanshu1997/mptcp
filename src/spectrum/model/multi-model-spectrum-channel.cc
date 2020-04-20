@@ -39,19 +39,16 @@
 #include "multi-model-spectrum-channel.h"
 
 
-namespace ns3 {
-
 NS_LOG_COMPONENT_DEFINE ("MultiModelSpectrumChannel");
 
-NS_OBJECT_ENSURE_REGISTERED (MultiModelSpectrumChannel);
+
+namespace ns3 {
 
 
-/**
- * \brief Output stream operator
- * \param lhs output stream
- * \param rhs the TxSpectrumModelInfoMap to print
- * \return an output stream
- */
+NS_OBJECT_ENSURE_REGISTERED (MultiModelSpectrumChannel)
+  ;
+
+
 std::ostream& operator<< (std::ostream& lhs, TxSpectrumModelInfoMap_t& rhs)
 {
   for (TxSpectrumModelInfoMap_t::iterator it = rhs.begin ();
@@ -103,43 +100,29 @@ MultiModelSpectrumChannel::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::MultiModelSpectrumChannel")
     .SetParent<SpectrumChannel> ()
-    .SetGroupName ("Spectrum")
     .AddConstructor<MultiModelSpectrumChannel> ()
     .AddAttribute ("MaxLossDb",
-                   "If a single-frequency PropagationLossModel is used, "
-                   "this value represents the maximum loss in dB for which "
-                   "transmissions will be passed to the receiving PHY.  "
-                   "Signals for which the PropagationLossModel returns "
-                   "a loss bigger than this value will not be propagated "
-                   "to the receiver.  This parameter is to be used to reduce "
-                   "the computational load by not propagating signals that "
-                   "are far beyond the interference range. Note that the "
-                   "default value corresponds to considering all signals "
-                   "for reception. Tune this value with care. ",
+                   "If a single-frequency PropagationLossModel is used, this value "
+                   "represents the maximum loss in dB for which transmissions will be "
+                   "passed to the receiving PHY. Signals for which the PropagationLossModel "
+                   "returns a loss bigger than this value will not be propagated to the receiver. "
+                   "This parameter is to be used to reduce "
+                   "the computational load by not propagating signals that are far beyond "
+                   "the interference range. Note that the default value corresponds to "
+                   "considering all signals for reception. Tune this value with care. ",
                    DoubleValue (1.0e9),
                    MakeDoubleAccessor (&MultiModelSpectrumChannel::m_maxLossDb),
                    MakeDoubleChecker<double> ())
     .AddTraceSource ("PathLoss",
-                     "This trace is fired whenever a new path loss value "
-                     "is calculated. The first and second parameters "
-                     "to the trace are pointers respectively to the "
-                     "TX and RX SpectrumPhy instances, whereas the "
-                     "third parameters is the loss value in dB.  "
-                     "Note that the loss value reported by this trace is "
-                     "the single-frequency loss value obtained by evaluating "
-                     "only the TX and RX AntennaModels and the "
-                     "PropagationLossModel. In particular, note that "
-                     "SpectrumPropagationLossModel (even if present) "
-                     "is never used to evaluate the loss value "
+                     "This trace is fired "
+                     "whenever a new path loss value is calculated. The first and second parameters "
+                     "to the trace are pointers respectively to the TX and RX SpectrumPhy instances, "
+                     "whereas the third parameters is the loss value in dB. Note that the loss value "
+                     "reported by this trace is the single-frequency loss value obtained by evaluating "
+                     "only the TX and RX AntennaModels and the PropagationLossModel. In particular, note that "
+                     "SpectrumPropagationLossModel (even if present) is never used to evaluate the loss value "
                      "reported in this trace. ",
-                     MakeTraceSourceAccessor (&MultiModelSpectrumChannel::m_pathLossTrace),
-                     "ns3::SpectrumChannel::LossTracedCallback")
-    .AddTraceSource ("TxSigParams",
-                     "This trace is fired whenever a signal is transmitted. "
-                     "The sole parameter is a pointer to a copy of the "
-                     "SpectrumSignalParameters provided by the transmitter.",
-                     MakeTraceSourceAccessor (&MultiModelSpectrumChannel::m_txSigParamsTrace),
-                     "ns3::MultiModelSpectrumChannel::SignalParametersTracedCallback")
+                     MakeTraceSourceAccessor (&MultiModelSpectrumChannel::m_pathLossTrace))
   ;
   return tid;
 }
@@ -156,6 +139,8 @@ MultiModelSpectrumChannel::AddRx (Ptr<SpectrumPhy> phy)
   NS_ASSERT_MSG ((0 != rxSpectrumModel), "phy->GetRxSpectrumModel () returned 0. Please check that the RxSpectrumModel is already set for the phy before calling MultiModelSpectrumChannel::AddRx (phy)");
 
   SpectrumModelUid_t rxSpectrumModelUid = rxSpectrumModel->GetUid ();
+
+  std::vector<Ptr<SpectrumPhy> >::const_iterator it;
 
   // remove a previous entry of this phy if it exists
   // we need to scan for all rxSpectrumModel values since we don't
@@ -194,16 +179,11 @@ MultiModelSpectrumChannel::AddRx (Ptr<SpectrumPhy> phy)
            ++txInfoIterator)
         {
           Ptr<const SpectrumModel> txSpectrumModel = txInfoIterator->second.m_txSpectrumModel;
-          SpectrumModelUid_t txSpectrumModelUid = txSpectrumModel->GetUid ();
-
-          if (rxSpectrumModelUid != txSpectrumModelUid && !txSpectrumModel->IsOrthogonal (*rxSpectrumModel))
-            {
-              NS_LOG_LOGIC ("Creating converter between SpectrumModelUid " << txSpectrumModel->GetUid () << " and " << rxSpectrumModelUid);
-              SpectrumConverter converter (txSpectrumModel, rxSpectrumModel);
-              std::pair<SpectrumConverterMap_t::iterator, bool> ret2;
-              ret2 = txInfoIterator->second.m_spectrumConverterMap.insert (std::make_pair (rxSpectrumModelUid, converter));
-              NS_ASSERT (ret2.second);
-            }
+          NS_LOG_LOGIC ("Creating converters between SpectrumModelUids " << txSpectrumModel->GetUid () << " and " << rxSpectrumModelUid );
+          SpectrumConverter converter (txSpectrumModel, rxSpectrumModel);
+          std::pair<SpectrumConverterMap_t::iterator, bool> ret2;
+          ret2 = txInfoIterator->second.m_spectrumConverterMap.insert (std::make_pair (rxSpectrumModelUid, converter));
+          NS_ASSERT (ret2.second);
         }
     }
   else
@@ -240,9 +220,9 @@ MultiModelSpectrumChannel::FindAndEventuallyAddTxSpectrumModel (Ptr<const Spectr
           Ptr<const SpectrumModel> rxSpectrumModel = rxInfoIterator->second.m_rxSpectrumModel;
           SpectrumModelUid_t rxSpectrumModelUid = rxSpectrumModel->GetUid ();
 
-          if (rxSpectrumModelUid != txSpectrumModelUid && !txSpectrumModel->IsOrthogonal (*rxSpectrumModel))
+          if (rxSpectrumModelUid != txSpectrumModelUid)
             {
-              NS_LOG_LOGIC ("Creating converter between SpectrumModelUid " << txSpectrumModelUid << " and " << rxSpectrumModelUid);
+              NS_LOG_LOGIC ("Creating converters between SpectrumModelUids " << txSpectrumModelUid << " and " << rxSpectrumModelUid );
 
               SpectrumConverter converter (txSpectrumModel, rxSpectrumModel);
               std::pair<SpectrumConverterMap_t::iterator, bool> ret2;
@@ -267,8 +247,7 @@ MultiModelSpectrumChannel::StartTx (Ptr<SpectrumSignalParameters> txParams)
 
   NS_ASSERT (txParams->txPhy);
   NS_ASSERT (txParams->psd);
-  Ptr<SpectrumSignalParameters> txParamsTrace = txParams->Copy (); // copy it since traced value cannot be const (because of potential underlying DynamicCasts)
-  m_txSigParamsTrace (txParamsTrace);
+
 
   Ptr<MobilityModel> txMobility = txParams->txPhy->GetMobility ();
   SpectrumModelUid_t txSpectrumModelUid = txParams->psd->GetSpectrumModelUid ();
@@ -299,11 +278,7 @@ MultiModelSpectrumChannel::StartTx (Ptr<SpectrumSignalParameters> txParams)
         {
           NS_LOG_LOGIC (" converting txPowerSpectrum SpectrumModelUids" << txSpectrumModelUid << " --> " << rxSpectrumModelUid);
           SpectrumConverterMap_t::const_iterator rxConverterIterator = txInfoIteratorerator->second.m_spectrumConverterMap.find (rxSpectrumModelUid);
-          if (rxConverterIterator == txInfoIteratorerator->second.m_spectrumConverterMap.end ())
-            {
-              // No converter means TX SpectrumModel is orthogonal to RX SpectrumModel
-              continue;
-            }
+          NS_ASSERT (rxConverterIterator != txInfoIteratorerator->second.m_spectrumConverterMap.end ());
           convertedTxPowerSpectrum = rxConverterIterator->second.Convert (txParams->psd);
         }
 
@@ -397,14 +372,18 @@ MultiModelSpectrumChannel::StartRx (Ptr<SpectrumSignalParameters> params, Ptr<Sp
   receiver->StartRx (params);
 }
 
-std::size_t
+
+
+uint32_t
 MultiModelSpectrumChannel::GetNDevices (void) const
 {
   return m_numDevices;
+
 }
 
+
 Ptr<NetDevice>
-MultiModelSpectrumChannel::GetDevice (std::size_t i) const
+MultiModelSpectrumChannel::GetDevice (uint32_t i) const
 {
   NS_ASSERT (i < m_numDevices);
   // this method implementation is computationally intensive. This
@@ -415,7 +394,7 @@ MultiModelSpectrumChannel::GetDevice (std::size_t i) const
   // acceptable as it is not used much at run time (often not at all).
   // On the other hand, having slow SpectrumModel conversion would be
   // less acceptable. 
-  std::size_t j = 0;
+  uint32_t j = 0;
   for (RxSpectrumModelInfoMap_t::const_iterator rxInfoIterator = m_rxSpectrumModelInfoMap.begin ();
        rxInfoIterator !=  m_rxSpectrumModelInfoMap.end ();
        ++rxInfoIterator)
@@ -428,7 +407,6 @@ MultiModelSpectrumChannel::GetDevice (std::size_t i) const
             {
               return (*phyIt)->GetDevice ();
             }
-          j++;
         }
     }
   NS_FATAL_ERROR ("m_numDevice > actual number of devices");
@@ -441,21 +419,14 @@ void
 MultiModelSpectrumChannel::AddPropagationLossModel (Ptr<PropagationLossModel> loss)
 {
   NS_LOG_FUNCTION (this << loss);
-  if (m_propagationLoss)
-    {
-      loss->SetNext (m_propagationLoss);
-    }
+  NS_ASSERT (m_propagationLoss == 0);
   m_propagationLoss = loss;
 }
 
 void
 MultiModelSpectrumChannel::AddSpectrumPropagationLossModel (Ptr<SpectrumPropagationLossModel> loss)
 {
-  NS_LOG_FUNCTION (this << loss);
-  if (m_spectrumPropagationLoss)
-    {
-      loss->SetNext (m_spectrumPropagationLoss);
-    }
+  NS_ASSERT (m_spectrumPropagationLoss == 0);
   m_spectrumPropagationLoss = loss;
 }
 

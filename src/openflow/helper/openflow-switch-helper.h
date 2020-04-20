@@ -94,7 +94,7 @@ public:
   Install (std::string nodeName, NetDeviceContainer c);
 
 private:
-  ObjectFactory m_deviceFactory; //!< Object factory
+  ObjectFactory m_deviceFactory;
 };
 
 } // namespace ns3

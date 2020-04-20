@@ -26,21 +26,10 @@
 #include "ns3/peer-link-frame.h"
 #include "ns3/ie-dot11s-peer-management.h"
 
-using namespace ns3;
-using namespace dot11s;
+namespace ns3 {
+namespace dot11s {
 
-/**
- * \ingroup mesh-test
- * \defgroup dot11s-test dot11s sub-module tests
- */
-
-
-/**
- * \ingroup dot11s-test
- * \ingroup tests
- *
- * \brief Built-in self test for MeshHeader
- */
+/// Built-in self test for FlameHeader
 struct MeshHeaderTest : public TestCase
 {
   MeshHeaderTest () :
@@ -93,13 +82,8 @@ MeshHeaderTest::DoRun ()
     NS_TEST_ASSERT_MSG_EQ (a, b, "Mesh header roundtrip serialization works, 1 address");
   }
 }
-
-/**
- * \ingroup mesh-test
- * \ingroup tests
- *
- * \brief Unit test for HwmpRtable
- */
+//-----------------------------------------------------------------------------
+/// Unit test for HwmpRtable
 class HwmpRtableTest : public TestCase
 {
 public:
@@ -109,26 +93,29 @@ public:
 private:
   /// Test Add apth and lookup path;
   void TestLookup ();
-
-  /// Test add path and try to lookup after entry has expired
+  /**
+   * \name Test add path and try to lookup after entry has expired
+   * \{
+   */
   void TestAddPath ();
-  /// Test add path and try to lookup after entry has expired
   void TestExpire ();
-
-  /// Test add precursors and find precursor list in rtable
+  ///\}
+  /**
+   * \name Test add precursors and find precursor list in rtable
+   * \{
+   */
   void TestPrecursorAdd ();
-  /// Test add precursors and find precursor list in rtable
   void TestPrecursorFind ();
-
+  ///\}
 private:
-  Mac48Address dst; ///< destination address
-  Mac48Address hop; ///< hop address
-  uint32_t iface; ///< interface
-  uint32_t metric; ///< metric
-  uint32_t seqnum; ///< sequence number
-  Time expire; ///< expiration time
-  Ptr<HwmpRtable> table; ///< tab;e
-  std::vector<Mac48Address> precursors; ///< precursors
+  Mac48Address dst;
+  Mac48Address hop;
+  uint32_t iface;
+  uint32_t metric;
+  uint32_t seqnum;
+  Time expire;
+  Ptr<HwmpRtable> table;
+  std::vector<Mac48Address> precursors;
 };
 
 HwmpRtableTest::HwmpRtableTest () :
@@ -234,47 +221,55 @@ void
 PeerLinkFrameStartTest::DoRun ()
 {
   {
-    PeerLinkOpenStart a;
-    PeerLinkOpenStart::PlinkOpenStartFields fields;
+    PeerLinkFrameStart a;
+    PeerLinkFrameStart::PlinkFrameStartFields fields;
+    fields.subtype = (uint8_t)(WifiActionHeader::PEER_LINK_OPEN);
     fields.capability = 0;
+    fields.aid = 101;
+    fields.reasonCode = 12;
     fields.meshId = IeMeshId ("qwertyuiop");
-    a.SetPlinkOpenStart (fields);
+    a.SetPlinkFrameStart (fields);
     Ptr<Packet> packet = Create<Packet> ();
     packet->AddHeader (a);
-    PeerLinkOpenStart b;
+    PeerLinkFrameStart b;
+    b.SetPlinkFrameSubtype ((uint8_t)(WifiActionHeader::PEER_LINK_OPEN));
     packet->RemoveHeader (b);
     NS_TEST_EXPECT_MSG_EQ (a, b, "PEER_LINK_OPEN works");
   }
   {
-    PeerLinkConfirmStart a;
-    PeerLinkConfirmStart::PlinkConfirmStartFields fields;
+    PeerLinkFrameStart a;
+    PeerLinkFrameStart::PlinkFrameStartFields fields;
+    fields.subtype = (uint8_t)(WifiActionHeader::PEER_LINK_CONFIRM);
     fields.capability = 0;
     fields.aid = 1234;
-    a.SetPlinkConfirmStart (fields);
+    fields.reasonCode = 12;
+    fields.meshId = IeMeshId ("qwerty");
+    a.SetPlinkFrameStart (fields);
     Ptr<Packet> packet = Create<Packet> ();
     packet->AddHeader (a);
-    PeerLinkConfirmStart b;
+    PeerLinkFrameStart b;
+    b.SetPlinkFrameSubtype ((uint8_t)(WifiActionHeader::PEER_LINK_CONFIRM));
     packet->RemoveHeader (b);
     NS_TEST_EXPECT_MSG_EQ (a, b, "PEER_LINK_CONFIRM works");
   }
   {
-    PeerLinkCloseStart a;
-    PeerLinkCloseStart::PlinkCloseStartFields fields;
+    PeerLinkFrameStart a;
+    PeerLinkFrameStart::PlinkFrameStartFields fields;
+    fields.subtype = (uint8_t)(WifiActionHeader::PEER_LINK_CLOSE);
+    fields.capability = 0;
+    fields.aid = 10;
     fields.meshId = IeMeshId ("qqq");
-    a.SetPlinkCloseStart (fields);
+    fields.reasonCode = 12;
+    a.SetPlinkFrameStart (fields);
     Ptr<Packet> packet = Create<Packet> ();
     packet->AddHeader (a);
-    PeerLinkCloseStart b;
+    PeerLinkFrameStart b;
+    b.SetPlinkFrameSubtype ((uint8_t)(WifiActionHeader::PEER_LINK_CLOSE));
     packet->RemoveHeader (b);
     NS_TEST_EXPECT_MSG_EQ (a, b, "PEER_LINK_CLOSE works");
   }
 }
-/**
- * \ingroup mesh-test
- * \ingroup tests
- *
- * \brief Dot11s Test Suite
- */
+//-----------------------------------------------------------------------------
 class Dot11sTestSuite : public TestSuite
 {
 public:
@@ -289,4 +284,6 @@ Dot11sTestSuite::Dot11sTestSuite ()
   AddTestCase (new PeerLinkFrameStartTest, TestCase::QUICK);
 }
 
-static Dot11sTestSuite g_dot11sTestSuite; ///< the test suite
+static Dot11sTestSuite g_dot11sTestSuite;
+}
+}

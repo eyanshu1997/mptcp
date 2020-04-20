@@ -37,7 +37,7 @@ IeRann::IeRann () :
 WifiInformationElementId
 IeRann::ElementId () const
 {
-  return IE_RANN;
+  return IE11S_RANN;
 }
 
 void
@@ -151,13 +151,14 @@ IeRann::GetInformationFieldSize () const
 void
 IeRann::Print (std::ostream &os) const
 {
-  os << "RANN=(flags=" << (int) m_flags
-     << ", hop count=" << (int) m_hopcount
-     << ", TTL=" << (int) m_ttl
-     << ", originator address=" << m_originatorAddress
-     << ", dst seq. number=" << m_destSeqNumber
-     << ", metric=" << m_metric
-     << ")";
+  os << std::endl << "<information_element id=" << ElementId () << ">" << std::endl;
+  os << "  flags              = " << (int) m_flags << std::endl;
+  os << "  hop count          = " << (int) m_hopcount << std::endl;
+  os << "  TTL                = " << (int) m_ttl << std::endl;
+  os << "  originator address = " << m_originatorAddress << std::endl;
+  os << "  dst seq. number    = " << m_destSeqNumber << std::endl;
+  os << "  metric             = " << m_metric << std::endl;
+  os << "</information_element>" << std::endl;
 }
 
 bool

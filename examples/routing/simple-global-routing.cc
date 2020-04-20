@@ -149,10 +149,11 @@ main (int argc, char *argv[])
   p2p.EnablePcapAll ("simple-global-routing");
 
   // Flow Monitor
+  Ptr<FlowMonitor> flowmon;
   FlowMonitorHelper flowmonHelper;
   if (enableFlowMonitor)
     {
-      flowmonHelper.InstallAll ();
+      flowmon = flowmonHelper.InstallAll ();
     }
 
   NS_LOG_INFO ("Run Simulation.");
@@ -162,7 +163,7 @@ main (int argc, char *argv[])
 
   if (enableFlowMonitor)
     {
-      flowmonHelper.SerializeToXmlFile ("simple-global-routing.flowmon", false, false);
+      flowmon->SerializeToXmlFile ("simple-global-routing.flowmon", false, false);
     }
 
   Simulator::Destroy ();

@@ -26,29 +26,25 @@ This document is written in `reStructuredText <http://docutils.sourceforge.net/r
    buildings
    click
    csma
+   data-collection
    dsdv
    dsr
    emulation-overview
    energy
-   fd-net-device
    flow-monitor
    internet-models
-   lr-wpan
    lte
    mesh
    distributed
    mobility
    network
-   nix-vector-routing
    olsr
    openflow-switch
    point-to-point
    propagation
    spectrum
    sixlowpan
-   tap
    topology
-   traffic-control
    uan
    wave
    wifi

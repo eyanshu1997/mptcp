@@ -30,7 +30,7 @@
 
 #include <click/simclick.h>
 
-using namespace ns3;
+namespace ns3 {
 
 static void
 AddClickInternetStack (Ptr<Node> node)
@@ -202,5 +202,7 @@ public:
     AddTestCase (new ClickIpMacAddressFromNameTest, TestCase::QUICK);
   }
 } g_ipv4ClickRoutingTestSuite;
+
+} // namespace ns3
 
 #endif // NS3_CLICK

@@ -29,8 +29,7 @@ namespace ns3
 {
 
 /**
- * \ingroup ipv6HeaderExt
- *
+ * \class Ipv6OptionHeader
  * \brief Header for IPv6 Option.
  */
 class Ipv6OptionHeader : public Header 
@@ -97,7 +96,7 @@ public:
   uint8_t GetLength () const;
 
   /**
-   * \brief Print some information about the packet.
+   * \brief Print some informations about the packet.
    * \param os output stream
    * \return info about this packet
    */
@@ -149,8 +148,7 @@ private:
 };
 
 /**
- * \ingroup ipv6HeaderExt
- *
+ * \class Ipv6OptionPad1Header
  * \brief Header of IPv6 Option Pad1
  */
 class Ipv6OptionPad1Header : public Ipv6OptionHeader
@@ -179,7 +177,7 @@ public:
   virtual ~Ipv6OptionPad1Header ();
 
   /**
-   * \brief Print some information about the packet.
+   * \brief Print some informations about the packet.
    * \param os output stream
    * \return info about this packet
    */
@@ -206,8 +204,7 @@ public:
 };
 
 /**
- * \ingroup ipv6HeaderExt
- *
+ * \class Ipv6OptionPadnHeader
  * \brief Header of IPv6 Option Padn
  */
 class Ipv6OptionPadnHeader : public Ipv6OptionHeader
@@ -237,7 +234,7 @@ public:
   virtual ~Ipv6OptionPadnHeader ();
 
   /**
-   * \brief Print some information about the packet.
+   * \brief Print some informations about the packet.
    * \param os output stream
    * \return info about this packet
    */
@@ -264,8 +261,7 @@ public:
 };
 
 /**
- * \ingroup ipv6HeaderExt
- *
+ * \class Ipv6OptionJumbogramHeader
  * \brief Header of IPv6 Option Jumbogram
  */
 class Ipv6OptionJumbogramHeader : public Ipv6OptionHeader
@@ -306,7 +302,7 @@ public:
   uint32_t GetDataLength () const;
 
   /**
-   * \brief Print some information about the packet.
+   * \brief Print some informations about the packet.
    * \param os output stream
    * \return info about this packet
    */
@@ -345,8 +341,7 @@ private:
 };
 
 /**
- * \ingroup ipv6HeaderExt
- *
+ * \class Ipv6OptionRouterAlertHeader
  * \brief Header of IPv6 Option Router Alert
  */
 class Ipv6OptionRouterAlertHeader : public Ipv6OptionHeader
@@ -376,7 +371,6 @@ public:
 
   /**
    * \brief Set the field "value".
-   * \param value the value to be set.
    */
   void SetValue (uint16_t value);
 
@@ -387,7 +381,7 @@ public:
   uint16_t GetValue () const;
 
   /**
-   * \brief Print some information about the packet.
+   * \brief Print some informations about the packet.
    * \param os output stream
    * \return info about this packet
    */

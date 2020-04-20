@@ -26,21 +26,10 @@
 #include "ns3/test.h"
 
 
-using namespace ns3;
+namespace ns3 {
 
 
-/**
- * \ingroup lte
- * \defgroup lte-test lte module tests
- */
 
-
-/**
- * \ingroup lte-test
- * \ingroup tests
- *
- * \brief Test suite for testing GPRS tunnelling protocol header coding and decoding.
- */
 class EpsGtpuTestSuite : public TestSuite
 {
 public:
@@ -59,6 +48,9 @@ public:
 private:
   virtual void DoRun (void);
 };
+
+
+} // namespace ns3
 
 
 #endif /* EPC_TEST_GTPU_H */

@@ -59,21 +59,12 @@ class BSSchedulerRtps : public BSScheduler
 {
 public:
   BSSchedulerRtps ();
-  /**
-   * Constructor
-   *
-   * \param bs base station device
-   */
   BSSchedulerRtps (Ptr<BaseStationNetDevice> bs);
   ~BSSchedulerRtps (void);
 
-  /**
-   * \brief Get the type ID.
-   * \return the object TypeId
-   */
   static TypeId GetTypeId (void);
 
-  /**
+  /*
    * \brief This function returns all the downlink bursts scheduled for the next
    * downlink sub-frame
    * \returns  all the downlink bursts scheduled for the next downlink sub-frame
@@ -81,10 +72,10 @@ public:
   std::list<std::pair<OfdmDlMapIe*, Ptr<PacketBurst> > >*
   GetDownlinkBursts (void) const;
 
-  /**
+  /*
    * \brief This function adds a downlink burst to the list of downlink bursts
    * scheduled for the next downlink sub-frame
-   * \param connection a pointer to connection in which the burst will be sent
+   * \param connection a pointer to connection in wich the burst will be sent
    * \param diuc downlink iuc
    * \param modulationType the modulation type of the burst
    * \param burst the downlink burst to add to the downlink sub frame
@@ -98,7 +89,7 @@ public:
   /**
    * \brief Check for IR and Broadcast connections that have packets to transmit.
    * \param connection will point to a initial ranging or broadcast connection
-   * which have packets to transmit
+   * wich have packets to transmit
    * \returns false if no initial ranging or broadcast connection has packets
    * to transmit, true otherwise
    */
@@ -106,7 +97,7 @@ public:
   /**
    * \brief Check for Basic and Primary connections that have packets to transmit.
    * \param connection will point to a basic or primary connection
-   * which have packets to transmit
+   * wich have packets to transmit
    * \returns false if no basic or primary connection has packets
    * to transmit, true otherwise
    */
@@ -116,60 +107,52 @@ public:
    *
    * The method return the UGS connection that have packets to transmits,
    * according to the MaxLatency specifications.
-   * \param connection will point to a connection that has packets to be sent
-   * \return true if successful
    */
   bool SelectUGSConnection (Ptr<WimaxConnection> &connection);
   /**
    * \brief Check for rtPS connections that have packets to transmit.
-   * \param connection will point to a connection that has packets to be sent
-   * \returns false if no connection has packets to be sent, true otherwise
    */
   bool SelectRTPSConnection (Ptr<WimaxConnection> &connection);
   /**
    * \brief Check for nrtPS connections that have packets to transmit.
-   * \param connection will point to a connection that has packets to be sent
-   * \returns false if no connection has packets to be sent, true otherwise
    */
   bool SelectNRTPSConnection (Ptr<WimaxConnection> &connection);
   /**
    * \brief Check for BE connections that have packets to transmit.
-   * \param connection will point to a connection that has packets to be sent
-   * \returns false if no connection has packets to be sent, true otherwise
    */
   bool SelectBEConnection (Ptr<WimaxConnection> &connection);
 
-  /**
+  /*
    * \brief Selects a connection from the list of connections having packets to be sent .
-   * \param connection will point to a connection that has packets to be sent
+   * \param connection will point to a connection that have packets to be sent
    * \returns false if no connection has packets to be sent, true otherwise
    */
   bool SelectConnection (Ptr<WimaxConnection> &connection);
 
-  /**
+  /*
    * \brief schedules the broadcast connections
    * \param availableSymbols the remaining free OFDM symbols in the current subframe
    */
   void BSSchedulerBroadcastConnection (uint32_t &availableSymbols);
 
-  /**
+  /*
    * \brief schedules the IR connections
    * \param availableSymbols the remaining free OFDM symbols in the current subframe
    */
   void BSSchedulerInitialRangingConnection (uint32_t &availableSymbols);
 
-  /**
+  /*
    * \brief schedules the basic connections
    * \param availableSymbols the remaining free OFDM symbols in the current subframe
    */
   void BSSchedulerBasicConnection (uint32_t &availableSymbols);
 
-  /**
+  /*
    * \brief schedules the primary connection
    * \param availableSymbols the remaining free OFDM symbols in the current subframe
    */
   void BSSchedulerPrimaryConnection (uint32_t &availableSymbols);
-  /**
+  /*
    * \brief schedules the UGS connection
    * \param availableSymbols the remaining free OFDM symbols in the current subframe
    */
@@ -191,19 +174,19 @@ public:
    */
   void BSSchedulerRTPSConnection (uint32_t &availableSymbols);
 
-  /**
+  /*
    * \brief schedules the NRTPS connections
    * \param availableSymbols the remaining free OFDM symbols in the current subframe
    */
   void BSSchedulerNRTPSConnection (uint32_t &availableSymbols);
 
-  /**
+  /*
    * \brief schedules the BE connection
    * \param availableSymbols the remaining free OFDM symbols in the current subframe
    */
   void BSSchedulerBEConnection (uint32_t &availableSymbols);
 
-  /**
+  /*
    * \brief Creates a downlink UGS burst
    * \param serviceFlow the service flow of the burst
    * \param modulationType the modulation type to be used for the burst
@@ -214,7 +197,7 @@ public:
                                    WimaxPhy::ModulationType modulationType, uint32_t availableSymbols);
 
 private:
-  std::list<std::pair<OfdmDlMapIe*, Ptr<PacketBurst> > > *m_downlinkBursts; ///< down link bursts
+  std::list<std::pair<OfdmDlMapIe*, Ptr<PacketBurst> > > *m_downlinkBursts;
 };
 
 } // namespace ns3

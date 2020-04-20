@@ -27,11 +27,12 @@
 #include "ns3/log.h"
 #include <cmath>
 
-namespace ns3 {
-
 NS_LOG_COMPONENT_DEFINE ("BuildingAllocator");
 
-NS_OBJECT_ENSURE_REGISTERED (GridBuildingAllocator);
+namespace ns3 {
+
+NS_OBJECT_ENSURE_REGISTERED (GridBuildingAllocator)
+  ;
 
 GridBuildingAllocator::GridBuildingAllocator ()
   : m_current (0)
@@ -51,8 +52,7 @@ GridBuildingAllocator::GetTypeId (void)
   static TypeId tid = TypeId ("ns3::GridBuildingAllocator")
     .SetParent<Object> ()
     .AddConstructor<GridBuildingAllocator> ()
-    .SetGroupName ("Buildings")
-    .AddAttribute ("GridWidth", "The number of objects laid out on a line.",
+    .AddAttribute ("GridWidth", "The number of objects layed out on a line.",
                    UintegerValue (10),
                    MakeUintegerAccessor (&GridBuildingAllocator::m_n),
                    MakeUintegerChecker<uint32_t> ())

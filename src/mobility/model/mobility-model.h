@@ -39,10 +39,6 @@ namespace ns3 {
 class MobilityModel : public Object
 {
 public:
-  /**
-   * Register this type with the TypeId system.
-   * \return the object TypeId
-   */
   static TypeId GetTypeId (void);
   MobilityModel ();
   virtual ~MobilityModel () = 0;
@@ -79,13 +75,6 @@ public:
    */
   int64_t AssignStreams (int64_t stream);
 
-  /**
-   *  TracedCallback signature.
-   *
-   * \param [in] model Value of the MobilityModel.
-   */
-  typedef void (* TracedCallback)(Ptr<const MobilityModel> model);
-  
 protected:
   /**
    * Must be invoked by subclasses when the course of the
@@ -118,8 +107,6 @@ private:
    * The default implementation does nothing but return the passed-in
    * parameter.  Subclasses using random variables are expected to
    * override this.
-   * \param start  starting stream index
-   * \return the number of streams used
    */
   virtual int64_t DoAssignStreams (int64_t start);
 
@@ -127,7 +114,7 @@ private:
    * Used to alert subscribers that a change in direction, velocity,
    * or position has occurred.
    */
-  ns3::TracedCallback<Ptr<const MobilityModel> > m_courseChangeTrace;
+  TracedCallback<Ptr<const MobilityModel> > m_courseChangeTrace;
 
 };
 

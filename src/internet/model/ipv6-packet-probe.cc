@@ -29,28 +29,25 @@
 #include "ns3/config.h"
 #include "ns3/trace-source-accessor.h"
 
-namespace ns3 {
-
 NS_LOG_COMPONENT_DEFINE ("Ipv6PacketProbe");
 
-NS_OBJECT_ENSURE_REGISTERED (Ipv6PacketProbe);
+namespace ns3 {
+
+NS_OBJECT_ENSURE_REGISTERED (Ipv6PacketProbe)
+  ;
 
 TypeId
 Ipv6PacketProbe::GetTypeId ()
 {
   static TypeId tid = TypeId ("ns3::Ipv6PacketProbe")
     .SetParent<Probe> ()
-    .SetGroupName ("Internet")
     .AddConstructor<Ipv6PacketProbe> ()
     .AddTraceSource ( "Output",
-                      "The packet plus its IPv6 object and interface "
-                      "that serve as the output for this probe",
-                      MakeTraceSourceAccessor (&Ipv6PacketProbe::m_output),
-                      "ns3::Ipv6L3Protocol::TxRxTracedCallback")
+                      "The packet plus its IPv6 object and interface that serve as the output for this probe",
+                      MakeTraceSourceAccessor (&Ipv6PacketProbe::m_output))
     .AddTraceSource ( "OutputBytes",
                       "The number of bytes in the packet",
-                      MakeTraceSourceAccessor (&Ipv6PacketProbe::m_outputBytes),
-                      "ns3::Packet::SizeTracedCallback")
+                      MakeTraceSourceAccessor (&Ipv6PacketProbe::m_outputBytes))
   ;
   return tid;
 }

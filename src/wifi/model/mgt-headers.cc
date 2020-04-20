@@ -16,13 +16,12 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * Authors: Mathieu Lacage <mathieu.lacage@sophia.inria.fr>
- *          Mirko Banchi <mk.banchi@gmail.com>
+ * Author: Mathieu Lacage <mathieu.lacage@sophia.inria.fr>
+ * Author: Mirko Banchi <mk.banchi@gmail.com>
  */
-
-#include "ns3/simulator.h"
-#include "ns3/address-utils.h"
 #include "mgt-headers.h"
+#include "ns3/simulator.h"
+#include "ns3/assert.h"
 
 namespace ns3 {
 
@@ -30,7 +29,8 @@ namespace ns3 {
  *          Probe Request
  ***********************************************************/
 
-NS_OBJECT_ENSURE_REGISTERED (MgtProbeRequestHeader);
+NS_OBJECT_ENSURE_REGISTERED (MgtProbeRequestHeader)
+  ;
 
 MgtProbeRequestHeader::~MgtProbeRequestHeader ()
 {
@@ -41,79 +41,32 @@ MgtProbeRequestHeader::SetSsid (Ssid ssid)
 {
   m_ssid = ssid;
 }
-
 Ssid
 MgtProbeRequestHeader::GetSsid (void) const
 {
   return m_ssid;
 }
-
-void
-MgtAssocResponseHeader::SetAssociationId (uint16_t aid)
-{
-  m_aid = aid;
-}
-
 void
 MgtProbeRequestHeader::SetSupportedRates (SupportedRates rates)
 {
   m_rates = rates;
 }
-
-void
-MgtProbeRequestHeader::SetExtendedCapabilities (ExtendedCapabilities extendedcapabilities)
+void 
+MgtProbeRequestHeader::SetHtCapabilities(HtCapabilities htcapabilities)
 {
-  m_extendedCapability = extendedcapabilities;
+  m_htCapability=htcapabilities;
 }
 
-ExtendedCapabilities
-MgtProbeRequestHeader::GetExtendedCapabilities (void) const
-{
-  return m_extendedCapability;
-}
-
-void
-MgtProbeRequestHeader::SetHtCapabilities (HtCapabilities htcapabilities)
-{
-  m_htCapability = htcapabilities;
-}
-
-HtCapabilities
+HtCapabilities 
 MgtProbeRequestHeader::GetHtCapabilities (void) const
 {
-  return m_htCapability;
+   return  m_htCapability;
 }
-
-void
-MgtProbeRequestHeader::SetVhtCapabilities (VhtCapabilities vhtcapabilities)
-{
-  m_vhtCapability = vhtcapabilities;
-}
-
-VhtCapabilities
-MgtProbeRequestHeader::GetVhtCapabilities (void) const
-{
-  return m_vhtCapability;
-}
-
-void
-MgtProbeRequestHeader::SetHeCapabilities (HeCapabilities hecapabilities)
-{
-  m_heCapability = hecapabilities;
-}
-
-HeCapabilities
-MgtProbeRequestHeader::GetHeCapabilities (void) const
-{
-  return m_heCapability;
-}
-
 SupportedRates
 MgtProbeRequestHeader::GetSupportedRates (void) const
 {
   return m_rates;
 }
-
 uint32_t
 MgtProbeRequestHeader::GetSerializedSize (void) const
 {
@@ -121,41 +74,30 @@ MgtProbeRequestHeader::GetSerializedSize (void) const
   size += m_ssid.GetSerializedSize ();
   size += m_rates.GetSerializedSize ();
   size += m_rates.extended.GetSerializedSize ();
-  size += m_extendedCapability.GetSerializedSize ();
-  size += m_htCapability.GetSerializedSize ();
-  size += m_vhtCapability.GetSerializedSize ();
-  size += m_heCapability.GetSerializedSize ();
+  size += m_htCapability.GetSerializedSize();
   return size;
 }
-
 TypeId
 MgtProbeRequestHeader::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::MgtProbeRequestHeader")
     .SetParent<Header> ()
-    .SetGroupName ("Wifi")
     .AddConstructor<MgtProbeRequestHeader> ()
   ;
   return tid;
 }
-
 TypeId
 MgtProbeRequestHeader::GetInstanceTypeId (void) const
 {
   return GetTypeId ();
 }
-
 void
 MgtProbeRequestHeader::Print (std::ostream &os) const
 {
   os << "ssid=" << m_ssid << ", "
      << "rates=" << m_rates << ", "
-     << "Extended Capabilities=" << m_extendedCapability << " , "
-     << "HT Capabilities=" << m_htCapability << " , "
-     << "VHT Capabilities=" << m_vhtCapability << " , "
-     << "HE Capabilities=" << m_heCapability;
+     << "HT Capabilities=" << m_htCapability;
 }
-
 void
 MgtProbeRequestHeader::Serialize (Buffer::Iterator start) const
 {
@@ -163,12 +105,8 @@ MgtProbeRequestHeader::Serialize (Buffer::Iterator start) const
   i = m_ssid.Serialize (i);
   i = m_rates.Serialize (i);
   i = m_rates.extended.Serialize (i);
-  i = m_extendedCapability.Serialize (i);
-  i = m_htCapability.Serialize (i);
-  i = m_vhtCapability.Serialize (i);
-  i = m_heCapability.Serialize (i);
+   i = m_htCapability.Serialize(i);
 }
-
 uint32_t
 MgtProbeRequestHeader::Deserialize (Buffer::Iterator start)
 {
@@ -176,10 +114,7 @@ MgtProbeRequestHeader::Deserialize (Buffer::Iterator start)
   i = m_ssid.Deserialize (i);
   i = m_rates.Deserialize (i);
   i = m_rates.extended.DeserializeIfPresent (i);
-  i = m_extendedCapability.DeserializeIfPresent (i);
   i = m_htCapability.DeserializeIfPresent (i);
-  i = m_vhtCapability.DeserializeIfPresent (i);
-  i = m_heCapability.DeserializeIfPresent (i);
   return i.GetDistanceFrom (start);
 }
 
@@ -188,290 +123,120 @@ MgtProbeRequestHeader::Deserialize (Buffer::Iterator start)
  *          Probe Response
  ***********************************************************/
 
-NS_OBJECT_ENSURE_REGISTERED (MgtProbeResponseHeader);
+NS_OBJECT_ENSURE_REGISTERED (MgtProbeResponseHeader)
+  ;
 
 MgtProbeResponseHeader::MgtProbeResponseHeader ()
 {
 }
-
 MgtProbeResponseHeader::~MgtProbeResponseHeader ()
 {
 }
-
 uint64_t
 MgtProbeResponseHeader::GetTimestamp ()
 {
   return m_timestamp;
 }
-
 Ssid
 MgtProbeResponseHeader::GetSsid (void) const
 {
   return m_ssid;
 }
-
 uint64_t
 MgtProbeResponseHeader::GetBeaconIntervalUs (void) const
 {
   return m_beaconInterval;
 }
-
 SupportedRates
 MgtProbeResponseHeader::GetSupportedRates (void) const
 {
   return m_rates;
 }
-
-void
-MgtProbeResponseHeader::SetCapabilities (CapabilityInformation capabilities)
+void 
+MgtProbeResponseHeader::SetHtCapabilities(HtCapabilities htcapabilities)
 {
-  m_capability = capabilities;
+  m_htCapability=htcapabilities;
 }
 
-CapabilityInformation
-MgtProbeResponseHeader::GetCapabilities (void) const
-{
-  return m_capability;
-}
-
-void
-MgtProbeResponseHeader::SetExtendedCapabilities (ExtendedCapabilities extendedcapabilities)
-{
-  m_extendedCapability = extendedcapabilities;
-}
-
-ExtendedCapabilities
-MgtProbeResponseHeader::GetExtendedCapabilities (void) const
-{
-  return m_extendedCapability;
-}
-
-void
-MgtProbeResponseHeader::SetHtCapabilities (HtCapabilities htcapabilities)
-{
-  m_htCapability = htcapabilities;
-}
-
-HtCapabilities
+HtCapabilities 
 MgtProbeResponseHeader::GetHtCapabilities (void) const
 {
-  return m_htCapability;
+   return  m_htCapability;
 }
-
-void
-MgtProbeResponseHeader::SetHtOperation (HtOperation htoperation)
-{
-  m_htOperation = htoperation;
-}
-
-HtOperation
-MgtProbeResponseHeader::GetHtOperation (void) const
-{
-  return m_htOperation;
-}
-
-void
-MgtProbeResponseHeader::SetVhtCapabilities (VhtCapabilities vhtcapabilities)
-{
-  m_vhtCapability = vhtcapabilities;
-}
-
-VhtCapabilities
-MgtProbeResponseHeader::GetVhtCapabilities (void) const
-{
-  return m_vhtCapability;
-}
-
-void
-MgtProbeResponseHeader::SetVhtOperation (VhtOperation vhtoperation)
-{
-  m_vhtOperation = vhtoperation;
-}
-
-VhtOperation
-MgtProbeResponseHeader::GetVhtOperation (void) const
-{
-  return m_vhtOperation;
-}
-
-void
-MgtProbeResponseHeader::SetHeCapabilities (HeCapabilities hecapabilities)
-{
-  m_heCapability = hecapabilities;
-}
-
-HeCapabilities
-MgtProbeResponseHeader::GetHeCapabilities (void) const
-{
-  return m_heCapability;
-}
-
-void
-MgtProbeResponseHeader::SetHeOperation (HeOperation heoperation)
-{
-  m_heOperation = heoperation;
-}
-
-HeOperation
-MgtProbeResponseHeader::GetHeOperation (void) const
-{
-  return m_heOperation;
-}
-
-void
-MgtProbeResponseHeader::SetCfParameterSet (CfParameterSet cfparameterset)
-{
-  m_cfParameterSet = cfparameterset;
-}
-
-CfParameterSet
-MgtProbeResponseHeader::GetCfParameterSet (void) const
-{
-  return m_cfParameterSet;
-}
-
 void
 MgtProbeResponseHeader::SetSsid (Ssid ssid)
 {
   m_ssid = ssid;
 }
-
 void
 MgtProbeResponseHeader::SetBeaconIntervalUs (uint64_t us)
 {
   m_beaconInterval = us;
 }
-
 void
 MgtProbeResponseHeader::SetSupportedRates (SupportedRates rates)
 {
   m_rates = rates;
 }
-
-void
-MgtProbeResponseHeader::SetDsssParameterSet (DsssParameterSet dsssParameterSet)
-{
-  m_dsssParameterSet = dsssParameterSet;
-}
-
-DsssParameterSet
-MgtProbeResponseHeader::GetDsssParameterSet (void) const
-{
-  return m_dsssParameterSet;
-}
-
-void
-MgtProbeResponseHeader::SetErpInformation (ErpInformation erpInformation)
-{
-  m_erpInformation = erpInformation;
-}
-
-ErpInformation
-MgtProbeResponseHeader::GetErpInformation (void) const
-{
-  return m_erpInformation;
-}
-
-void
-MgtProbeResponseHeader::SetEdcaParameterSet (EdcaParameterSet edcaparameters)
-{
-  m_edcaParameterSet = edcaparameters;
-}
-
-EdcaParameterSet
-MgtProbeResponseHeader::GetEdcaParameterSet (void) const
-{
-  return m_edcaParameterSet;
-}
-
 TypeId
 MgtProbeResponseHeader::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::MgtProbeResponseHeader")
     .SetParent<Header> ()
-    .SetGroupName ("Wifi")
     .AddConstructor<MgtProbeResponseHeader> ()
   ;
   return tid;
 }
-
 TypeId
 MgtProbeResponseHeader::GetInstanceTypeId (void) const
 {
   return GetTypeId ();
 }
-
 uint32_t
 MgtProbeResponseHeader::GetSerializedSize (void) const
 {
   uint32_t size = 0;
-  size += 8; //timestamp
-  size += 2; //beacon interval
+  size += 8; // timestamp
+  size += 2; // beacon interval
   size += m_capability.GetSerializedSize ();
   size += m_ssid.GetSerializedSize ();
   size += m_rates.GetSerializedSize ();
-  size += m_cfParameterSet.GetSerializedSize ();
-  size += m_dsssParameterSet.GetSerializedSize ();
-  size += m_erpInformation.GetSerializedSize ();
+  //size += 3; // ds parameter set
   size += m_rates.extended.GetSerializedSize ();
-  size += m_edcaParameterSet.GetSerializedSize ();
-  size += m_extendedCapability.GetSerializedSize ();
-  size += m_htCapability.GetSerializedSize ();
-  size += m_htOperation.GetSerializedSize ();
-  size += m_vhtCapability.GetSerializedSize ();
-  size += m_vhtOperation.GetSerializedSize ();
-  size += m_heCapability.GetSerializedSize ();
-  size += m_heOperation.GetSerializedSize ();
+  size += m_htCapability.GetSerializedSize();
+  // xxx
   return size;
 }
-
 void
 MgtProbeResponseHeader::Print (std::ostream &os) const
 {
   os << "ssid=" << m_ssid << ", "
      << "rates=" << m_rates << ", "
-     << "ERP information=" << m_erpInformation << ", "
-     << "Extended Capabilities=" << m_extendedCapability << " , "
-     << "HT Capabilities=" << m_htCapability << " , "
-     << "HT Operation=" << m_htOperation << " , "
-     << "VHT Capabilities=" << m_vhtCapability << " , "
-     << "VHT Operation=" << m_vhtOperation << " , "
-     << "HE Capabilities=" << m_heCapability << " , "
-     << "HE Operation=" << m_heOperation;
+     << "HT Capabilities=" << m_htCapability;
 }
-
 void
 MgtProbeResponseHeader::Serialize (Buffer::Iterator start) const
 {
-  //timestamp
-  //beacon interval
-  //capability information
-  //ssid
-  //supported rates
-  //fh parameter set
-  //ds parameter set
-  //cf parameter set
-  //ibss parameter set
+  // timestamp
+  // beacon interval
+  // capability information
+  // ssid
+  // supported rates
+  // fh parameter set
+  // ds parameter set
+  // cf parameter set
+  // ibss parameter set
+  //XXX
   Buffer::Iterator i = start;
   i.WriteHtolsbU64 (Simulator::Now ().GetMicroSeconds ());
-  i.WriteHtolsbU16 (static_cast<uint16_t> (m_beaconInterval / 1024));
+  i.WriteHtolsbU16 (m_beaconInterval / 1024);
   i = m_capability.Serialize (i);
   i = m_ssid.Serialize (i);
   i = m_rates.Serialize (i);
-  i = m_cfParameterSet.Serialize (i);
-  i = m_dsssParameterSet.Serialize (i);
-  i = m_erpInformation.Serialize (i);
+  //i.WriteU8 (0, 3); // ds parameter set.
   i = m_rates.extended.Serialize (i);
-  i = m_edcaParameterSet.Serialize (i);
-  i = m_extendedCapability.Serialize (i);
-  i = m_htCapability.Serialize (i);
-  i = m_htOperation.Serialize (i);
-  i = m_vhtCapability.Serialize (i);
-  i = m_vhtOperation.Serialize (i);
-  i = m_heCapability.Serialize (i);
-  i = m_heOperation.Serialize (i);
+  i = m_htCapability.Serialize(i);
 }
-
 uint32_t
 MgtProbeResponseHeader::Deserialize (Buffer::Iterator start)
 {
@@ -482,52 +247,23 @@ MgtProbeResponseHeader::Deserialize (Buffer::Iterator start)
   i = m_capability.Deserialize (i);
   i = m_ssid.Deserialize (i);
   i = m_rates.Deserialize (i);
-  i = m_cfParameterSet.DeserializeIfPresent (i);
-  i = m_dsssParameterSet.DeserializeIfPresent (i);
-  i = m_erpInformation.DeserializeIfPresent (i);
+  //i.Next (3); // ds parameter set
   i = m_rates.extended.DeserializeIfPresent (i);
-  i = m_edcaParameterSet.DeserializeIfPresent (i);
-  i = m_extendedCapability.DeserializeIfPresent (i);
   i = m_htCapability.DeserializeIfPresent (i);
-  i = m_htOperation.DeserializeIfPresent (i);
-  i = m_vhtCapability.DeserializeIfPresent (i);
-  i = m_vhtOperation.DeserializeIfPresent (i);
-  i = m_heCapability.DeserializeIfPresent (i);
-  i = m_heOperation.DeserializeIfPresent (i);
   return i.GetDistanceFrom (start);
 }
-
-
-/***********************************************************
- *          Beacons
- ***********************************************************/
-
-NS_OBJECT_ENSURE_REGISTERED (MgtBeaconHeader);
-
-/* static */
-TypeId
-MgtBeaconHeader::GetTypeId (void)
-{
-  static TypeId tid = TypeId ("ns3::MgtBeaconHeader")
-    .SetParent<MgtProbeResponseHeader> ()
-    .SetGroupName ("Wifi")
-    .AddConstructor<MgtBeaconHeader> ()
-  ;
-  return tid;
-}
-
 
 /***********************************************************
  *          Assoc Request
  ***********************************************************/
 
-NS_OBJECT_ENSURE_REGISTERED (MgtAssocRequestHeader);
+NS_OBJECT_ENSURE_REGISTERED (MgtAssocRequestHeader)
+  ;
 
 MgtAssocRequestHeader::MgtAssocRequestHeader ()
   : m_listenInterval (0)
 {
 }
-
 MgtAssocRequestHeader::~MgtAssocRequestHeader ()
 {
 }
@@ -537,91 +273,36 @@ MgtAssocRequestHeader::SetSsid (Ssid ssid)
 {
   m_ssid = ssid;
 }
-
 void
 MgtAssocRequestHeader::SetSupportedRates (SupportedRates rates)
 {
   m_rates = rates;
 }
-
+void 
+MgtAssocRequestHeader::SetHtCapabilities(HtCapabilities htcapabilities)
+{
+  m_htCapability = htcapabilities;
+}
 void
 MgtAssocRequestHeader::SetListenInterval (uint16_t interval)
 {
   m_listenInterval = interval;
 }
-
-void
-MgtAssocRequestHeader::SetCapabilities (CapabilityInformation capabilities)
-{
-  m_capability = capabilities;
-}
-
-CapabilityInformation
-MgtAssocRequestHeader::GetCapabilities (void) const
-{
-  return m_capability;
-}
-
-void
-MgtAssocRequestHeader::SetExtendedCapabilities (ExtendedCapabilities extendedcapabilities)
-{
-  m_extendedCapability = extendedcapabilities;
-}
-
-ExtendedCapabilities
-MgtAssocRequestHeader::GetExtendedCapabilities (void) const
-{
-  return m_extendedCapability;
-}
-
-void
-MgtAssocRequestHeader::SetHtCapabilities (HtCapabilities htcapabilities)
-{
-  m_htCapability = htcapabilities;
-}
-
-HtCapabilities
+HtCapabilities 
 MgtAssocRequestHeader::GetHtCapabilities (void) const
 {
-  return m_htCapability;
+   return  m_htCapability;
 }
-
-void
-MgtAssocRequestHeader::SetVhtCapabilities (VhtCapabilities vhtcapabilities)
-{
-  m_vhtCapability = vhtcapabilities;
-}
-
-VhtCapabilities
-MgtAssocRequestHeader::GetVhtCapabilities (void) const
-{
-  return m_vhtCapability;
-}
-
-void
-MgtAssocRequestHeader::SetHeCapabilities (HeCapabilities hecapabilities)
-{
-  m_heCapability = hecapabilities;
-}
-
-HeCapabilities
-MgtAssocRequestHeader::GetHeCapabilities (void) const
-{
-  return m_heCapability;
-}
-
 Ssid
 MgtAssocRequestHeader::GetSsid (void) const
 {
   return m_ssid;
 }
-
 SupportedRates
 MgtAssocRequestHeader::GetSupportedRates (void) const
 {
   return m_rates;
 }
-
 uint16_t
 MgtAssocRequestHeader::GetListenInterval (void) const
 {
@@ -633,18 +314,15 @@ MgtAssocRequestHeader::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::MgtAssocRequestHeader")
     .SetParent<Header> ()
-    .SetGroupName ("Wifi")
     .AddConstructor<MgtAssocRequestHeader> ()
   ;
   return tid;
 }
-
 TypeId
 MgtAssocRequestHeader::GetInstanceTypeId (void) const
 {
   return GetTypeId ();
 }
-
 uint32_t
 MgtAssocRequestHeader::GetSerializedSize (void) const
 {
@@ -653,25 +331,17 @@ MgtAssocRequestHeader::GetSerializedSize (void) const
   size += 2;
   size += m_ssid.GetSerializedSize ();
   size += m_rates.GetSerializedSize ();
+  size += m_htCapability.GetSerializedSize();
   size += m_rates.extended.GetSerializedSize ();
-  size += m_extendedCapability.GetSerializedSize ();
-  size += m_htCapability.GetSerializedSize ();
-  size += m_vhtCapability.GetSerializedSize ();
-  size += m_heCapability.GetSerializedSize ();
   return size;
 }
-
 void
 MgtAssocRequestHeader::Print (std::ostream &os) const
 {
   os << "ssid=" << m_ssid << ", "
-     << "rates=" << m_rates << ", "
-     << "Extended Capabilities=" << m_extendedCapability << " , "
-     << "HT Capabilities=" << m_htCapability << " , "
-     << "VHT Capabilities=" << m_vhtCapability << " , "
-     << "HE Capabilities=" << m_heCapability;
+     << "rates=" << m_rates<< ", "
+     << "HT Capabilities=" << m_htCapability;
 }
-
 void
 MgtAssocRequestHeader::Serialize (Buffer::Iterator start) const
 {
@@ -681,12 +351,8 @@ MgtAssocRequestHeader::Serialize (Buffer::Iterator start) const
   i = m_ssid.Serialize (i);
   i = m_rates.Serialize (i);
   i = m_rates.extended.Serialize (i);
-  i = m_extendedCapability.Serialize (i);
-  i = m_htCapability.Serialize (i);
-  i = m_vhtCapability.Serialize (i);
-  i = m_heCapability.Serialize (i);
+  i = m_htCapability.Serialize(i);
 }
-
 uint32_t
 MgtAssocRequestHeader::Deserialize (Buffer::Iterator start)
 {
@@ -696,222 +362,21 @@ MgtAssocRequestHeader::Deserialize (Buffer::Iterator start)
   i = m_ssid.Deserialize (i);
   i = m_rates.Deserialize (i);
   i = m_rates.extended.DeserializeIfPresent (i);
-  i = m_extendedCapability.DeserializeIfPresent (i);
   i = m_htCapability.DeserializeIfPresent (i);
-  i = m_vhtCapability.DeserializeIfPresent (i);
-  i = m_heCapability.DeserializeIfPresent (i);
   return i.GetDistanceFrom (start);
 }
 
-
 /***********************************************************
- *          Ressoc Request
+ *          Assoc Response
  ***********************************************************/
 
-NS_OBJECT_ENSURE_REGISTERED (MgtReassocRequestHeader);
-
-MgtReassocRequestHeader::MgtReassocRequestHeader ()
-  : m_currentApAddr (Mac48Address ())
-{
-}
-
-MgtReassocRequestHeader::~MgtReassocRequestHeader ()
-{
-}
-
-void
-MgtReassocRequestHeader::SetSsid (Ssid ssid)
-{
-  m_ssid = ssid;
-}
-
-void
-MgtReassocRequestHeader::SetSupportedRates (SupportedRates rates)
-{
-  m_rates = rates;
-}
-
-void
-MgtReassocRequestHeader::SetListenInterval (uint16_t interval)
-{
-  m_listenInterval = interval;
-}
-
-void
-MgtReassocRequestHeader::SetCapabilities (CapabilityInformation capabilities)
-{
-  m_capability = capabilities;
-}
-
-CapabilityInformation
-MgtReassocRequestHeader::GetCapabilities (void) const
-{
-  return m_capability;
-}
-
-void
-MgtReassocRequestHeader::SetExtendedCapabilities (ExtendedCapabilities extendedcapabilities)
-{
-  m_extendedCapability = extendedcapabilities;
-}
-
-ExtendedCapabilities
-MgtReassocRequestHeader::GetExtendedCapabilities (void) const
-{
-  return m_extendedCapability;
-}
-
-void
-MgtReassocRequestHeader::SetHtCapabilities (HtCapabilities htcapabilities)
-{
-  m_htCapability = htcapabilities;
-}
-
-HtCapabilities
-MgtReassocRequestHeader::GetHtCapabilities (void) const
-{
-  return m_htCapability;
-}
-
-void
-MgtReassocRequestHeader::SetVhtCapabilities (VhtCapabilities vhtcapabilities)
-{
-  m_vhtCapability = vhtcapabilities;
-}
-
-VhtCapabilities
-MgtReassocRequestHeader::GetVhtCapabilities (void) const
-{
-  return m_vhtCapability;
-}
-
-void
-MgtReassocRequestHeader::SetHeCapabilities (HeCapabilities hecapabilities)
-{
-  m_heCapability = hecapabilities;
-}
-
-HeCapabilities
-MgtReassocRequestHeader::GetHeCapabilities (void) const
-{
-  return m_heCapability;
-}
-
-Ssid
-MgtReassocRequestHeader::GetSsid (void) const
-{
-  return m_ssid;
-}
-
-SupportedRates
-MgtReassocRequestHeader::GetSupportedRates (void) const
-{
-  return m_rates;
-}
-
-uint16_t
-MgtReassocRequestHeader::GetListenInterval (void) const
-{
-  return m_listenInterval;
-}
-
-void
-MgtReassocRequestHeader::SetCurrentApAddress (Mac48Address currentApAddr)
-{
-  m_currentApAddr = currentApAddr;
-}
-
-TypeId
-MgtReassocRequestHeader::GetTypeId (void)
-{
-  static TypeId tid = TypeId ("ns3::MgtReassocRequestHeader")
-    .SetParent<Header> ()
-    .SetGroupName ("Wifi")
-    .AddConstructor<MgtReassocRequestHeader> ()
+NS_OBJECT_ENSURE_REGISTERED (MgtAssocResponseHeader)
   ;
-  return tid;
-}
-
-TypeId
-MgtReassocRequestHeader::GetInstanceTypeId (void) const
-{
-  return GetTypeId ();
-}
-
-uint32_t
-MgtReassocRequestHeader::GetSerializedSize (void) const
-{
-  uint32_t size = 0;
-  size += m_capability.GetSerializedSize ();
-  size += 2; //listen interval
-  size += 6; //current AP address
-  size += m_ssid.GetSerializedSize ();
-  size += m_rates.GetSerializedSize ();
-  size += m_rates.extended.GetSerializedSize ();
-  size += m_extendedCapability.GetSerializedSize ();
-  size += m_htCapability.GetSerializedSize ();
-  size += m_vhtCapability.GetSerializedSize ();
-  size += m_heCapability.GetSerializedSize ();
-  return size;
-}
-
-void
-MgtReassocRequestHeader::Print (std::ostream &os) const
-{
-  os << "current AP address=" << m_currentApAddr << ", "
-     << "ssid=" << m_ssid << ", "
-     << "rates=" << m_rates << ", "
-     << "Extended Capabilities=" << m_extendedCapability << " , "
-     << "HT Capabilities=" << m_htCapability << " , "
-     << "VHT Capabilities=" << m_vhtCapability << " , "
-     << "HE Capabilities=" << m_heCapability;
-}
-
-void
-MgtReassocRequestHeader::Serialize (Buffer::Iterator start) const
-{
-  Buffer::Iterator i = start;
-  i = m_capability.Serialize (i);
-  i.WriteHtolsbU16 (m_listenInterval);
-  WriteTo (i, m_currentApAddr);
-  i = m_ssid.Serialize (i);
-  i = m_rates.Serialize (i);
-  i = m_rates.extended.Serialize (i);
-  i = m_extendedCapability.Serialize (i);
-  i = m_htCapability.Serialize (i);
-  i = m_vhtCapability.Serialize (i);
-  i = m_heCapability.Serialize (i);
-}
-
-uint32_t
-MgtReassocRequestHeader::Deserialize (Buffer::Iterator start)
-{
-  Buffer::Iterator i = start;
-  i = m_capability.Deserialize (i);
-  m_listenInterval = i.ReadLsbtohU16 ();
-  ReadFrom (i, m_currentApAddr);
-  i = m_ssid.Deserialize (i);
-  i = m_rates.Deserialize (i);
-  i = m_rates.extended.DeserializeIfPresent (i);
-  i = m_extendedCapability.DeserializeIfPresent (i);
-  i = m_htCapability.DeserializeIfPresent (i);
-  i = m_vhtCapability.DeserializeIfPresent (i);
-  i = m_heCapability.DeserializeIfPresent (i);
-  return i.GetDistanceFrom (start);
-}
-
-
-/***********************************************************
- *          Assoc/Reassoc Response
- ***********************************************************/
-
-NS_OBJECT_ENSURE_REGISTERED (MgtAssocResponseHeader);
 
 MgtAssocResponseHeader::MgtAssocResponseHeader ()
   : m_aid (0)
 {
 }
-
 MgtAssocResponseHeader::~MgtAssocResponseHeader ()
 {
 }
@@ -921,180 +386,56 @@ MgtAssocResponseHeader::GetStatusCode (void)
 {
   return m_code;
 }
-
 SupportedRates
 MgtAssocResponseHeader::GetSupportedRates (void)
 {
   return m_rates;
 }
-
 void
 MgtAssocResponseHeader::SetStatusCode (StatusCode code)
 {
   m_code = code;
 }
-
 void
 MgtAssocResponseHeader::SetSupportedRates (SupportedRates rates)
 {
   m_rates = rates;
 }
-
-void
-MgtAssocResponseHeader::SetCapabilities (CapabilityInformation capabilities)
+void 
+MgtAssocResponseHeader::SetHtCapabilities(HtCapabilities htcapabilities)
 {
-  m_capability = capabilities;
+  m_htCapability=htcapabilities;
 }
 
-CapabilityInformation
-MgtAssocResponseHeader::GetCapabilities (void) const
-{
-  return m_capability;
-}
-
-void
-MgtAssocResponseHeader::SetExtendedCapabilities (ExtendedCapabilities extendedcapabilities)
-{
-  m_extendedCapability = extendedcapabilities;
-}
-
-ExtendedCapabilities
-MgtAssocResponseHeader::GetExtendedCapabilities (void) const
-{
-  return m_extendedCapability;
-}
-
-void
-MgtAssocResponseHeader::SetHtCapabilities (HtCapabilities htcapabilities)
-{
-  m_htCapability = htcapabilities;
-}
-
-HtCapabilities
+HtCapabilities 
 MgtAssocResponseHeader::GetHtCapabilities (void) const
 {
-  return m_htCapability;
+   return  m_htCapability;
 }
-
-void
-MgtAssocResponseHeader::SetHtOperation (HtOperation htoperation)
-{
-  m_htOperation = htoperation;
-}
-
-HtOperation
-MgtAssocResponseHeader::GetHtOperation (void) const
-{
-  return m_htOperation;
-}
-
-void
-MgtAssocResponseHeader::SetVhtCapabilities (VhtCapabilities vhtcapabilities)
-{
-  m_vhtCapability = vhtcapabilities;
-}
-
-VhtCapabilities
-MgtAssocResponseHeader::GetVhtCapabilities (void) const
-{
-  return m_vhtCapability;
-}
-
-void
-MgtAssocResponseHeader::SetVhtOperation (VhtOperation vhtoperation)
-{
-  m_vhtOperation = vhtoperation;
-}
-
-VhtOperation
-MgtAssocResponseHeader::GetVhtOperation (void) const
-{
-  return m_vhtOperation;
-}
-
-void
-MgtAssocResponseHeader::SetHeCapabilities (HeCapabilities hecapabilities)
-{
-  m_heCapability = hecapabilities;
-}
-
-HeCapabilities
-MgtAssocResponseHeader::GetHeCapabilities (void) const
-{
-  return m_heCapability;
-}
-
-void
-MgtAssocResponseHeader::SetHeOperation (HeOperation heoperation)
-{
-  m_heOperation = heoperation;
-}
-
-HeOperation
-MgtAssocResponseHeader::GetHeOperation (void) const
-{
-  return m_heOperation;
-}
-
-void
-MgtAssocResponseHeader::SetErpInformation (ErpInformation erpInformation)
-{
-  m_erpInformation = erpInformation;
-}
-
-ErpInformation
-MgtAssocResponseHeader::GetErpInformation (void) const
-{
-  return m_erpInformation;
-}
-
-void
-MgtAssocResponseHeader::SetEdcaParameterSet (EdcaParameterSet edcaparameters)
-{
-  m_edcaParameterSet = edcaparameters;
-}
-
-EdcaParameterSet
-MgtAssocResponseHeader::GetEdcaParameterSet (void) const
-{
-  return m_edcaParameterSet;
-}
-
 TypeId
 MgtAssocResponseHeader::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::MgtAssocResponseHeader")
     .SetParent<Header> ()
-    .SetGroupName ("Wifi")
     .AddConstructor<MgtAssocResponseHeader> ()
   ;
   return tid;
 }
-
 TypeId
 MgtAssocResponseHeader::GetInstanceTypeId (void) const
 {
   return GetTypeId ();
 }
-
 uint32_t
 MgtAssocResponseHeader::GetSerializedSize (void) const
 {
   uint32_t size = 0;
   size += m_capability.GetSerializedSize ();
   size += m_code.GetSerializedSize ();
-  size += 2; //aid
+  size += 2; // aid
   size += m_rates.GetSerializedSize ();
-  size += m_erpInformation.GetSerializedSize ();
   size += m_rates.extended.GetSerializedSize ();
-  size += m_edcaParameterSet.GetSerializedSize ();
-  size += m_extendedCapability.GetSerializedSize ();
-  size += m_htCapability.GetSerializedSize ();
-  size += m_htOperation.GetSerializedSize ();
-  size += m_vhtCapability.GetSerializedSize ();
-  size += m_vhtOperation.GetSerializedSize ();
-  size += m_heCapability.GetSerializedSize ();
-  size += m_heOperation.GetSerializedSize ();
+size += m_htCapability.GetSerializedSize();
   return size;
 }
 
@@ -1102,18 +443,9 @@ void
 MgtAssocResponseHeader::Print (std::ostream &os) const
 {
   os << "status code=" << m_code << ", "
-     << "aid=" << m_aid << ", "
      << "rates=" << m_rates << ", "
-     << "ERP information=" << m_erpInformation << ", "
-     << "Extended Capabilities=" << m_extendedCapability << " , "
-     << "HT Capabilities=" << m_htCapability << " , "
-     << "HT Operation=" << m_htOperation << " , "
-     << "VHT Capabilities=" << m_vhtCapability << " , "
-     << "VHT Operation=" << m_vhtOperation << " , "
-     << "HE Capabilities=" << m_heCapability << " , "
-     << "HE Operation=" << m_heOperation;
+  << "HT Capabilities=" << m_htCapability;
 }
-
 void
 MgtAssocResponseHeader::Serialize (Buffer::Iterator start) const
 {
@@ -1122,18 +454,9 @@ MgtAssocResponseHeader::Serialize (Buffer::Iterator start) const
   i = m_code.Serialize (i);
   i.WriteHtolsbU16 (m_aid);
   i = m_rates.Serialize (i);
-  i = m_erpInformation.Serialize (i);
   i = m_rates.extended.Serialize (i);
-  i = m_edcaParameterSet.Serialize (i);
-  i = m_extendedCapability.Serialize (i);
-  i = m_htCapability.Serialize (i);
-  i = m_htOperation.Serialize (i);
-  i = m_vhtCapability.Serialize (i);
-  i = m_vhtOperation.Serialize (i);
-  i = m_heCapability.Serialize (i);
-  i = m_heOperation.Serialize (i);
+ i = m_htCapability.Serialize(i);
 }
-
 uint32_t
 MgtAssocResponseHeader::Deserialize (Buffer::Iterator start)
 {
@@ -1142,65 +465,50 @@ MgtAssocResponseHeader::Deserialize (Buffer::Iterator start)
   i = m_code.Deserialize (i);
   m_aid = i.ReadLsbtohU16 ();
   i = m_rates.Deserialize (i);
-  i = m_erpInformation.DeserializeIfPresent (i);
   i = m_rates.extended.DeserializeIfPresent (i);
-  i = m_edcaParameterSet.DeserializeIfPresent (i);
-  i = m_extendedCapability.DeserializeIfPresent (i);
-  i = m_htCapability.DeserializeIfPresent (i);
-  i = m_htOperation.DeserializeIfPresent (i);
-  i = m_vhtCapability.DeserializeIfPresent (i);
-  i = m_vhtOperation.DeserializeIfPresent (i);
-  i = m_heCapability.DeserializeIfPresent (i);
-  i = m_heOperation.DeserializeIfPresent (i);
+ i = m_htCapability.DeserializeIfPresent (i);
   return i.GetDistanceFrom (start);
 }
-
-
 /**********************************************************
  *   ActionFrame
  **********************************************************/
 WifiActionHeader::WifiActionHeader ()
 {
 }
-
 WifiActionHeader::~WifiActionHeader ()
 {
 }
-
 void
 WifiActionHeader::SetAction (WifiActionHeader::CategoryValue type,
                              WifiActionHeader::ActionValue action)
 {
-  m_category = static_cast<uint8_t> (type);
+  m_category = type;
+
   switch (type)
     {
     case BLOCK_ACK:
       {
-        m_actionValue = static_cast<uint8_t> (action.blockAck);
+        m_actionValue = action.blockAck;
         break;
       }
-    case MESH:
+    case MESH_PEERING_MGT:
       {
-        m_actionValue = static_cast<uint8_t> (action.meshAction);
+        m_actionValue = action.peerLink;
         break;
       }
-    case MULTIHOP:
+    case MESH_PATH_SELECTION:
       {
-        m_actionValue = static_cast<uint8_t> (action.multihopAction);
+        m_actionValue = action.pathSelection;
         break;
       }
-    case SELF_PROTECTED:
-      {
-        m_actionValue = static_cast<uint8_t> (action.selfProtectedAction);
-        break;
-      }
+    case MESH_LINK_METRIC:
+    case MESH_INTERWORKING:
+    case MESH_RESOURCE_COORDINATION:
+    case MESH_PROXY_FORWARDING:
     case VENDOR_SPECIFIC_ACTION:
-      {
-        break;
-      }
+      break;
     }
 }
-
 WifiActionHeader::CategoryValue
 WifiActionHeader::GetCategory ()
 {
@@ -1208,25 +516,30 @@ WifiActionHeader::GetCategory ()
     {
     case BLOCK_ACK:
       return BLOCK_ACK;
-    case MESH:
-      return MESH;
-    case MULTIHOP:
-      return MULTIHOP;
-    case SELF_PROTECTED:
-      return SELF_PROTECTED;
+    case MESH_PEERING_MGT:
+      return MESH_PEERING_MGT;
+    case MESH_LINK_METRIC:
+      return MESH_LINK_METRIC;
+    case MESH_PATH_SELECTION:
+      return MESH_PATH_SELECTION;
+    case MESH_INTERWORKING:
+      return MESH_INTERWORKING;
+    case MESH_RESOURCE_COORDINATION:
+      return MESH_RESOURCE_COORDINATION;
+    case MESH_PROXY_FORWARDING:
+      return MESH_PROXY_FORWARDING;
     case VENDOR_SPECIFIC_ACTION:
       return VENDOR_SPECIFIC_ACTION;
     default:
       NS_FATAL_ERROR ("Unknown action value");
-      return SELF_PROTECTED;
+      return MESH_PEERING_MGT;
     }
 }
-
 WifiActionHeader::ActionValue
 WifiActionHeader::GetAction ()
 {
   ActionValue retval;
-  retval.selfProtectedAction = PEER_LINK_OPEN; //Needs to be initialized to something to quiet valgrind in default cases
+  retval.peerLink = PEER_LINK_OPEN; // Needs to be initialized to something to quiet valgrind in default cases
   switch (m_category)
     {
     case BLOCK_ACK:
@@ -1234,197 +547,87 @@ WifiActionHeader::GetAction ()
         {
         case BLOCK_ACK_ADDBA_REQUEST:
           retval.blockAck = BLOCK_ACK_ADDBA_REQUEST;
-          break;
+          break ;
         case BLOCK_ACK_ADDBA_RESPONSE:
           retval.blockAck = BLOCK_ACK_ADDBA_RESPONSE;
-          break;
+          break ;
         case BLOCK_ACK_DELBA:
           retval.blockAck = BLOCK_ACK_DELBA;
-          break;
+          break ;
         }
-      break;
-
-    case SELF_PROTECTED:
+      break ;
+      
+    case MESH_PEERING_MGT:
       switch (m_actionValue)
         {
         case PEER_LINK_OPEN:
-          retval.selfProtectedAction = PEER_LINK_OPEN;
-          break;
+          retval.peerLink = PEER_LINK_OPEN;
+          break ;
         case PEER_LINK_CONFIRM:
-          retval.selfProtectedAction = PEER_LINK_CONFIRM;
-          break;
+          retval.peerLink = PEER_LINK_CONFIRM;
+          break ;
         case PEER_LINK_CLOSE:
-          retval.selfProtectedAction = PEER_LINK_CLOSE;
-          break;
-        case GROUP_KEY_INFORM:
-          retval.selfProtectedAction = GROUP_KEY_INFORM;
-          break;
-        case GROUP_KEY_ACK:
-          retval.selfProtectedAction = GROUP_KEY_ACK;
-          break;
+          retval.peerLink = PEER_LINK_CLOSE;
+          break ;
         default:
           NS_FATAL_ERROR ("Unknown mesh peering management action code");
-          retval.selfProtectedAction = PEER_LINK_OPEN; /* quiet compiler */
+          retval.peerLink = PEER_LINK_OPEN; /* quiet compiler */
         }
-      break;
-
-    case MESH:
+      break ;
+      
+    case MESH_PATH_SELECTION:
       switch (m_actionValue)
         {
-        case LINK_METRIC_REPORT:
-          retval.meshAction = LINK_METRIC_REPORT;
-          break;
         case PATH_SELECTION:
-          retval.meshAction = PATH_SELECTION;
-          break;
-        case PORTAL_ANNOUNCEMENT:
-          retval.meshAction = PORTAL_ANNOUNCEMENT;
-          break;
-        case CONGESTION_CONTROL_NOTIFICATION:
-          retval.meshAction = CONGESTION_CONTROL_NOTIFICATION;
-          break;
-        case MDA_SETUP_REQUEST:
-          retval.meshAction = MDA_SETUP_REQUEST;
-          break;
-        case MDA_SETUP_REPLY:
-          retval.meshAction = MDA_SETUP_REPLY;
-          break;
-        case MDAOP_ADVERTISMENT_REQUEST:
-          retval.meshAction = MDAOP_ADVERTISMENT_REQUEST;
-          break;
-        case MDAOP_ADVERTISMENTS:
-          retval.meshAction = MDAOP_ADVERTISMENTS;
-          break;
-        case MDAOP_SET_TEARDOWN:
-          retval.meshAction = MDAOP_SET_TEARDOWN;
-          break;
-        case TBTT_ADJUSTMENT_REQUEST:
-          retval.meshAction = TBTT_ADJUSTMENT_REQUEST;
-          break;
-        case TBTT_ADJUSTMENT_RESPONSE:
-          retval.meshAction = TBTT_ADJUSTMENT_RESPONSE;
-          break;
+          retval.pathSelection = PATH_SELECTION;
+          break ;
         default:
-          NS_FATAL_ERROR ("Unknown mesh peering management action code");
-          retval.selfProtectedAction = PEER_LINK_OPEN; /* quiet compiler */
+          NS_FATAL_ERROR ("Unknown mesh path selection action code");
+          retval.peerLink = PEER_LINK_OPEN; /* quiet compiler */
         }
-      break;
-
-    case MULTIHOP: //not yet supported
-      switch (m_actionValue)
-        {
-        case PROXY_UPDATE: //not used so far
-          retval.multihopAction = PROXY_UPDATE;
-          break;
-        case PROXY_UPDATE_CONFIRMATION: //not used so far
-          retval.multihopAction = PROXY_UPDATE;
-          break;
-        default:
-          NS_FATAL_ERROR ("Unknown mesh peering management action code");
-          retval.selfProtectedAction = PEER_LINK_OPEN; /* quiet compiler */
-        }
-      break;
+      break ;
+    case VENDOR_SPECIFIC_ACTION:
+      break ;
+    case MESH_LINK_METRIC:
+    // not yet supported
+    case MESH_INTERWORKING:
+    // not yet supported
+    case MESH_RESOURCE_COORDINATION:
+    // not yet supported
     default:
       NS_FATAL_ERROR ("Unsupported mesh action");
-      retval.selfProtectedAction = PEER_LINK_OPEN; /* quiet compiler */
+      retval.peerLink = PEER_LINK_OPEN; /* quiet compiler */
     }
   return retval;
 }
-
 TypeId
 WifiActionHeader::GetTypeId ()
 {
   static TypeId tid = TypeId ("ns3::WifiActionHeader")
     .SetParent<Header> ()
-    .SetGroupName ("Wifi")
-    .AddConstructor<WifiActionHeader> ()
-  ;
+    .AddConstructor<WifiActionHeader> ();
   return tid;
 }
-
 TypeId
 WifiActionHeader::GetInstanceTypeId () const
 {
   return GetTypeId ();
 }
-
-std::string
-WifiActionHeader::CategoryValueToString (CategoryValue value) const
-{
-  if (value == BLOCK_ACK)
-    {
-      return "BlockAck";
-    }
-  else if (value == MESH)
-    {
-      return "Mesh";
-    }
-  else if (value == SELF_PROTECTED)
-    {
-      return "SelfProtected";
-    }
-  else if (value == VENDOR_SPECIFIC_ACTION)
-    {
-      return "VendorSpecificAction";
-    }
-  else
-    {
-      std::ostringstream convert;
-      convert << value;
-      return convert.str ();
-    }
-}
-std::string
-WifiActionHeader::SelfProtectedActionValueToString (SelfProtectedActionValue value) const
-{
-  if (value == PEER_LINK_OPEN)
-    {
-      return "PeerLinkOpen";
-    }
-  else if (value == PEER_LINK_CONFIRM)
-    {
-      return "PeerLinkConfirm";
-    }
-  else if (value == PEER_LINK_CLOSE)
-    {
-      return "PeerLinkClose";
-    }
-  else if (value == GROUP_KEY_INFORM)
-    {
-      return "GroupKeyInform";
-    }
-  else if (value == GROUP_KEY_ACK)
-    {
-      return "GroupKeyAck";
-    }
-  else
-    {
-      std::ostringstream convert;
-      convert << value;
-      return convert.str ();
-    }
-}
-
 void
 WifiActionHeader::Print (std::ostream &os) const
 {
-  os << "category=" << CategoryValueToString ((CategoryValue) m_category)
-     << ", value=" << SelfProtectedActionValueToString ((SelfProtectedActionValue) m_actionValue);
 }
-
 uint32_t
 WifiActionHeader::GetSerializedSize () const
 {
   return 2;
 }
-
 void
 WifiActionHeader::Serialize (Buffer::Iterator start) const
 {
   start.WriteU8 (m_category);
   start.WriteU8 (m_actionValue);
 }
-
 uint32_t
 WifiActionHeader::Deserialize (Buffer::Iterator start)
 {
@@ -1434,12 +637,12 @@ WifiActionHeader::Deserialize (Buffer::Iterator start)
   return i.GetDistanceFrom (start);
 }
 
-
 /***************************************************
 *                 ADDBARequest
 ****************************************************/
 
-NS_OBJECT_ENSURE_REGISTERED (MgtAddBaRequestHeader);
+NS_OBJECT_ENSURE_REGISTERED (MgtAddBaRequestHeader)
+  ;
 
 MgtAddBaRequestHeader::MgtAddBaRequestHeader ()
   : m_dialogToken (1),
@@ -1453,9 +656,7 @@ MgtAddBaRequestHeader::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::MgtAddBaRequestHeader")
     .SetParent<Header> ()
-    .SetGroupName ("Wifi")
-    .AddConstructor<MgtAddBaRequestHeader> ()
-  ;
+    .AddConstructor<MgtAddBaRequestHeader> ();
   return tid;
 }
 
@@ -1540,12 +741,6 @@ MgtAddBaRequestHeader::SetStartingSequence (uint16_t seq)
 }
 
 void
-MgtAddBaRequestHeader::SetStartingSequenceControl (uint16_t seqControl)
-{
-  m_startingSeq = (seqControl >> 4) & 0x0fff;
-}
-
-void
 MgtAddBaRequestHeader::SetAmsduSupport (bool supported)
 {
   m_amsduSupport = supported;
@@ -1593,6 +788,12 @@ MgtAddBaRequestHeader::GetStartingSequenceControl (void) const
   return (m_startingSeq << 4) & 0xfff0;
 }
 
+void
+MgtAddBaRequestHeader::SetStartingSequenceControl (uint16_t seqControl)
+{
+  m_startingSeq = (seqControl >> 4) & 0x0fff;
+}
+
 uint16_t
 MgtAddBaRequestHeader::GetParameterSet (void) const
 {
@@ -1613,12 +814,12 @@ MgtAddBaRequestHeader::SetParameterSet (uint16_t params)
   m_bufferSize = (params >> 6) & 0x03ff;
 }
 
-
 /***************************************************
 *                 ADDBAResponse
 ****************************************************/
 
-NS_OBJECT_ENSURE_REGISTERED (MgtAddBaResponseHeader);
+NS_OBJECT_ENSURE_REGISTERED (MgtAddBaResponseHeader)
+  ;
 
 MgtAddBaResponseHeader::MgtAddBaResponseHeader ()
   : m_dialogToken (1),
@@ -1632,7 +833,6 @@ MgtAddBaResponseHeader::GetTypeId ()
 {
   static TypeId tid = TypeId ("ns3::MgtAddBaResponseHeader")
     .SetParent<Header> ()
-    .SetGroupName ("Wifi")
     .AddConstructor<MgtAddBaResponseHeader> ()
   ;
   return tid;
@@ -1781,12 +981,12 @@ MgtAddBaResponseHeader::SetParameterSet (uint16_t params)
   m_bufferSize = (params >> 6) & 0x03ff;
 }
 
-
 /***************************************************
 *                     DelBa
 ****************************************************/
 
-NS_OBJECT_ENSURE_REGISTERED (MgtDelBaHeader);
+NS_OBJECT_ENSURE_REGISTERED (MgtDelBaHeader)
+  ;
 
 MgtDelBaHeader::MgtDelBaHeader ()
   : m_reasonCode (1)
@@ -1798,7 +998,6 @@ MgtDelBaHeader::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::MgtDelBaHeader")
     .SetParent<Header> ()
-    .SetGroupName ("Wifi")
     .AddConstructor<MgtDelBaHeader> ()
   ;
   return tid;
@@ -1890,4 +1089,4 @@ MgtDelBaHeader::SetParameterSet (uint16_t params)
   m_tid = (params >> 12) & 0x0f;
 }
 
-} //namespace ns3
+} // namespace ns3

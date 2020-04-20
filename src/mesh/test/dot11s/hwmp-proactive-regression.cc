@@ -31,6 +31,7 @@
 #include "ns3/ipv4-interface-container.h"
 #include "ns3/ipv4-address-helper.h"
 #include "ns3/abort.h"
+#include "ns3/udp-echo-helper.h"
 #include "ns3/mobility-model.h"
 #include "ns3/pcap-test.h"
 #include <sstream>
@@ -44,8 +45,7 @@ const char * const PREFIX = "hwmp-proactive-regression-test";
 
 HwmpProactiveRegressionTest::HwmpProactiveRegressionTest () : TestCase ("HWMP proactive regression test"),
                                                               m_nodes (0),
-                                                              m_time (Seconds (5)),
-                                                              m_sentPktsCounter (0)
+                                                              m_time (Seconds (5))
 {
 }
 
@@ -89,18 +89,17 @@ HwmpProactiveRegressionTest::CreateNodes ()
 void
 HwmpProactiveRegressionTest::InstallApplications ()
 {
-  // client socket
-  m_clientSocket = Socket::CreateSocket (m_nodes->Get (4), TypeId::LookupByName ("ns3::UdpSocketFactory"));
-  m_clientSocket->Bind ();
-  m_clientSocket->Connect (InetSocketAddress (m_interfaces.GetAddress (0), 9));
-  m_clientSocket->SetRecvCallback (MakeCallback (&HwmpProactiveRegressionTest::HandleReadClient, this));
-  Simulator::ScheduleWithContext (m_clientSocket->GetNode ()->GetId (), Seconds (2.5),
-                                  &HwmpProactiveRegressionTest::SendData, this, m_clientSocket);
-
-  // server socket
-  m_serverSocket = Socket::CreateSocket (m_nodes->Get (0), TypeId::LookupByName ("ns3::UdpSocketFactory"));
-  m_serverSocket->Bind (InetSocketAddress (Ipv4Address::GetAny (), 9));
-  m_serverSocket->SetRecvCallback (MakeCallback (&HwmpProactiveRegressionTest::HandleReadServer, this));
+  UdpEchoServerHelper echoServer (9);
+  ApplicationContainer serverApps = echoServer.Install (m_nodes->Get (0));
+  serverApps.Start (Seconds (0.0));
+  serverApps.Stop (m_time);
+  UdpEchoClientHelper echoClient (m_interfaces.GetAddress (0), 9);
+  echoClient.SetAttribute ("MaxPackets", UintegerValue (300));
+  echoClient.SetAttribute ("Interval", TimeValue (Seconds (0.5)));
+  echoClient.SetAttribute ("PacketSize", UintegerValue (100));
+  ApplicationContainer clientApps = echoClient.Install (m_nodes->Get (4));
+  clientApps.Start (Seconds (2.5));
+  clientApps.Stop (m_time);
 }
 void
 HwmpProactiveRegressionTest::CreateDevices ()
@@ -113,25 +112,22 @@ HwmpProactiveRegressionTest::CreateDevices ()
   YansWifiChannelHelper wifiChannel = YansWifiChannelHelper::Default ();
   Ptr<YansWifiChannel> chan = wifiChannel.Create ();
   wifiPhy.SetChannel (chan);
-  wifiPhy.Set ("TxGain", DoubleValue (1.0)); //this configuration should go away in future revision to the test
-  wifiPhy.Set ("RxGain", DoubleValue (1.0)); //this configuration should go away in future revision to the test
   // 2. setup mesh
   MeshHelper mesh = MeshHelper::Default ();
   mesh.SetStackInstaller ("ns3::Dot11sStack", "Root", Mac48AddressValue (Mac48Address ("00:00:00:00:00:0d")));
   mesh.SetMacType ("RandomStart", TimeValue (Seconds (0.1)));
   mesh.SetNumberOfInterfaces (1);
   NetDeviceContainer meshDevices = mesh.Install (wifiPhy, *m_nodes);
-  // Five devices, 9 streams per device 
+  // Five devices, 4 streams per device 
   streamsUsed += mesh.AssignStreams (meshDevices, streamsUsed);
-  NS_TEST_ASSERT_MSG_EQ (streamsUsed, (meshDevices.GetN () * 9), "Stream mismatch");
+  NS_TEST_ASSERT_MSG_EQ (streamsUsed, (meshDevices.GetN () * 4), "Stream mismatch");
   // No streams used here, by default
   streamsUsed += wifiChannel.AssignStreams (chan, streamsUsed);
-  NS_TEST_ASSERT_MSG_EQ (streamsUsed, (meshDevices.GetN () * 9), "Stream mismatch");
+  NS_TEST_ASSERT_MSG_EQ (streamsUsed, (meshDevices.GetN () * 4), "Stream mismatch");
 
   // 3. setup TCP/IP
   InternetStackHelper internetStack;
   internetStack.Install (*m_nodes);
-  streamsUsed += internetStack.AssignStreams (*m_nodes, streamsUsed);
   Ipv4AddressHelper address;
   address.SetBase ("10.1.1.0", "255.255.255.0");
   m_interfaces = address.Assign (meshDevices);
@@ -148,38 +144,3 @@ HwmpProactiveRegressionTest::CheckResults ()
     }
 }
 
-void
-HwmpProactiveRegressionTest::SendData (Ptr<Socket> socket)
-{
-  if ((Simulator::Now () < m_time) && (m_sentPktsCounter < 300))
-    {
-      socket->Send (Create<Packet> (100));
-      m_sentPktsCounter ++;
-      Simulator::ScheduleWithContext (socket->GetNode ()->GetId (), Seconds (0.5),
-                                      &HwmpProactiveRegressionTest::SendData, this, socket);
-    }
-}
-
-void
-HwmpProactiveRegressionTest::HandleReadServer (Ptr<Socket> socket)
-{
-  Ptr<Packet> packet;
-  Address from;
-  while ((packet = socket->RecvFrom (from)))
-    {
-      packet->RemoveAllPacketTags ();
-      packet->RemoveAllByteTags ();
-
-      socket->SendTo (packet, 0, from);
-    }
-}
-
-void
-HwmpProactiveRegressionTest::HandleReadClient (Ptr<Socket> socket)
-{
-  Ptr<Packet> packet;
-  Address from;
-  while ((packet = socket->RecvFrom (from)))
-    {
-    }
-}

@@ -21,19 +21,8 @@
 #include "ns3/histogram.h"
 #include "ns3/test.h"
 
-using namespace ns3;
+namespace ns3 {
 
-/**
- * \ingroup flow-monitor
- * \defgroup flow-monitor-test FlowMonitor module tests
- */
-
-/**
- * \ingroup flow-monitor-test
- * \ingroup tests
- *
- * \brief FlowMonitor Histogram Test
- */
 class HistogramTestCase : public ns3::TestCase {
 private:
 public:
@@ -80,22 +69,16 @@ HistogramTestCase::DoRun (void)
   }
 }
 
-/**
- * \ingroup flow-monitor-test
- * \ingroup tests
- *
- * \brief FlowMonitor Histogram TestSuite
- */
-class HistogramTestSuite : public TestSuite
+static class HistogramTestSuite : public TestSuite
 {
 public:
-  HistogramTestSuite ();
-};
+  HistogramTestSuite ()
+    : TestSuite ("histogram", UNIT) 
+  {
+    AddTestCase (new HistogramTestCase (), TestCase::QUICK);
+  }
+} g_HistogramTestSuite;
 
-HistogramTestSuite::HistogramTestSuite ()
-  : TestSuite ("histogram", UNIT)
-{
-  AddTestCase (new HistogramTestCase, TestCase::QUICK);
-}
+} // namespace
 
-static HistogramTestSuite g_HistogramTestSuite; //!< Static variable for test initialization
+

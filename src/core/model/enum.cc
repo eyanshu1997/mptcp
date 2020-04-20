@@ -22,37 +22,31 @@
 #include "log.h"
 #include <sstream>
 
-/**
- * \file
- * \ingroup attribute_Enum
- * ns3::EnumValue attribute value implementation.
- */
+NS_LOG_COMPONENT_DEFINE ("Enum");
 
 namespace ns3 {
 
-NS_LOG_COMPONENT_DEFINE ("Enum");
-
 EnumValue::EnumValue ()
-  : m_value ()
+  : m_v ()
 {
   NS_LOG_FUNCTION (this);
 }
-EnumValue::EnumValue (int value)
-  : m_value (value)
+EnumValue::EnumValue (int v)
+  : m_v (v)
 {
-  NS_LOG_FUNCTION (this << value);
+  NS_LOG_FUNCTION (this << v);
 }
 void
-EnumValue::Set (int value)
+EnumValue::Set (int v)
 {
-  NS_LOG_FUNCTION (this << value);
-  m_value = value;
+  NS_LOG_FUNCTION (this << v);
+  m_v = v;
 }
 int
 EnumValue::Get (void) const
 {
   NS_LOG_FUNCTION (this);
-  return m_value;
+  return m_v;
 }
 Ptr<AttributeValue>
 EnumValue::Copy (void) const
@@ -68,7 +62,7 @@ EnumValue::SerializeToString (Ptr<const AttributeChecker> checker) const
   NS_ASSERT (p != 0);
   for (EnumChecker::ValueSet::const_iterator i = p->m_valueSet.begin (); i != p->m_valueSet.end (); i++)
     {
-      if (i->first == m_value)
+      if (i->first == m_v)
         {
           return i->second;
         }
@@ -88,7 +82,7 @@ EnumValue::DeserializeFromString (std::string value, Ptr<const AttributeChecker>
     {
       if (i->second == value)
         {
-          m_value = i->first;
+          m_v = i->first;
           return true;
         }
     }
@@ -101,16 +95,16 @@ EnumChecker::EnumChecker ()
 }
 
 void
-EnumChecker::AddDefault (int value, std::string name)
+EnumChecker::AddDefault (int v, std::string name)
 {
-  NS_LOG_FUNCTION (this << value << name);
-  m_valueSet.push_front (std::make_pair (value, name));
+  NS_LOG_FUNCTION (this << v << name);
+  m_valueSet.push_front (std::make_pair (v, name));
 }
 void
-EnumChecker::Add (int value, std::string name)
+EnumChecker::Add (int v, std::string name)
 {
-  NS_LOG_FUNCTION (this << value << name);
-  m_valueSet.push_back (std::make_pair (value, name));
+  NS_LOG_FUNCTION (this << v << name);
+  m_valueSet.push_back (std::make_pair (v, name));
 }
 bool
 EnumChecker::Check (const AttributeValue &value) const

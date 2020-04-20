@@ -17,10 +17,11 @@
  *
  * Author: Mathieu Lacage <mathieu.lacage@sophia.inria.fr>
  */
-
 #ifndef STATUS_CODE_H
 #define STATUS_CODE_H
 
+#include <stdint.h>
+#include <ostream>
 #include "ns3/buffer.h"
 
 namespace ns3 {
@@ -37,15 +38,14 @@ public:
    */
   void SetSuccess (void);
   /**
-   * Set success bit to 1 (failure).
+   * Set success bit to 1 (failure.
    */
   void SetFailure (void);
 
   /**
    * Return whether the status code is success.
    *
-   * \return true if success,
-   *         false otherwise
+   * \return true if success, false otherwise
    */
   bool IsSuccess (void) const;
 
@@ -57,8 +57,8 @@ public:
    */
   uint32_t GetSerializedSize (void) const;
   /**
-   * \param start an iterator which points to where the status code should be written
-   *
+   * \param start an iterator which points to where the status code should
+   *        be written.
    * \return Buffer::Iterator
    *
    * This method is used to store a status code into the byte buffer.
@@ -68,22 +68,19 @@ public:
   Buffer::Iterator Serialize (Buffer::Iterator start) const;
   /**
    * \param start an iterator which points to where the status code should be read.
-   *
    * \returns the number of bytes read.
    *
-   * This method is used to re-create a status code from the byte buffer.
+   * This method is used to re-create a status code from the byte buffer. 
    * The data read is expected to match bit-for-bit the representation of this
    * header in real networks.
    */
   Buffer::Iterator Deserialize (Buffer::Iterator start);
-
-
 private:
-  uint16_t m_code; ///< status code
+  uint16_t m_code;
 };
 
 std::ostream &operator << (std::ostream &os, const StatusCode &code);
 
-} //namespace ns3
+} // namespace ns3
 
 #endif /* STATUS_CODE_H */

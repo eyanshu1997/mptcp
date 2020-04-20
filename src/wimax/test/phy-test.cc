@@ -19,12 +19,23 @@
  *                              <amine.ismail@udcast.com>
  */
 #include "ns3/log.h"
+#include "ns3/abort.h"
 #include "ns3/test.h"
+#include "ns3/config.h"
+#include "ns3/string.h"
+#include "ns3/uinteger.h"
+#include "ns3/inet-socket-address.h"
+#include "ns3/point-to-point-helper.h"
+#include "ns3/internet-stack-helper.h"
+#include "ns3/ipv4-address-helper.h"
+#include "ns3/ipv4-header.h"
+#include "ns3/packet-sink-helper.h"
 #include "ns3/simulator.h"
-#include "ns3/node-container.h"
-#include "ns3/net-device-container.h"
 #include "ns3/wimax-helper.h"
+#include "ns3/mobility-helper.h"
+#include "ns3/global-route-manager.h"
 #include "ns3/snr-to-block-error-rate-manager.h"
+#include <iostream>
 
 using namespace ns3;
 
@@ -37,12 +48,6 @@ NS_LOG_COMPONENT_DEFINE ("WimaxPhyTest");
  *
  */
 
-/**
- * \ingroup wimax-test
- * \ingroup tests
- *
- * \brief Ns3 Wimax Simple OFDM Test Case
- */
 class Ns3WimaxSimpleOFDMTestCase : public TestCase
 {
 public:
@@ -51,12 +56,7 @@ public:
 
 private:
   virtual void DoRun (void);
-  /**
-   * Run once function
-   * \param FrameDuration the frame duration
-   * \returns true if successful
-   */
-  bool DoRunOnce (double FrameDuration);
+  bool DoRunOnce (double);
 
 };
 
@@ -119,12 +119,10 @@ Ns3WimaxSimpleOFDMTestCase::DoRun (void)
     }
 }
 
-/**
- * \ingroup wimax-test
- * \ingroup tests
- *
- * \brief Test the SNr tom block error rate module
+/*
+ * Test the SNr tom block error rate module
  */
+
 class Ns3WimaxSNRtoBLERTestCase : public TestCase
 {
 public:
@@ -133,12 +131,7 @@ public:
 
 private:
   virtual void DoRun (void);
-  /**
-   * Run once function
-   * \param modulationType the modulation type
-   * \returns true if successful
-   */
-  bool DoRunOnce (uint8_t modulationType);
+  bool DoRunOnce (uint8_t);
 
 };
 
@@ -176,11 +169,8 @@ Ns3WimaxSNRtoBLERTestCase::DoRun (void)
     }
 }
 
-/**
- * \ingroup wimax-test
- * \ingroup tests
- *
- * \brief The test suite
+/*
+ * The test suite
  */
 class Ns3WimaxPhyTestSuite : public TestSuite
 {
@@ -195,4 +185,4 @@ Ns3WimaxPhyTestSuite::Ns3WimaxPhyTestSuite ()
 
 }
 
-static Ns3WimaxPhyTestSuite ns3WimaxPhyTestSuite; ///< the test suite
+static Ns3WimaxPhyTestSuite ns3WimaxPhyTestSuite;

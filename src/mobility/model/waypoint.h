@@ -30,7 +30,6 @@ namespace ns3 {
 /**
  * \ingroup mobility
  * \brief a (time, location) pair.
- * \see attribute_Waypoint
  */
 class Waypoint
 {
@@ -47,16 +46,17 @@ public:
    * Create a waypoint at time 0 and position (0,0,0).
    */
   Waypoint ();
-  /**
-   * \brief The waypoint time
-   */
+  /* The waypoint time */
   Time time;
-  /**
-   * \brief The position of the waypoint 
-   */
+  /* The position of the waypoint */
   Vector position;
 };
 
+/**
+ * \ingroup mobility
+ * \class ns3::WaypointValue
+ * \brief hold objects of type ns3::Waypoint
+ */
 ATTRIBUTE_HELPER_HEADER ( Waypoint);
 
 std::ostream &

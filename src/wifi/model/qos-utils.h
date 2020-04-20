@@ -17,22 +17,20 @@
  *
  * Author: Mirko Banchi <mk.banchi@gmail.com>
  */
-
 #ifndef QOS_UTILS_H
 #define QOS_UTILS_H
 
+#include "ns3/uinteger.h"
 #include "ns3/ptr.h"
+#include "ns3/packet.h"
 
 namespace ns3 {
-
-class Packet;
-class WifiMacHeader;
 
 /**
  * \ingroup wifi
  * This enumeration defines the Access Categories as an enumeration
- * with values corresponding to the AC index (ACI) values specified
- * (Table 8-104 "ACI-to-AC coding"; IEEE 802.11-2012).
+ * with values corresponding to the AC index (ACI) values specified in
+ * Table 7-36 of IEEE 802.11-2007.
  */
 enum AcIndex
 {
@@ -44,6 +42,7 @@ enum AcIndex
   AC_VI = 2,
   /** Voice */
   AC_VO = 3,
+
   /** Total number of ACs */
   AC_BE_NQOS = 4,
   AC_UNDEF
@@ -52,7 +51,7 @@ enum AcIndex
 /**
  * \ingroup wifi
  * Maps TID (Traffic ID) to Access classes.
- * For more details see (Table 9-1 "UP-to-AC mapping"; IEEE 802.11-2012).
+ * For more details see table 9-1 of IEEE802.11 standard.
  *
  * \param tid the Traffic ID to be mapped to Access class
  * \return the access class for the given TID
@@ -65,7 +64,6 @@ AcIndex QosUtilsMapTidToAc (uint8_t tid);
  * A value >= 8 is returned otherwise.
  *
  * \param packet the packet to checked for a QoS tag
- *
  * \return a value less than 8 if QoS tag was present, a value >= 8
  *         is returned if no QoS tag was present
  */
@@ -75,11 +73,10 @@ uint8_t QosUtilsGetTidForPacket (Ptr<const Packet> packet);
  * \ingroup wifi
  * Next function is useful to correctly sort buffered packets under block ack.
  * When an BAR is received from originator station, completed "old"
- * (see section 9.10.3 in IEEE 802.11e) packets must be forwarded up before "new" packets.
+ * (see section 9.10.3 in IEEE802.11e) packets must be forwarded up before "new" packets.
  *
  * \param seqControl the sequence control field
  * \param endSequence
- *
  * \return a unique integer for the given sequence control and end sequence
  */
 uint32_t QosUtilsMapSeqControlToUniqueInteger (uint16_t seqControl, uint16_t endSequence);
@@ -118,22 +115,10 @@ uint32_t QosUtilsMapSeqControlToUniqueInteger (uint16_t seqControl, uint16_t end
  *
  * \param startingSeq the starting sequence number
  * \param seqNumber the sequence number to be checked
- *
  * \return true if the packet is old, false otherwise
  */
 bool QosUtilsIsOldPacket (uint16_t startingSeq, uint16_t seqNumber);
 
-/**
- * \ingroup wifi
- * Next function is useful to get traffic id of different packet types.
- *
- * \param packet packet to check
- * \param hdr 802.11 header for packet to check
- *
- * Returns Tid of different packet types
- */
-uint8_t GetTid (Ptr<const Packet> packet, const WifiMacHeader hdr);
-
-} //namespace ns3
+} // namespace ns3
 
 #endif /* QOS_UTILS_H */

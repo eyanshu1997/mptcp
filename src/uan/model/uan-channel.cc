@@ -26,7 +26,8 @@
 #include "ns3/node.h"
 #include "ns3/log.h"
 #include "ns3/pointer.h"
-#include "ns3/string.h"
+#include "ns3/log.h"
+
 #include "uan-channel.h"
 #include "uan-phy.h"
 #include "uan-prop-model.h"
@@ -36,27 +37,26 @@
 #include "uan-noise-model-default.h"
 #include "uan-prop-model-ideal.h"
 
+NS_LOG_COMPONENT_DEFINE ("UanChannel");
 namespace ns3 {
 
-NS_LOG_COMPONENT_DEFINE ("UanChannel");
-
-NS_OBJECT_ENSURE_REGISTERED (UanChannel);
+NS_OBJECT_ENSURE_REGISTERED (UanChannel)
+  ;
 
 TypeId
 UanChannel::GetTypeId ()
 {
   static TypeId tid = TypeId ("ns3::UanChannel")
     .SetParent<Channel> ()
-    .SetGroupName ("Uan")
     .AddConstructor<UanChannel> ()
     .AddAttribute ("PropagationModel",
                    "A pointer to the propagation model.",
-                   StringValue ("ns3::UanPropModelIdeal"),
+                   PointerValue (CreateObject<UanPropModelIdeal> ()),
                    MakePointerAccessor (&UanChannel::m_prop),
                    MakePointerChecker<UanPropModel> ())
     .AddAttribute ("NoiseModel",
                    "A pointer to the model of the channel ambient noise.",
-                   StringValue ("ns3::UanNoiseModelDefault"),
+                   PointerValue (CreateObject<UanNoiseModelDefault> ()),
                    MakePointerAccessor (&UanChannel::m_noise),
                    MakePointerChecker<UanNoiseModel> ())
   ;
@@ -124,14 +124,14 @@ UanChannel::SetPropagationModel (Ptr<UanPropModel> prop)
   m_prop = prop;
 }
 
-std::size_t
+uint32_t
 UanChannel::GetNDevices () const
 {
   return m_devList.size ();
 }
 
 Ptr<NetDevice>
-UanChannel::GetDevice (std::size_t i) const
+UanChannel::GetDevice (uint32_t i) const
 {
   return m_devList[i].first;
 }

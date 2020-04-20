@@ -36,9 +36,11 @@ In order to run this example, do the following:
 
 .. sourcecode:: bash
 
-  $ ./waf --run src/stats/examples/gnuplot-example
+  $ ./waf shell
+  $ cd build/debug/src/stats/examples
+  $ ./gnuplot-example 
 
-This should produce the following gnuplot control files:
+This should produce the following gnuplot control files in the directory where the example is located:
 
 .. sourcecode:: text
 
@@ -54,7 +56,7 @@ In order to process these gnuplot control files, do the following:
   $ gnuplot plot-2d-with-error-bars.plt
   $ gnuplot plot-3d.plt 
 
-This should produce the following graphics files:
+This should produce the following graphics files in the directory where the example is located:
 
 .. sourcecode:: text
 

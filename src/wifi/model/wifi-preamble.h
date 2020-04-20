@@ -17,7 +17,6 @@
  *
  * Author: Mathieu Lacage <mathieu.lacage@sophia.inria.fr>
  */
-
 #ifndef WIFI_PREAMBLE_H
 #define WIFI_PREAMBLE_H
 
@@ -32,15 +31,9 @@ enum WifiPreamble
   WIFI_PREAMBLE_LONG,
   WIFI_PREAMBLE_SHORT,
   WIFI_PREAMBLE_HT_MF,
-  WIFI_PREAMBLE_HT_GF,
-  WIFI_PREAMBLE_VHT,
-  WIFI_PREAMBLE_HE_SU,
-  WIFI_PREAMBLE_HE_ER_SU,
-  WIFI_PREAMBLE_HE_MU,
-  WIFI_PREAMBLE_HE_TB,
-  WIFI_PREAMBLE_NONE
+  WIFI_PREAMBLE_HT_GF
 };
 
-} //namespace ns3
+} // namespace ns3
 
 #endif /* WIFI_PREAMBLE_H */

@@ -19,16 +19,18 @@
  */
 
 #include "wifi-information-element-vector.h"
+#include "ns3/packet.h"
+#include <algorithm>
 
 namespace ns3 {
 
-NS_OBJECT_ENSURE_REGISTERED (WifiInformationElementVector);
+NS_OBJECT_ENSURE_REGISTERED (WifiInformationElementVector)
+  ;
 
 WifiInformationElementVector::WifiInformationElementVector ()
   : m_maxSize (1500)
 {
 }
-
 WifiInformationElementVector::~WifiInformationElementVector ()
 {
   for (IE_VECTOR::iterator i = m_elements.begin (); i != m_elements.end (); i++)
@@ -37,29 +39,24 @@ WifiInformationElementVector::~WifiInformationElementVector ()
     }
   m_elements.clear ();
 }
-
 TypeId
 WifiInformationElementVector::GetTypeId ()
 {
   static TypeId tid = TypeId ("ns3::WifiInformationElementVector")
     .SetParent<Header> ()
-    .SetGroupName ("Wifi")
     .AddConstructor<WifiInformationElementVector> ();
   return tid;
 }
-
 TypeId
 WifiInformationElementVector::GetInstanceTypeId () const
 {
   return GetTypeId ();
 }
-
 uint32_t
 WifiInformationElementVector::GetSerializedSize () const
 {
   return GetSize ();
 }
-
 void
 WifiInformationElementVector::Serialize (Buffer::Iterator start) const
 {
@@ -68,30 +65,19 @@ WifiInformationElementVector::Serialize (Buffer::Iterator start) const
       start = (*i)->Serialize (start);
     }
 }
-
 uint32_t
 WifiInformationElementVector::Deserialize (Buffer::Iterator start)
 {
-  NS_FATAL_ERROR ("This variant should not be called on a variable-sized header");
-  return 0;
-}
-
-uint32_t
-WifiInformationElementVector::Deserialize (Buffer::Iterator start, Buffer::Iterator end)
-{
-  uint32_t size = start.GetDistanceFrom (end);
-  uint32_t remaining = size;
-  while (remaining > 0)
+  Buffer::Iterator i = start;
+  uint32_t size = start.GetSize ();
+  while (size > 0)
     {
-      uint32_t deserialized = DeserializeSingleIe (start);
-      start.Next (deserialized);
-      NS_ASSERT (deserialized <= remaining);
-      remaining -= deserialized;
+      uint32_t deserialized = DeserializeSingleIe (i);
+      i.Next (deserialized);
+      size -= deserialized;
     }
-  NS_ASSERT_MSG (remaining == 0, "Error in deserialization");
-  return size;
+  return i.GetDistanceFrom (start);
 }
-
 uint32_t
 WifiInformationElementVector::DeserializeSingleIe (Buffer::Iterator start)
 {
@@ -99,13 +85,12 @@ WifiInformationElementVector::DeserializeSingleIe (Buffer::Iterator start)
   uint8_t id = i.ReadU8 ();
   //unused: uint8_t length = i.ReadU8 ();
   //but need side effects of read:
-  i.ReadU8 ();
+  i.ReadU8 ();  
   Ptr<WifiInformationElement> newElement;
   switch (id)
     {
-    case 0: // eliminate compiler warning
     default:
-      NS_FATAL_ERROR ("Information element " << +id << " is not implemented");
+      NS_FATAL_ERROR ("Information element " << (uint16_t) id << " is not implemented");
       return 0;
     }
   /*  unreachable:  b/c switch is guaranteed to return from this function
@@ -119,30 +104,26 @@ WifiInformationElementVector::DeserializeSingleIe (Buffer::Iterator start)
   return i.GetDistanceFrom (start);
   */
 }
-
 void
 WifiInformationElementVector::Print (std::ostream & os) const
 {
-  for (IE_VECTOR::const_iterator i = m_elements.begin (); i != m_elements.end (); i++)
-    {
-      os << "(";
-      (*i)->Print (os);
-      os << ")";
-    }
+  /// \todo
 }
-
+void
+WifiInformationElementVector::SetMaxSize (uint16_t size)
+{
+  m_maxSize = size;
+}
 WifiInformationElementVector::Iterator
 WifiInformationElementVector::Begin ()
 {
   return m_elements.begin ();
 }
-
 WifiInformationElementVector::Iterator
 WifiInformationElementVector::End ()
 {
   return m_elements.end ();
 }
-
 bool
 WifiInformationElementVector::AddInformationElement (Ptr<WifiInformationElement> element)
 {
@@ -153,7 +134,6 @@ WifiInformationElementVector::AddInformationElement (Ptr<WifiInformationElement>
   m_elements.push_back (element);
   return true;
 }
-
 Ptr<WifiInformationElement>
 WifiInformationElementVector::FindFirst (WifiInformationElementId id) const
 {
@@ -166,7 +146,16 @@ WifiInformationElementVector::FindFirst (WifiInformationElementId id) const
     }
   return 0;
 }
-
+namespace {
+struct PIEComparator
+{
+  bool
+  operator () (Ptr<WifiInformationElement> a, Ptr<WifiInformationElement> b) const
+  {
+    return ((*PeekPointer (a)) < (*PeekPointer (b)));
+  }
+};
+}
 uint32_t
 WifiInformationElementVector::GetSize () const
 {
@@ -186,13 +175,13 @@ WifiInformationElementVector::operator== (const WifiInformationElementVector & a
       NS_ASSERT (false);
       return false;
     }
-  //In principle we could bypass some of the faffing about (and speed
-  //the comparison) by simply serialising each IE vector into a
-  //buffer and memcmp'ing the two.
+  // In principle we could bypass some of the faffing about (and speed
+  // the comparison) by simply serialising each IE vector into a
+  // buffer and memcmp'ing the two.
   //
-  //I'm leaving it like this, however, so that there is the option of
-  //having individual Information Elements implement slightly more
-  //flexible equality operators.
+  // I'm leaving it like this, however, so that there is the option of
+  // having individual Information Elements implement slightly more
+  // flexible equality operators.
   WifiInformationElementVector::IE_VECTOR::const_iterator j = a.m_elements.begin ();
   for (WifiInformationElementVector::IE_VECTOR::const_iterator i = m_elements.begin (); i
        != m_elements.end (); i++, j++)
@@ -206,4 +195,4 @@ WifiInformationElementVector::operator== (const WifiInformationElementVector & a
   return true;
 }
 
-} //namespace ns3
+} // namespace ns3

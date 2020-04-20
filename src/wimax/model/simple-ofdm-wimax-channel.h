@@ -37,7 +37,6 @@ class SimpleOfdmWimaxPhy;
 
 /**
  * \ingroup wimax
- * \brief SimpleOfdmWimaxChannel class 
  */
 class SimpleOfdmWimaxChannel : public WimaxChannel
 {
@@ -45,7 +44,6 @@ public:
   SimpleOfdmWimaxChannel (void);
   ~SimpleOfdmWimaxChannel (void);
 
-  /// PropModel enumeration
   enum PropModel
   {
     RANDOM_PROPAGATION,
@@ -53,13 +51,6 @@ public:
     LOG_DISTANCE_PROPAGATION,
     COST231_PROPAGATION
   };
-  
-  /**
-   * Register this type.
-   * \return The TypeId.
-   */
-  static TypeId GetTypeId (void);
-  
   /**
    * \brief Creates a channel and sets the propagation model
    * \param propModel the propagation model to use
@@ -101,30 +92,12 @@ public:
   int64_t AssignStreams (int64_t stream);
 
 private:
-  /**
-   * Attach functiion
-   * \param phy the phy layer
-   */
   void DoAttach (Ptr<WimaxPhy> phy);
-  std::list<Ptr<SimpleOfdmWimaxPhy> > m_phyList; ///< phy list
-  /**
-   * Get number of devices function
-   * \returns the number of devices
-   */
-  std::size_t DoGetNDevices (void) const;
-  /**
-   * End send dummy block function
-   * \param rxphy the Ptr<SimpleOfdmWimaxPhy>
-   * \param param the simpleOfdmSendParam *
-   */
+  std::list<Ptr<SimpleOfdmWimaxPhy> > m_phyList;
+  uint32_t DoGetNDevices (void) const;
   void EndSendDummyBlock  (Ptr<SimpleOfdmWimaxPhy> rxphy, simpleOfdmSendParam * param);
-  /**
-   * Get device function
-   * \param i the device index
-   * \returns the device
-   */
-  Ptr<NetDevice> DoGetDevice (std::size_t i) const;
-  Ptr<PropagationLossModel> m_loss; ///< loss
+  Ptr<NetDevice> DoGetDevice (uint32_t i) const;
+  Ptr<PropagationLossModel> m_loss;
 };
 
 } // namespace ns3

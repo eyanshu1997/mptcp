@@ -18,17 +18,8 @@
  * Christoph Moench-Tegeder <cmt@burggraben.net>
  */
 
-// It is recommended to include this header instead of <math.h> or 
-// <cmath> whenever the log2(x) function is needed.  See bug 1467.
-
 #ifndef MATH_H
 #define MATH_H
-
-/**
- * \file
- * \ingroup core
- * log2() macro definition; to deal with \bugid{1467}.
- */
 
 #include <cmath>
 

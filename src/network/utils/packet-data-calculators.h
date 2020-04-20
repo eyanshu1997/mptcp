@@ -40,12 +40,6 @@ public:
   virtual ~PacketCounterCalculator();
 
   /**
-   * Register this type.
-   * \return The TypeId.
-   */
-  static TypeId GetTypeId (void);
-  
-  /**
    * Increments the packet counter by one
    *
    * \param path not used in this method
@@ -78,17 +72,10 @@ protected:
  *
  */
 class PacketSizeMinMaxAvgTotalCalculator :
-  public MinMaxAvgTotalCalculator<uint32_t>
-{
+  public MinMaxAvgTotalCalculator<uint32_t> {
 public:
   PacketSizeMinMaxAvgTotalCalculator();
   virtual ~PacketSizeMinMaxAvgTotalCalculator();
-  
-  /**
-   * Register this type.
-   * \return The TypeId.
-   */
-  static TypeId GetTypeId (void);
   
   /**
    * Increments the packet stats by the size of the packet

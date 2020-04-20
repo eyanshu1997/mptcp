@@ -35,21 +35,19 @@
 #include "service-flow.h"
 #include "service-flow-record.h"
 #include "service-flow-manager.h"
-
-namespace ns3 {
+#include "wimax-mac-queue.h"
 
 NS_LOG_COMPONENT_DEFINE ("BSSchedulerRtps");
 
-NS_OBJECT_ENSURE_REGISTERED (BSSchedulerRtps);
+namespace ns3 {
+
+NS_OBJECT_ENSURE_REGISTERED (BSSchedulerRtps)
+  ;
 
 TypeId
 BSSchedulerRtps::GetTypeId (void)
 {
-  static TypeId tid = TypeId ("ns3::BSSchedulerRtps")
-    .SetParent<BSScheduler> ()
-    .SetGroupName("Wimax")
-    .AddConstructor<BSSchedulerRtps> ()
-    ;
+  static TypeId tid = TypeId ("ns3::BSSchedulerRtps").SetParent<Object> ().AddConstructor<BSSchedulerRtps> ();
   return tid;
 }
 
@@ -491,6 +489,7 @@ BSSchedulerRtps::BSSchedulerRTPSConnection (uint32_t &availableSymbols)
 
   Time currentTime = Simulator::Now ();
 
+  std::vector<Ptr<WimaxConnection> >::const_iterator iter;
   std::vector<Ptr<WimaxConnection> > connections;
   std::vector<ServiceFlow*>::iterator iter2;
   ServiceFlowRecord *serviceFlowRecord;

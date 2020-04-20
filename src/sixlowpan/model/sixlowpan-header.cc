@@ -45,9 +45,9 @@ SixLowPanDispatch::GetDispatchType (uint8_t dispatch)
     {
       return LOWPAN_NALP;
     }
-  else if (dispatch == LOWPAN_IPv6)
+  else if (dispatch == LOWPAN_NOTCOMPRESSED)
     {
-      return LOWPAN_IPv6;
+      return LOWPAN_NOTCOMPRESSED;
     }
   else if (dispatch == LOWPAN_HC1)
     {
@@ -94,7 +94,8 @@ SixLowPanDispatch::GetNhcDispatchType (uint8_t dispatch)
 /*
  * SixLowPanHc1
  */
-NS_OBJECT_ENSURE_REGISTERED (SixLowPanHc1);
+NS_OBJECT_ENSURE_REGISTERED (SixLowPanHc1)
+  ;
 
 SixLowPanHc1::SixLowPanHc1 ()
   : m_hopLimit (0)
@@ -103,10 +104,7 @@ SixLowPanHc1::SixLowPanHc1 ()
 
 TypeId SixLowPanHc1::GetTypeId (void)
 {
-  static TypeId tid = TypeId ("ns3::SixLowPanHc1")
-    .SetParent<Header> ()
-    .SetGroupName ("SixLowPan")
-    .AddConstructor<SixLowPanHc1> ();
+  static TypeId tid = TypeId ("ns3::SixLowPanHc1").SetParent<Header> ().AddConstructor<SixLowPanHc1> ();
   return tid;
 }
 
@@ -128,7 +126,7 @@ void SixLowPanHc1::Print (std::ostream & os) const
   encoding <<= 1;
   encoding |= m_hc2HeaderPresent;
 
-  os << "encoding " << static_cast<int> (encoding) << ", hopLimit " << static_cast<int> (m_hopLimit);
+  os << "encoding " << int(encoding) << ", hopLimit " << int(m_hopLimit);
 }
 
 uint32_t SixLowPanHc1::GetSerializedSize () const
@@ -541,7 +539,8 @@ std::ostream & operator << (std::ostream & os, const SixLowPanHc1 & h)
 /*
  * SixLowPanFrag1
  */
-NS_OBJECT_ENSURE_REGISTERED (SixLowPanFrag1);
+NS_OBJECT_ENSURE_REGISTERED (SixLowPanFrag1)
+  ;
 
 SixLowPanFrag1::SixLowPanFrag1 ()
   : m_datagramSize (0),
@@ -551,10 +550,7 @@ SixLowPanFrag1::SixLowPanFrag1 ()
 
 TypeId SixLowPanFrag1::GetTypeId (void)
 {
-  static TypeId tid = TypeId ("ns3::SixLowPanFrag1")
-    .SetParent<Header> ()
-    .SetGroupName ("SixLowPan")
-    .AddConstructor<SixLowPanFrag1> ();
+  static TypeId tid = TypeId ("ns3::SixLowPanFrag1").SetParent<Header> ().AddConstructor<SixLowPanFrag1> ();
   return tid;
 }
 
@@ -628,7 +624,8 @@ std::ostream & operator << (std::ostream & os, const SixLowPanFrag1 & h)
  * SixLowPanFragN
  */
 
-NS_OBJECT_ENSURE_REGISTERED (SixLowPanFragN);
+NS_OBJECT_ENSURE_REGISTERED (SixLowPanFragN)
+  ;
 
 SixLowPanFragN::SixLowPanFragN ()
   : m_datagramSize (0),
@@ -641,10 +638,7 @@ SixLowPanFragN::SixLowPanFragN ()
  */
 TypeId SixLowPanFragN::GetTypeId (void)
 {
-  static TypeId tid = TypeId ("ns3::SixLowPanFragN")
-    .SetParent<Header> ()
-    .SetGroupName ("SixLowPan")
-    .AddConstructor<SixLowPanFragN> ();
+  static TypeId tid = TypeId ("ns3::SixLowPanFragN").SetParent<Header> ().AddConstructor<SixLowPanFragN> ();
   return tid;
 }
 
@@ -655,7 +649,7 @@ TypeId SixLowPanFragN::GetInstanceTypeId (void) const
 
 void SixLowPanFragN::Print (std::ostream & os) const
 {
-  os << "datagram size " << m_datagramSize << " tag " << m_datagramTag << " offset " << static_cast<int> (m_datagramOffset);
+  os << "datagram size " << m_datagramSize << " tag " << m_datagramTag << " offset " << int(m_datagramOffset);
 }
 
 uint32_t SixLowPanFragN::GetSerializedSize () const
@@ -727,64 +721,10 @@ std::ostream & operator << (std::ostream & os, const SixLowPanFragN & h)
 }
 
 /*
- * SixLowPanIpv6
- */
-
-NS_OBJECT_ENSURE_REGISTERED (SixLowPanIpv6);
-
-SixLowPanIpv6::SixLowPanIpv6 ()
-{
-}
-
-TypeId SixLowPanIpv6::GetTypeId (void)
-{
-  static TypeId tid = TypeId ("ns3::SixLowPanIpv6")
-    .SetParent<Header> ()
-    .SetGroupName ("SixLowPan")
-    .AddConstructor<SixLowPanIpv6> ();
-  return tid;
-}
-
-TypeId SixLowPanIpv6::GetInstanceTypeId (void) const
-{
-  return GetTypeId ();
-}
-
-void SixLowPanIpv6::Print (std::ostream & os) const
-{
-  os << "Uncompressed IPv6";
-}
-
-uint32_t SixLowPanIpv6::GetSerializedSize () const
-{
-  return 1;
-}
-
-void SixLowPanIpv6::Serialize (Buffer::Iterator start) const
-{
-  Buffer::Iterator i = start;
-
-  i.WriteU8 (uint8_t (SixLowPanDispatch::LOWPAN_IPv6));
-}
-
-uint32_t SixLowPanIpv6::Deserialize (Buffer::Iterator start)
-{
-  Buffer::Iterator i = start;
-  i.ReadU8 ();
-
-  return GetSerializedSize ();
-}
-
-std::ostream & operator << (std::ostream & os, const SixLowPanIpv6 & h)
-{
-  h.Print (os);
-  return os;
-}
-
-/*
  * SixLowPanIphcHeader
  */
-NS_OBJECT_ENSURE_REGISTERED (SixLowPanIphc);
+NS_OBJECT_ENSURE_REGISTERED (SixLowPanIphc)
+  ;
 
 SixLowPanIphc::SixLowPanIphc ()
 {
@@ -801,10 +741,7 @@ SixLowPanIphc::SixLowPanIphc (uint8_t dispatch)
 
 TypeId SixLowPanIphc::GetTypeId (void)
 {
-  static TypeId tid = TypeId ("ns3::SixLowPanIphc")
-    .SetParent<Header> ()
-    .SetGroupName ("SixLowPan")
-    .AddConstructor<SixLowPanIphc> ();
+  static TypeId tid = TypeId ("ns3::SixLowPanIphc").SetParent<Header> ().AddConstructor<SixLowPanIphc> ();
   return tid;
 }
 
@@ -815,7 +752,7 @@ TypeId SixLowPanIphc::GetInstanceTypeId (void) const
 
 void SixLowPanIphc::Print (std::ostream & os) const
 {
-  os << "Compression kind: " << static_cast<int> (m_baseFormat);
+  os << "Compression kind: " << m_baseFormat;
 }
 
 uint32_t SixLowPanIphc::GetSerializedSize () const
@@ -1482,7 +1419,8 @@ std::ostream & operator << (std::ostream & os, const SixLowPanIphc & h)
 /*
  * SixLowPanNhcExtensionHeader
  */
-NS_OBJECT_ENSURE_REGISTERED (SixLowPanNhcExtension);
+NS_OBJECT_ENSURE_REGISTERED (SixLowPanNhcExtension)
+  ;
 
 SixLowPanNhcExtension::SixLowPanNhcExtension ()
 {
@@ -1496,7 +1434,6 @@ TypeId SixLowPanNhcExtension::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::SixLowPanNhcExtension")
     .SetParent<Header> ()
-    .SetGroupName ("SixLowPan")
     .AddConstructor<SixLowPanNhcExtension> ();
   return tid;
 }
@@ -1508,7 +1445,7 @@ TypeId SixLowPanNhcExtension::GetInstanceTypeId (void) const
 
 void SixLowPanNhcExtension::Print (std::ostream & os) const
 {
-  os << "Compression kind: " << static_cast<int> (m_nhcExtensionHeader) << " Size: " << GetSerializedSize ();
+  os << "Compression kind: " << int (m_nhcExtensionHeader) << " Size: " << int(GetSerializedSize ());
 }
 
 uint32_t SixLowPanNhcExtension::GetSerializedSize () const
@@ -1610,7 +1547,8 @@ std::ostream & operator << (std::ostream & os, const SixLowPanNhcExtension & h)
 /*
  * SixLowPanUdpNhcExtension
  */
-NS_OBJECT_ENSURE_REGISTERED (SixLowPanUdpNhcExtension);
+NS_OBJECT_ENSURE_REGISTERED (SixLowPanUdpNhcExtension)
+  ;
 
 SixLowPanUdpNhcExtension::SixLowPanUdpNhcExtension ()
 {
@@ -1625,7 +1563,6 @@ TypeId SixLowPanUdpNhcExtension::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::SixLowPanUdpNhcExtension")
     .SetParent<Header> ()
-    .SetGroupName ("SixLowPan")
     .AddConstructor<SixLowPanUdpNhcExtension> ();
   return tid;
 }
@@ -1637,7 +1574,7 @@ TypeId SixLowPanUdpNhcExtension::GetInstanceTypeId (void) const
 
 void SixLowPanUdpNhcExtension::Print (std::ostream & os) const
 {
-  os << "Compression kind: " << static_cast<int> (m_baseFormat);
+  os << "Compression kind: " << uint8_t (m_baseFormat);
 }
 
 uint32_t SixLowPanUdpNhcExtension::GetSerializedSize () const

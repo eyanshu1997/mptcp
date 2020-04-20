@@ -16,40 +16,393 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * Authors: Mathieu Lacage <mathieu.lacage@sophia.inria.fr>
- *          Mirko Banchi <mk.banchi@gmail.com>
+ * Author: Mathieu Lacage <mathieu.lacage@sophia.inria.fr>
+ * Author: Mirko Banchi <mk.banchi@gmail.com>
  */
-
 #ifndef MAC_LOW_H
 #define MAC_LOW_H
 
+#include <vector>
+#include <stdint.h>
+#include <ostream>
 #include <map>
-#include "ns3/object.h"
-#include "ns3/nstime.h"
-#include "channel-access-manager.h"
-#include "block-ack-cache.h"
-#include "mac-low-transmission-parameters.h"
-#include "qos-utils.h"
-#include "wifi-mac-header.h"
-#include "wifi-tx-vector.h"
-#include "block-ack-type.h"
-#include "wifi-mpdu-type.h"
 
-class TwoLevelAggregationTest;
-class AmpduAggregationTest;
+#include "wifi-mac-header.h"
+#include "wifi-mode.h"
+#include "wifi-preamble.h"
+#include "wifi-remote-station-manager.h"
+#include "ctrl-headers.h"
+#include "mgt-headers.h"
+#include "block-ack-agreement.h"
+#include "ns3/mac48-address.h"
+#include "ns3/callback.h"
+#include "ns3/event-id.h"
+#include "ns3/packet.h"
+#include "ns3/nstime.h"
+#include "qos-utils.h"
+#include "block-ack-cache.h"
+#include "wifi-tx-vector.h"
 
 namespace ns3 {
 
 class WifiPhy;
-class Txop;
-class QosTxop;
-class WifiMacQueueItem;
-class WifiMacQueue;
-class BlockAckAgreement;
-class MgtAddBaResponseHeader;
-class WifiRemoteStationManager;
-class CtrlBAckRequestHeader;
-class CtrlBAckResponseHeader;
+class WifiMac;
+class EdcaTxopN;
+
+/**
+ * \ingroup wifi
+ * \brief listen to events coming from ns3::MacLow.
+ */
+class MacLowTransmissionListener
+{
+public:
+  MacLowTransmissionListener ();
+  virtual ~MacLowTransmissionListener ();
+
+  /**
+   * \param snr the snr of the cts
+   * \param txMode the txMode of the cts
+   *
+   * ns3::MacLow received an expected CTS within
+   * CtsTimeout.
+   */
+  virtual void GotCts (double snr, WifiMode txMode) = 0;
+  /**
+   * ns3::MacLow did not receive an expected CTS
+   * within CtsTimeout.
+   */
+  virtual void MissedCts (void) = 0;
+  /**
+   * \param snr the snr of the ack
+   * \param txMode the transmission mode of the ack
+   *
+   * ns3::MacLow received an expected ACL within
+   * AckTimeout. The <i>snr</i> and <i>txMode</i>
+   * arguments are not valid when SUPER_FAST_ACK is
+   * used.
+   */
+  virtual void GotAck (double snr, WifiMode txMode) = 0;
+  /**
+   * ns3::MacLow did not receive an expected ACK within
+   * AckTimeout.
+   */
+  virtual void MissedAck (void) = 0;
+  /**
+   * \param blockAck Block ack response header
+   * \param source Address of block ack sender
+   *
+   * Invoked when ns3::MacLow receives a block ack frame.
+   * Block ack frame is received after a block ack request
+   * and contains information about the correct reception
+   * of a set of packet for which a normal ack wasn't send.
+   * Default implementation for this method is empty. Every
+   * queue that intends to be notified by MacLow of reception
+   * of a block ack must redefine this function.
+   */
+  virtual void GotBlockAck (const CtrlBAckResponseHeader *blockAck, Mac48Address source);
+  /**
+   * ns3::MacLow did not receive an expected BLOCK_ACK within
+   * BlockAckTimeout. This method is used only for immediate
+   * block ack variant. With delayed block ack, the MissedAck method will be
+   * called instead: upon receipt of a block ack request, the rx station will
+   * reply with a normal ack frame. Later, when the rx station gets a txop, it
+   * will send the block ack back to the tx station which will reply with a
+   * normal ack to the rx station.
+   */
+  virtual void MissedBlockAck (void);
+  /**
+   * Invoked when ns3::MacLow wants to start a new transmission
+   * as configured by MacLowTransmissionParameters::EnableNextData.
+   * The listener is expected to call again MacLow::StartTransmission
+   * with the "next" data to send.
+   */
+  virtual void StartNext (void) = 0;
+
+  /**
+   * Invoked if this transmission was canceled
+   * one way or another. When this method is invoked,
+   * you can assume that the packet has not been passed
+   * down the stack to the PHY.
+   */
+  virtual void Cancel (void) = 0;	
+
+  /** 
+   * Invoked upon the end of the transmission of a frame that does not
+   * require an ACK (e.g., broadcast and multicast frames).
+   * 
+   */
+  virtual void EndTxNoAck (void) = 0;
+
+};
+
+
+/**
+ * \brief listen to NAV events
+ * \ingroup wifi
+ *
+ * This class is typically connected to an instance of ns3::Dcf
+ * and calls to its methods are forwards to the corresponding
+ * ns3::Dcf methods.
+ */
+class MacLowDcfListener
+{
+public:
+  MacLowDcfListener ();
+  virtual ~MacLowDcfListener ();
+  /**
+   * Norify that NAV has started for the given duration.
+   *
+   * \param duration duration of NAV timer
+   */
+  virtual void NavStart (Time duration) = 0;
+  /**
+   * Notify that NAV has resetted.
+   *
+   * \param duration duration of NAV timer
+   */
+  virtual void NavReset (Time duration) = 0;
+  /**
+   * Notify that ACK timeout has started for a given duration.
+   *
+   * \param duration duration of ACK timeout
+   */
+  virtual void AckTimeoutStart (Time duration) = 0;
+  /**
+   * Notify that ACK timeout has resetted.
+   */
+  virtual void AckTimeoutReset () = 0;
+  /**
+   * Notify that CTS timeout has started for a given duration.
+   *
+   * \param duration duration of CTS timeout
+   */
+  virtual void CtsTimeoutStart (Time duration) = 0;
+  /**
+   * Notify that CTS timeout has resetted.
+   */
+  virtual void CtsTimeoutReset () = 0;
+};
+
+/**
+ * \ingroup wifi
+ * \brief listen for block ack events.
+ */
+class MacLowBlockAckEventListener
+{
+public:
+  MacLowBlockAckEventListener ();
+  virtual ~MacLowBlockAckEventListener ();
+  /**
+   * Typically is called in order to notify EdcaTxopN that a block ack inactivity
+   * timeout occurs for the block ack agreement identified by the pair <i>originator</i>, <i>tid</i>.
+   *
+   * Rx station maintains an inactivity timer for each block ack
+   * agreement. Timer is reset when a frame with ack policy block ack
+   * or a block ack request are received. When this timer reaches zero
+   * this method is called and a delba frame is scheduled for transmission.
+   *
+   * \param originator MAC address of the data originator
+   * \param tid
+   */
+  virtual void BlockAckInactivityTimeout (Mac48Address originator, uint8_t tid) = 0;
+};
+
+/**
+ * \brief control how a packet is transmitted.
+ * \ingroup wifi
+ *
+ * The ns3::MacLow::StartTransmission method expects
+ * an instance of this class to describe how the packet
+ * should be transmitted.
+ */
+class MacLowTransmissionParameters
+{
+public:
+  MacLowTransmissionParameters ();
+
+  /**
+   * Wait ACKTimeout for an ACK. If we get an ACK
+   * on time, call MacLowTransmissionListener::GotAck.
+   * Call MacLowTransmissionListener::MissedAck otherwise.
+   */
+  void EnableAck (void);
+  /**
+   *   - wait PIFS after end-of-tx. If idle, call
+   *     MacLowTransmissionListener::MissedAck.
+   *   - if busy at end-of-tx+PIFS, wait end-of-rx
+   *   - if Ack ok at end-of-rx, call
+   *     MacLowTransmissionListener::GotAck.
+   *   - if Ack not ok at end-of-rx, report call
+   *     MacLowTransmissionListener::MissedAck
+   *     at end-of-rx+SIFS.
+   *
+   * This is really complicated but it is needed for
+   * proper HCCA support.
+   */
+  void EnableFastAck (void);
+  /**
+   *  - if busy at end-of-tx+PIFS, call
+   *    MacLowTransmissionListener::GotAck
+   *  - if idle at end-of-tx+PIFS, call
+   *    MacLowTransmissionListener::MissedAck
+   */
+  void EnableSuperFastAck (void);
+  /**
+   * Wait BASICBLOCKACKTimeout for a Basic Block Ack Response frame.
+   */
+  void EnableBasicBlockAck (void);
+  /**
+   * Wait COMPRESSEDBLOCKACKTimeout for a Compressed Block Ack Response frame.
+   */
+  void EnableCompressedBlockAck (void);
+  /**
+   * NOT IMPLEMENTED FOR NOW
+   */
+  void EnableMultiTidBlockAck (void);
+  /**
+   * Send a RTS, and wait CTSTimeout for a CTS. If we get a
+   * CTS on time, call MacLowTransmissionListener::GotCts
+   * and send data. Otherwise, call MacLowTransmissionListener::MissedCts
+   * and do not send data.
+   */
+  void EnableRts (void);
+  /**
+   * \param size size of next data to send after current packet is
+   *        sent.
+   *
+   * Add the transmission duration of the next data to the
+   * durationId of the outgoing packet and call
+   * MacLowTransmissionListener::StartNext at the end of
+   * the current transmission + SIFS.
+   */
+  void EnableNextData (uint32_t size);
+
+  /**
+   * \param durationId the value to set in the duration/Id field of
+   *        the outgoing packet.
+   *
+   * Ignore all other durationId calculation and simply force the
+   * packet's durationId field to this value.
+   */
+  void EnableOverrideDurationId (Time durationId);
+
+  /**
+   * Do not wait for Ack after data transmission. Typically
+   * used for Broadcast and multicast frames.
+   */
+  void DisableAck (void);
+  /**
+   * Do not send rts and wait for cts before sending data.
+   */
+  void DisableRts (void);
+  /**
+   * Do not attempt to send data burst after current transmission
+   */
+  void DisableNextData (void);
+  /**
+   * Do not force the duration/id field of the packet: its
+   * value is automatically calculated by the MacLow before
+   * calling WifiPhy::Send.
+   */
+  void DisableOverrideDurationId (void);
+
+  /**
+   * \returns true if must wait for ACK after data transmission,
+   *          false otherwise.
+   *
+   * This methods returns true when any of MustWaitNormalAck,
+   * MustWaitFastAck, or MustWaitSuperFastAck return true.
+   */
+  bool MustWaitAck (void) const;
+  /**
+   * \returns true if normal ACK protocol should be used, false
+   *          otherwise.
+   *
+   * \sa EnableAck
+   */
+  bool MustWaitNormalAck (void) const;
+  /**
+   * \returns true if fast ack protocol should be used, false
+   *          otherwise.
+   *
+   * \sa EnableFastAck
+   */
+  bool MustWaitFastAck (void) const;
+  /**
+   * \returns true if super fast ack protocol should be used, false
+   *          otherwise.
+   *
+   * \sa EnableSuperFastAck
+   */
+  bool MustWaitSuperFastAck (void) const;
+  /**
+   * \returns true if block ack mechanism is used, false otherwise.
+   *
+   * \sa EnableBlockAck
+   */
+  bool MustWaitBasicBlockAck (void) const;
+  /**
+   * \returns true if compressed block ack mechanism is used, false otherwise.
+   *
+   * \sa EnableCompressedBlockAck
+   */
+  bool MustWaitCompressedBlockAck (void) const;
+  /**
+   * \returns true if multi-tid block ack mechanism is used, false otherwise.
+   *
+   * \sa EnableMultiTidBlockAck
+   */
+  bool MustWaitMultiTidBlockAck (void) const;
+  /**
+   * \returns true if RTS should be sent and CTS waited for before
+   *          sending data, false otherwise.
+   */
+  bool MustSendRts (void) const;
+  /**
+   * \returns true if a duration/id was forced with
+   *         EnableOverrideDurationId, false otherwise.
+   */
+  bool HasDurationId (void) const;
+  /**
+   * \returns the duration/id forced by EnableOverrideDurationId
+   */
+  Time GetDurationId (void) const;
+  /**
+   * \returns true if EnableNextData was called, false otherwise.
+   */
+  bool HasNextPacket (void) const;
+  /**
+   * \returns the size specified by EnableNextData.
+   */
+  uint32_t GetNextPacketSize (void) const;
+
+private:
+
+  friend std::ostream &operator << (std::ostream &os, const MacLowTransmissionParameters &params);
+  uint32_t m_nextSize;
+  enum
+  {
+    ACK_NONE,
+    ACK_NORMAL,
+    ACK_FAST,
+    ACK_SUPER_FAST,
+    BLOCK_ACK_BASIC,
+    BLOCK_ACK_COMPRESSED,
+    BLOCK_ACK_MULTI_TID
+  } m_waitAck;
+  bool m_sendRts;
+  Time m_overrideDurationId;
+};
+
+/**
+ * Serialize MacLowTransmissionParameters to ostream in a human-readable form.
+ *
+ * \param os std::ostream
+ * \param params MacLowTransmissionParameters
+ * \return std::ostream
+ */
+std::ostream &operator << (std::ostream &os, const MacLowTransmissionParameters &params);
+
 
 /**
  * \ingroup wifi
@@ -58,10 +411,6 @@ class CtrlBAckResponseHeader;
 class MacLow : public Object
 {
 public:
-  /// Allow test cases to access private members
-  friend class ::TwoLevelAggregationTest;
-  /// Allow test cases to access private members
-  friend class ::AmpduAggregationTest;
   /**
    * typedef for a callback for MacLowRx
    */
@@ -71,31 +420,18 @@ public:
   virtual ~MacLow ();
 
   /**
-   * Register this type.
-   * \return The TypeId.
-   */
-  static TypeId GetTypeId (void);
-
-  /**
    * Set up WifiPhy associated with this MacLow.
    *
    * \param phy WifiPhy associated with this MacLow
    */
-  void SetPhy (const Ptr<WifiPhy> phy);
-  /**
-   * \return current attached PHY device
-   */
-  Ptr<WifiPhy> GetPhy (void) const;
-  /**
-   * Remove WifiPhy associated with this MacLow.
-   */
-  void ResetPhy (void);
+  void SetPhy (Ptr<WifiPhy> phy);
   /**
    * Set up WifiRemoteStationManager associated with this MacLow.
    *
    * \param manager WifiRemoteStationManager associated with this MacLow
    */
-  void SetWifiRemoteStationManager (const Ptr<WifiRemoteStationManager> manager);
+  void SetWifiRemoteStationManager (Ptr<WifiRemoteStationManager> manager);
+
   /**
    * Set MAC address of this MacLow.
    *
@@ -156,14 +492,6 @@ public:
    * \param pifs PIFS of this MacLow
    */
   void SetPifs (Time pifs);
-  /**
-   * \param interval the expected interval between two beacon transmissions.
-   */
-  void SetBeaconInterval (Time interval);
-  /**
-   * \param duration the maximum duration for the CF period.
-   */
-  void SetCfpMaxDuration (Time duration);
   /**
    * Set the Basic Service Set Identification.
    *
@@ -235,18 +563,6 @@ public:
    */
   Time GetRifs (void) const;
   /**
-   * \return the expected interval between two beacon transmissions.
-   */
-  Time GetBeaconInterval (void) const;
-  /**
-   * \return the maximum duration for the CF period.
-   */
-  Time GetCfpMaxDuration (void) const;
-  /**
-   * \return the remaining duration for the CF period.
-   */
-  Time GetRemainingCfpDuration (void) const;
-  /**
    * Return the Basic Service Set Identification.
    *
    * \return BSSID
@@ -268,9 +584,10 @@ public:
    */
   void SetRxCallback (Callback<void,Ptr<Packet>,const WifiMacHeader *> callback);
   /**
-   * \param dcf listen to NAV events for every incoming and outgoing packet.
+   * \param listener listen to NAV events for every incoming
+   *        and outgoing packet.
    */
-  void RegisterDcf (Ptr<ChannelAccessManager> dcf);
+  void RegisterDcfListener (MacLowDcfListener *listener);
 
   /**
    * \param packet to send (does not include the 802.11 MAC header and checksum)
@@ -286,44 +603,29 @@ public:
                                   const MacLowTransmissionParameters& parameters) const;
 
   /**
-   * \param packet to send (does not include the 802.11 MAC header and checksum)
-   * \param hdr header associated to the packet to send.
-   * \param params transmission parameters of packet.
-   * \param fragmentSize the packet fragment size (if fragmentation is used)
-   * \return the transmission time that includes the time for the next packet transmission
-   *
-   * This transmission time includes the time required for
-   * the next packet transmission if one was selected.
-   */
-  Time CalculateOverallTxTime (Ptr<const Packet> packet,
-                               const WifiMacHeader* hdr,
-                               const MacLowTransmissionParameters& params,
-                               uint32_t fragmentSize = 0) const;
-
-  /**
    * \param packet packet to send
    * \param hdr 802.11 header for packet to send
    * \param parameters the transmission parameters to use for this packet.
-   * \param txop pointer to the calling Txop.
+   * \param listener listen to transmission events.
    *
    * Start the transmission of the input packet and notify the listener
    * of transmission events.
    */
-  virtual void StartTransmission (Ptr<const Packet> packet,
-                                  const WifiMacHeader* hdr,
-                                  MacLowTransmissionParameters parameters,
-                                  Ptr<Txop> txop);
+  void StartTransmission (Ptr<const Packet> packet,
+                          const WifiMacHeader* hdr,
+                          MacLowTransmissionParameters parameters,
+                          MacLowTransmissionListener *listener);
 
   /**
    * \param packet packet received
    * \param rxSnr snr of packet received
-   * \param txVector TXVECTOR of packet received
-   * \param ampduSubframe true if this MPDU is part of an A-MPDU
+   * \param txMode transmission mode of packet received
+   * \param preamble type of preamble used for the packet received
    *
    * This method is typically invoked by the lower PHY layer to notify
    * the MAC layer that a packet was successfully received.
    */
-  void ReceiveOk (Ptr<Packet> packet, double rxSnr, WifiTxVector txVector, bool ampduSubframe);
+  void ReceiveOk (Ptr<Packet> packet, double rxSnr, WifiMode txMode, WifiPreamble preamble);
   /**
    * \param packet packet received.
    * \param rxSnr snr of packet received.
@@ -331,27 +633,15 @@ public:
    * This method is typically invoked by the lower PHY layer to notify
    * the MAC layer that a packet was unsuccessfully received.
    */
-  void ReceiveError (Ptr<Packet> packet, double rxSnr);
+  void ReceiveError (Ptr<const Packet> packet, double rxSnr);
   /**
    * \param duration switching delay duration.
    *
    * This method is typically invoked by the PhyMacLowListener to notify
-   * the MAC layer that a channel switching occurred. When a channel switching
+   * the MAC layer that a channel switching occured. When a channel switching
    * occurs, pending MAC transmissions (RTS, CTS, DATA and ACK) are cancelled.
    */
   void NotifySwitchingStartNow (Time duration);
-  /**
-   * This method is typically invoked by the PhyMacLowListener to notify
-   * the MAC layer that the device has been put into sleep mode. When the device is put
-   * into sleep mode, pending MAC transmissions (RTS, CTS, DATA and ACK) are cancelled.
-   */
-  void NotifySleepNow (void);
-  /**
-   * This method is typically invoked by the PhyMacLowListener to notify
-   * the MAC layer that the device has been put into off mode. When the device is put
-   * into off mode, pending MAC transmissions (RTS, CTS, DATA and ACK) are cancelled.
-   */
-  void NotifyOffNow (void);
   /**
    * \param respHdr Add block ack response from originator (action
    * frame).
@@ -381,49 +671,13 @@ public:
   void DestroyBlockAckAgreement (Mac48Address originator, uint8_t tid);
   /**
    * \param ac Access class managed by the queue.
-   * \param edca the QosTxop for the queue.
+   * \param listener The listener for the queue.
    *
-   * The lifetime of the registered QosTxop is typically equal to the lifetime of the queue
+   * The lifetime of the registered listener is typically equal to the lifetime of the queue
    * associated to this AC.
    */
-  void RegisterEdcaForAc (AcIndex ac, Ptr<QosTxop> edca);
-  /**
-   * \param packet the packet to be aggregated. If the aggregation is successful, it corresponds either to the first data packet that will be aggregated or to the BAR that will be piggybacked at the end of the A-MPDU.
-   * \param hdr the WifiMacHeader for the packet.
-   * \return the A-MPDU packet if aggregation is successful, the input packet otherwise
-   *
-   * This function adds the packets that will be added to an A-MPDU to an aggregate queue
-   *
-   */
-  Ptr<Packet> AggregateToAmpdu (Ptr<const Packet> packet, const WifiMacHeader hdr);
-  /**
-   * \param aggregatedPacket which is the current A-MPDU
-   * \param rxSnr snr of packet received
-   * \param txVector TXVECTOR of packet received
-   *
-   * This function de-aggregates an A-MPDU and decide if each MPDU is received correctly or not
-   *
-   */
-  void DeaggregateAmpduAndReceive (Ptr<Packet> aggregatedPacket, double rxSnr, WifiTxVector txVector);
-  /**
-   * \param peekedPacket the packet to be aggregated
-   * \param peekedHdr the WifiMacHeader for the packet.
-   * \param aggregatedPacket the current A-MPDU
-   * \param blockAckSize the size of a piggybacked block ack request
-   * \return false if the given packet can be added to an A-MPDU, true otherwise
-   *
-   * This function decides if a given packet can be added to an A-MPDU or not
-   *
-   */
-  bool StopMpduAggregation (Ptr<const Packet> peekedPacket, WifiMacHeader peekedHdr, Ptr<Packet> aggregatedPacket, uint8_t blockAckSize) const;
-  /**
-   *
-   * This function is called to flush the aggregate queue, which is used for A-MPDU
-   * \param tid the Traffic ID
-   *
-   */
-  void FlushAggregateQueue (uint8_t tid);
-
+  void RegisterBlockAckListenerForAc (enum AcIndex ac, MacLowBlockAckEventListener *listener);
+protected:
   /**
    * Return a TXVECTOR for the DATA frame given the destination.
    * The function consults WifiRemoteStationManager, which controls the rate
@@ -434,23 +688,6 @@ public:
    * \return TXVECTOR for the given packet
    */
   virtual WifiTxVector GetDataTxVector (Ptr<const Packet> packet, const WifiMacHeader *hdr) const;
-  /**
-   * Start NAV with the given duration.
-   *
-   * \param duration the duration
-   * \return true if NAV is reset
-   */
-  bool DoNavStartNow (Time duration);
-  /**
-   * This function indicates whether it is the CF period.
-   */
-  virtual bool IsCfPeriod (void) const;
-  /**
-   * This function decides if a CF frame can be transmitted in the current CFP.
-   */
-  bool CanTransmitNextCfFrame (void) const;
-
-
 private:
   /**
    * Cancel all scheduled events. Called before beginning a transmission
@@ -458,27 +695,49 @@ private:
    */
   void CancelAllEvents (void);
   /**
-   * Return the total CF-END size (including FCS trailer).
+   * Return the total ACK size (including FCS trailer).
    *
-   * \return the total CF-END size
+   * \return the total ACK size
    */
-  uint32_t GetCfEndSize (void) const;
+  uint32_t GetAckSize (void) const;
   /**
-   * Forward the packet down to WifiPhy for transmission. This is called for the entire A-MPDu when MPDU aggregation is used.
+   * Return the total Block ACK size (including FCS trailer).
    *
-   * \param packet the packet
-   * \param hdr the header
-   * \param txVector the transmit vector
+   * \param type the Block ACK type
+   * \return the total Block ACK size
    */
-  void ForwardDown (Ptr<const Packet> packet, const WifiMacHeader *hdr, WifiTxVector txVector);
+  uint32_t GetBlockAckSize (enum BlockAckType type) const;
   /**
-   * Forward the MPDU down to WifiPhy for transmission. This is called for each MPDU when MPDU aggregation is used.
+   * Return the total RTS size (including FCS trailer).
    *
-   * \param packet the packet
-   * \param txVector the transmit vector
-   * \param mpdutype the MPDU type
+   * \return the total RTS size
    */
-  void SendMpdu (Ptr<const Packet> packet, WifiTxVector txVector, MpduType mpdutype);
+  uint32_t GetRtsSize (void) const;
+  /**
+   * Return the total CTS size (including FCS trailer).
+   *
+   * \return the total CTS size
+   */
+  uint32_t GetCtsSize (void) const;
+  /**
+   * Return the total size of the packet after WifiMacHeader and FCS trailer
+   * have been added.
+   *
+   * \param packet the packet to be encapsulated with WifiMacHeader and FCS trailer
+   * \param hdr the WifiMacHeader
+   * \return the total packet size
+   */
+  uint32_t GetSize (Ptr<const Packet> packet, const WifiMacHeader *hdr) const;
+  /**
+   * Forward the packet down to WifiPhy for transmission.
+   *
+   * \param packet
+   * \param hdr
+   * \param txVector
+   * \param preamble
+   */
+  void ForwardDown (Ptr<const Packet> packet, const WifiMacHeader *hdr,
+                    WifiTxVector txVector, WifiPreamble preamble);
   /**
    * Return a TXVECTOR for the RTS frame given the destination.
    * The function consults WifiRemoteStationManager, which controls the rate
@@ -522,6 +781,18 @@ private:
    * \return TXVECTOR for the Block ACK
    */
   WifiTxVector GetBlockAckTxVector (Mac48Address to, WifiMode dataTxMode) const;
+
+  /**
+   * Return a TXVECTOR for the CTS-to-self frame.
+   * The function consults WifiRemoteStationManager, which controls the rate
+   * to different destinations.
+   *
+   * \param packet the packet that requires CTS-to-self
+   * \param hdr the Wifi header of the packet
+   * \return TXVECTOR for the CTS-to-self operation
+   */
+  WifiTxVector GetCtsToSelfTxVector (Ptr<const Packet> packet, const WifiMacHeader *hdr) const;
+
   /**
    * Return a TXVECTOR for the CTS frame given the destination and the mode of the RTS
    * used by the sender.
@@ -544,6 +815,7 @@ private:
    * \return TXVECTOR for the Block ACK
    */
   WifiTxVector GetAckTxVectorForData (Mac48Address to, WifiMode dataTxMode) const;
+
   /**
    * Return the time required to transmit the CTS (including preamble and FCS).
    *
@@ -576,43 +848,33 @@ private:
    * \return the time required to transmit the ACK (including preamble and FCS)
    */
   Time GetAckDuration (Mac48Address to, WifiTxVector dataTxVector) const;
-  /**
-   * Return the time required to transmit the Block ACK to the specified address
-   * given the TXVECTOR of the BAR (including preamble and FCS).
-   *
-   * \param blockAckReqTxVector
-   * \param type the Block ACK type
-   * \return the time required to transmit the Block ACK (including preamble and FCS)
-   */
-  Time GetBlockAckDuration (WifiTxVector blockAckReqTxVector, BlockAckType type) const;
-  /**
-   * Check if the current packet should be sent with a RTS protection.
-   *
-   * \return true if RTS protection should be used,
-   *         false otherwise
-   */
-  bool NeedRts (void) const;
+  Time GetBlockAckDuration (Mac48Address to, WifiTxVector blockAckReqTxVector, enum BlockAckType type) const;
+
   /**
    * Check if CTS-to-self mechanism should be used for the current packet.
    *
    * \return true if CTS-to-self mechanism should be used for the current packet,
    *         false otherwise
    */
-  bool NeedCtsToSelf (void) const;
-
-  /**
-   * Notify NAV function.
-   *
-   * \param packet the packet
-   * \param hdr the header
-   */
-  void NotifyNav (Ptr<const Packet> packet,const WifiMacHeader &hdr);
+  bool NeedCtsToSelf (void);
+  
+  Time CalculateOverallTxTime (Ptr<const Packet> packet,
+                               const WifiMacHeader* hdr,
+                               const MacLowTransmissionParameters &params) const;
+  void NotifyNav (Ptr<const Packet> packet,const WifiMacHeader &hdr, WifiMode txMode, WifiPreamble preamble);
   /**
    * Reset NAV with the given duration.
    *
    * \param duration
    */
   void DoNavResetNow (Time duration);
+  /**
+   * Start NAV with the given duration.
+   *
+   * \param duration
+   * \return true if NAV is resetted
+   */
+  bool DoNavStartNow (Time duration);
   /**
    * Check if NAV is zero.
    *
@@ -621,37 +883,57 @@ private:
    */
   bool IsNavZero (void) const;
   /**
-   * Notify ChannelAccessManager that ACK timer should be started for the given duration.
+   * Notify DcfManager (via DcfListener) that
+   * ACK timer should be started for the given
+   * duration.
    *
-   * \param duration the duration
+   * \param duration
    */
   void NotifyAckTimeoutStartNow (Time duration);
   /**
-   * Notify ChannelAccessManager that ACK timer should be reset.
+   * Notify DcfManager (via DcfListener) that
+   * ACK timer should be resetted.
    */
   void NotifyAckTimeoutResetNow ();
   /**
-   * Notify ChannelAccessManager that CTS timer should be started for the given duration.
+   * Notify DcfManager (via DcfListener) that
+   * CTS timer should be started for the given
+   * duration.
    *
    * \param duration
    */
   void NotifyCtsTimeoutStartNow (Time duration);
   /**
-   * Notify ChannelAccessManager that CTS timer should be reset.
+   * Notify DcfManager (via DcfListener) that
+   * CTS timer should be resetted.
    */
   void NotifyCtsTimeoutResetNow ();
+
   /**
    * Reset NAV after CTS was missed when the NAV was
-   * set with RTS.
+   * setted with RTS.
    *
    * \param rtsEndRxTime
    */
   void NavCounterResetCtsMissed (Time rtsEndRxTime);
+
   /* Event handlers */
   /**
    * Event handler when normal ACK timeout occurs.
    */
   void NormalAckTimeout (void);
+  /**
+   * Event handler when fast ACK timeout occurs (idle).
+   */
+  void FastAckTimeout (void);
+  /**
+   * Event handler when super fast ACK timeout occurs.
+   */
+  void SuperFastAckTimeout (void);
+  /**
+   * Event handler when fast ACK timeout occurs (busy).
+   */
+  void FastAckFailedTimeout (void);
   /**
    * Event handler when block ACK timeout occurs.
    */
@@ -661,10 +943,6 @@ private:
    */
   void CtsTimeout (void);
   /**
-   * Event handler when CF-POLL timeout occurs.
-   */
-  void CfPollTimeout (void);
-  /**
    * Send CTS for a CTS-to-self mechanism.
    */
   void SendCtsToSelf (void);
@@ -673,10 +951,10 @@ private:
    *
    * \param source
    * \param duration
-   * \param rtsTxVector
+   * \param txMode
    * \param rtsSnr
    */
-  void SendCtsAfterRts (Mac48Address source, Time duration, WifiTxVector rtsTxVector, double rtsSnr);
+  void SendCtsAfterRts (Mac48Address source, Time duration, WifiMode txMode, double rtsSnr);
   /**
    * Send ACK after receiving DATA.
    *
@@ -689,25 +967,21 @@ private:
   /**
    * Send DATA after receiving CTS.
    *
+   * \param source
    * \param duration
+   * \param txMode
    */
-  void SendDataAfterCts (Time duration);
-
+  void SendDataAfterCts (Mac48Address source, Time duration, WifiMode txMode);
   /**
    * Event handler that is usually scheduled to fired at the appropriate time
    * after completing transmissions.
    */
-  void WaitIfsAfterEndTxFragment (void);
-  /**
-   * Event handler that is usually scheduled to fired at the appropriate time
-   * after sending a packet.
-   */
-  void WaitIfsAfterEndTxPacket (void);
-
+  void WaitSifsAfterEndTx (void);
   /**
    * A transmission that does not require an ACK has completed.
    */
   void EndTxNoAck (void);
+
   /**
    * Send RTS to begin RTS-CTS-DATA-ACK transaction.
    */
@@ -724,13 +998,11 @@ private:
    * \param dataTxVector
    */
   void StartDataTxTimers (WifiTxVector dataTxVector);
-
-  void DoDispose (void);
-
+  virtual void DoDispose (void);
   /**
    * \param originator Address of peer participating in Block Ack mechanism.
    * \param tid TID for which Block Ack was created.
-   * \param seq Starting sequence control
+   * \param seq Starting sequence
    *
    * This function forward up all completed "old" packets with sequence number
    * smaller than <i>seq</i>. All comparison are performed circularly mod 4096.
@@ -746,24 +1018,10 @@ private:
    * This happens when the originator of block ack has only few MPDUs to send.
    * All completed MSDUs starting with starting sequence number of block ack
    * agreement are forward up to WifiMac until there is an incomplete or missing MSDU.
-   * See section 9.10.4 in IEEE 802.11 standard for more details.
+   * See section 9.10.4 in IEEE802.11 standard for more details.
    */
   void RxCompleteBufferedPacketsUntilFirstLost (Mac48Address originator, uint8_t tid);
-  /**
-   * \param packet the packet
-   * \param hdr the header
-   * \returns true if MPDU received
-   *
-   * This method updates the reorder buffer and the scoreboard when an MPDU is received in an HT station
-   * and stores the MPDU if needed when an MPDU is received in an non-HT Station (implements HT
-   * immediate block Ack)
-   */
-  bool ReceiveMpdu (Ptr<Packet> packet, WifiMacHeader hdr);
-  /**
-   * \param packet the packet
-   * \param hdr the header
-   * \returns true if the MPDU stored
-   *
+  /*
    * This method checks if exists a valid established block ack agreement.
    * If there is, store the packet without pass it up to WifiMac. The packet is buffered
    * in order of increasing sequence control field. All comparison are performed
@@ -778,22 +1036,9 @@ private:
    * \param originator
    * \param duration
    * \param blockAckReqTxMode
-   * \param rxSnr
    */
   void SendBlockAckAfterBlockAckRequest (const CtrlBAckRequestHeader reqHdr, Mac48Address originator,
-                                         Time duration, WifiMode blockAckReqTxMode, double rxSnr);
-  /**
-   * Invoked after an A-MPDU has been received. Looks for corresponding
-   * block ack agreement and creates block ack bitmap on a received packets basis.
-   *
-   * \param tid the Traffic ID
-   * \param originator the originator MAC address
-   * \param duration the remaining NAV duration
-   * \param blockAckReqTxVector the transmit vector
-   * \param rxSnr the receive SNR
-   */
-  void SendBlockAckAfterAmpdu (uint8_t tid, Mac48Address originator,
-                               Time duration, WifiTxVector blockAckReqTxVector, double rxSnr);
+                                         Time duration, WifiMode blockAckReqTxMode);
   /**
    * This method creates block ack frame with header equals to <i>blockAck</i> and start its transmission.
    *
@@ -802,15 +1047,14 @@ private:
    * \param immediate
    * \param duration
    * \param blockAckReqTxMode
-   * \param rxSnr
    */
   void SendBlockAckResponse (const CtrlBAckResponseHeader* blockAck, Mac48Address originator, bool immediate,
-                             Time duration, WifiMode blockAckReqTxMode, double rxSnr);
+                             Time duration, WifiMode blockAckReqTxMode);
   /**
    * Every time that a block ack request or a packet with ack policy equals to <i>block ack</i>
    * are received, if a relative block ack agreement exists and the value of inactivity timeout
    * is not 0, the timer is reset.
-   * see section 11.5.3 in IEEE 802.11e for more details.
+   * see section 11.5.3 in IEEE802.11e for more details.
    *
    * \param agreement
    */
@@ -821,92 +1065,39 @@ private:
    *
    * \param phy the WifiPhy this MacLow is connected to
    */
-  void SetupPhyMacLowListener (const Ptr<WifiPhy> phy);
-  /**
-   * Remove current WifiPhy listener for this MacLow.
-   *
-   * \param phy the WifiPhy this MacLow is connected to
-   */
-  void RemovePhyMacLowListener (Ptr<WifiPhy> phy);
-  /**
-   * Checks if the given packet will be aggregated to an A-MPDU or not
-   *
-   * \param packet packet to check whether it can be aggregated in an A-MPDU
-   * \param hdr 802.11 header for packet to check whether it can be aggregated in an A-MPDU
-   * \returns true if is A-MPDU
-   */
-  bool IsAmpdu (Ptr<const Packet> packet, const WifiMacHeader hdr);
-  /**
-   * Insert in a temporary queue.
-   * It is only used with a RTS/CTS exchange for an A-MPDU transmission.
-   *
-   * \param packet packet to be inserted in the A-MPDU tx queue
-   * \param hdr 802.11 header for the packet to be inserted in the A-MPDU tx queue
-   * \param tStamp timestamp of the packet to be inserted in the A-MPDU tx queue
-   * \param tid the Traffic ID of the packet to be inserted in the A-MPDU tx queue
-   */
-  void InsertInTxQueue (Ptr<const Packet> packet, const WifiMacHeader &hdr, Time tStamp, uint8_t tid);
-  /**
-   * Perform MSDU aggregation for a given MPDU in an A-MPDU
-   *
-   * \param packet packet picked for aggregation
-   * \param hdr 802.11 header for packet picked for aggregation
-   * \param tstamp timestamp
-   * \param currentAmpduPacket current A-MPDU packet
-   * \param blockAckSize size of the piggybacked block ack request
-   *
-   * \return the aggregate if MSDU aggregation succeeded, 0 otherwise
-   */
-  Ptr<Packet> PerformMsduAggregation (Ptr<const Packet> packet, WifiMacHeader *hdr, Time *tstamp, Ptr<Packet> currentAmpduPacket, uint8_t blockAckSize);
+  void SetupPhyMacLowListener (Ptr<WifiPhy> phy);
 
   Ptr<WifiPhy> m_phy; //!< Pointer to WifiPhy (actually send/receives frames)
   Ptr<WifiRemoteStationManager> m_stationManager; //!< Pointer to WifiRemoteStationManager (rate control)
   MacLowRxCallback m_rxCallback; //!< Callback to pass packet up
-
   /**
-   * A struct for packet, Wifi header, and timestamp.
+   * typedef for an iterator for a list of MacLowDcfListener.
    */
-  struct Item
-  {
-    Ptr<const Packet> packet; //!< the packet
-    WifiMacHeader hdr; //!< the header
-    Time timestamp; //!< the timestamp
-  }; //!< item structure
-
+  typedef std::vector<MacLowDcfListener *>::const_iterator DcfListenersCI;
   /**
-   * A struct that holds information about ACK piggybacking (CF-ACK).
+   * typedef for a list of MacLowDcfListener.
    */
-  struct CfAckInfo
-  {
-    bool appendCfAck; //!< Flag used for PCF to indicate whether a CF-ACK should be appended
-    bool expectCfAck; //!< Flag used for PCF to indicate whether a CF-ACK should be expected
-    Mac48Address address; //!< Address of the station to be acknowledged
-  };
-
-  /**
-   * typedef for an iterator for a list of ChannelAccessManager.
-   */
-  typedef std::vector<Ptr<ChannelAccessManager> >::const_iterator ChannelAccessManagersCI;
-  /**
-   * typedef for a list of ChannelAccessManager.
-   */
-  typedef std::vector<Ptr<ChannelAccessManager> > ChannelAccessManagers;
-  ChannelAccessManagers m_channelAccessManagers; //!< List of ChannelAccessManager
+  typedef std::vector<MacLowDcfListener *> DcfListeners;
+  DcfListeners m_dcfListeners; //!< List of MacLowDcfListener (pass events to Dcf)
 
   EventId m_normalAckTimeoutEvent;      //!< Normal ACK timeout event
+  EventId m_fastAckTimeoutEvent;        //!< Fast ACK timeout event
+  EventId m_superFastAckTimeoutEvent;   //!< Super fast ACK timeout event
+  EventId m_fastAckFailedTimeoutEvent;  //!< Fast ACK failed timeout event
   EventId m_blockAckTimeoutEvent;       //!< Block ACK timeout event
   EventId m_ctsTimeoutEvent;            //!< CTS timeout event
   EventId m_sendCtsEvent;               //!< Event to send CTS
   EventId m_sendAckEvent;               //!< Event to send ACK
   EventId m_sendDataEvent;              //!< Event to send DATA
-  EventId m_waitIfsEvent;               //!< Wait for IFS event
+  EventId m_waitSifsEvent;              //!< Wait for SIFS event
   EventId m_endTxNoAckEvent;            //!< Event for finishing transmission that does not require ACK
   EventId m_navCounterResetCtsMissed;   //!< Event to reset NAV when CTS is not received
+  EventId m_waitRifsEvent;              //!< Wait for RIFS event
 
   Ptr<Packet> m_currentPacket;              //!< Current packet transmitted/to be transmitted
-  WifiMacHeader m_currentHdr;               //!< Header of the current transmitted packet
-  Ptr<Txop> m_currentTxop;                  //!< Current TXOP
+  WifiMacHeader m_currentHdr;               //!< Header of the current packet
   MacLowTransmissionParameters m_txParams;  //!< Transmission parameters of the current packet
+  MacLowTransmissionListener *m_listener;   //!< Transmission listener for the current packet
   Mac48Address m_self;                      //!< Address of this MacLow (Mac48Address)
   Mac48Address m_bssid;                     //!< BSSID address (Mac48Address)
   Time m_ackTimeout;                        //!< ACK timeout duration
@@ -918,50 +1109,36 @@ private:
   Time m_pifs;                              //!< PCF Interframe Space (PIFS) duration
   Time m_rifs;                              //!< Reduced Interframe Space (RIFS) duration
 
-  Time m_beaconInterval;   //!< Expected interval between two beacon transmissions
-  Time m_cfpMaxDuration;   //!< CFP max duration
-
   Time m_lastNavStart;     //!< The time when the latest NAV started
   Time m_lastNavDuration;  //!< The duration of the latest NAV
 
-  Time m_cfpStart;          //!< The time when the latest CF period started
-  Time m_lastBeacon;        //!< The time when the last beacon frame transmission started
-  Time m_cfpForeshortening; //!< The delay the current CF period should be foreshortened
-
   bool m_promisc;  //!< Flag if the device is operating in promiscuous mode
-  bool m_ampdu;    //!< Flag if the current transmission involves an A-MPDU
 
-  class PhyMacLowListener * m_phyMacLowListener; //!< Listener needed to monitor when a channel switching occurs.
+  class PhyMacLowListener * m_phyMacLowListener; //!< Listerner needed to monitor when a channel switching occurs.
 
   /*
    * BlockAck data structures.
    */
-  typedef std::pair<Ptr<Packet>, WifiMacHeader> BufferedPacket; //!< buffered packet typedef
-  typedef std::list<BufferedPacket>::iterator BufferedPacketI; //!< buffered packet iterator typedef
+  typedef std::pair<Ptr<Packet>, WifiMacHeader> BufferedPacket;
+  typedef std::list<BufferedPacket>::iterator BufferedPacketI;
 
-  typedef std::pair<Mac48Address, uint8_t> AgreementKey; //!< agreement key typedef
-  typedef std::pair<BlockAckAgreement, std::list<BufferedPacket> > AgreementValue; //!< agreement value typedef
+  typedef std::pair<Mac48Address, uint8_t> AgreementKey;
+  typedef std::pair<BlockAckAgreement, std::list<BufferedPacket> > AgreementValue;
 
-  typedef std::map<AgreementKey, AgreementValue> Agreements; //!< agreements
-  typedef std::map<AgreementKey, AgreementValue>::iterator AgreementsI; //!< agreements iterator
+  typedef std::map<AgreementKey, AgreementValue> Agreements;
+  typedef std::map<AgreementKey, AgreementValue>::iterator AgreementsI;
 
-  typedef std::map<AgreementKey, BlockAckCache> BlockAckCaches; //!< block ack caches typedef
-  typedef std::map<AgreementKey, BlockAckCache>::iterator BlockAckCachesI; //!< block ack caches iterator typedef
+  typedef std::map<AgreementKey, BlockAckCache> BlockAckCaches;
+  typedef std::map<AgreementKey, BlockAckCache>::iterator BlockAckCachesI;
 
-  Agreements m_bAckAgreements; //!< block ack agreements
-  BlockAckCaches m_bAckCaches; //!< block ack caches
+  Agreements m_bAckAgreements;
+  BlockAckCaches m_bAckCaches;
 
-  typedef std::map<AcIndex, Ptr<QosTxop> > QueueEdcas; //!< EDCA queues typedef
-  QueueEdcas m_edca; //!< EDCA queues
-
-  bool m_ctsToSelfSupported;             //!< Flag whether CTS-to-self is supported
-  Ptr<WifiMacQueue> m_aggregateQueue[8]; //!< Queues per TID used for MPDU aggregation
-  std::vector<Item> m_txPackets[8];      //!< Contain temporary items to be sent with the next A-MPDU transmission for a given TID, once RTS/CTS exchange has succeeded.
-  WifiTxVector m_currentTxVector;        //!< TXVECTOR used for the current packet transmission
-
-  CfAckInfo m_cfAckInfo; //!< Info about piggyback ACKs used in PCF
+  typedef std::map<AcIndex, MacLowBlockAckEventListener*> QueueListeners;
+  QueueListeners m_edcaListeners;
+  bool m_ctsToSelfSupported;
 };
 
-} //namespace ns3
+} // namespace ns3
 
 #endif /* MAC_LOW_H */

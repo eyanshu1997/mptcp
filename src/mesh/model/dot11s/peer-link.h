@@ -43,12 +43,8 @@ class PeerManagementProtocolMac;
 class PeerLink : public Object
 {
 public:
-  /// allow PeerManagementProtocol class friend access
   friend class PeerManagementProtocol;
-  /**
-   * \brief Get the type ID.
-   * \return the object TypeId
-   */
+  /// Support object system
   static TypeId GetTypeId ();
   /// C-tor create empty link
   PeerLink ();
@@ -63,16 +59,7 @@ public:
     ESTAB,
     HOLDING,
   };
-  /**
-   * \brief Literal names of Mesh Peer Management states for use in log messages
-   */
-  static const char* const PeerStateNames[6];
-  /**
-   * Process beacon received from peer
-   * 
-   * \param lastBeacon the last beacon
-   * \param BeaconInterval the beacon interval
-   */
+  /// Process beacon received from peer
   void SetBeaconInformation (Time lastBeacon, Time BeaconInterval);
   /**
    * \brief Method used to detect peer link changes
@@ -104,10 +91,7 @@ public:
    * \name MLME
    * \{
    */
-  /**
-   * MLME-CancelPeerLink.request
-   * \param reason the reason for the request
-   */
+  /// MLME-CancelPeerLink.request
   void MLMECancelPeerLink (PmpReasonCode reason);
   /// MLME-ActivePeerLinkOpen.request
   void MLMEActivePeerLinkOpen ();
@@ -115,19 +99,13 @@ public:
   void MLMEPeeringRequestReject ();
   /// Callback type for MLME-SignalPeerLinkStatus event
   typedef Callback<void, uint32_t, Mac48Address, Mac48Address, PeerLink::PeerState, PeerLink::PeerState> SignalStatusCallback;
-  /**
-   * Set callback
-   * \param cb the callback function
-   */
-  void MLMESetSignalStatusCallback (SignalStatusCallback cb);
+  /// Set callback
+  void MLMESetSignalStatusCallback (SignalStatusCallback);
   /// Reports about transmission success/failure
   void TransmissionSuccess ();
   void TransmissionFailure ();
   //\}
-  /**
-   * \brief Statistics
-   * \param os the output stream
-   */
+  ///\brief Statistics
   void Report (std::ostream & os) const;
 private:
   /// Peer link events, see 802.11s draft 11B.3.3.2
@@ -144,14 +122,9 @@ private:
     TOR1,       ///< Timeout of retry timer
     TOR2,       ///< also timeout of retry timer
     TOC,        ///< Timeout of confirm timer
-    TOH         ///< Timeout of holding (graceful closing) timer
+    TOH,        ///< Timeout of holding (graceful closing) timer
   };
-  /**
-   * State transition
-   *
-   * \param event the event to update the state machine
-   * \param reasoncode the reason for the state transition
-   */
+  /// State transition
   void StateMachine (PeerEvent event, PmpReasonCode = REASON11S_RESERVED);
   /**
    * \name Link response to received management frames
@@ -161,40 +134,13 @@ private:
    *
    * \{
    */
-  /**
-   * Close link
-   *
-   * \param localLinkID the local link ID
-   * \param peerLinkID the peer link ID
-   * \param reason the reason to close
-   */
+  /// Close link
   void Close (uint16_t localLinkID, uint16_t peerLinkID, PmpReasonCode reason);
-  /**
-   * Accept open link
-   *
-   * \param localLinkId the local link ID
-   * \param conf the IE configuration
-   * \param peerMp the peer MP
-   */
+  /// Accept open link
   void OpenAccept (uint16_t localLinkId, IeConfiguration conf, Mac48Address peerMp);
-  /**
-   * Reject open link
-   *
-   * \param localLinkId the local link ID
-   * \param conf the IE configuration
-   * \param peerMp the peer MP
-   * \param reason the reason to close
-   */
+  /// Reject open link
   void OpenReject (uint16_t localLinkId, IeConfiguration conf, Mac48Address peerMp, PmpReasonCode reason);
-  /**
-   * Confirm accept
-   *
-   * \param localLinkId the local link ID
-   * \param peerLinkId the peer link ID
-   * \param peerAid the peer AID
-   * \param conf the IE configuration
-   * \param peerMp the peer MP
-   */
+  /// Confirm accept
   void ConfirmAccept (
     uint16_t localLinkId,
     uint16_t peerLinkId,
@@ -202,15 +148,7 @@ private:
     IeConfiguration conf,
     Mac48Address peerMp
     );
-  /**
-   * Confirm reject
-   *
-   * \param localLinkId the local link ID
-   * \param peerLinkId the peer link ID
-   * \param conf the IE configuration
-   * \param peerMp the peer MP
-   * \param reason the reason to close
-   */
+  /// Confirm reject
   void  ConfirmReject (
     uint16_t localLinkId,
     uint16_t peerLinkId,
@@ -219,18 +157,13 @@ private:
     PmpReasonCode reason
     );
   //\}
-  /**
-   * \returns True if link is established
-   */
+  /// True if link is established
   bool  LinkIsEstab () const;
-  /**
-   * \returns True if link is idle. Link can be deleted in this state
-   */
+  /// True if link is idle. Link can be deleted in this state
   bool  LinkIsIdle () const;
   /**
    * Set pointer to MAC-plugin, which is responsible for sending peer
    * link management frames
-   * \param plugin the peer management protocol MAC
    */
   void SetMacPlugin (Ptr<PeerManagementProtocolMac> plugin);
   /**
@@ -266,16 +199,7 @@ private:
   void BeaconLoss ();
 private:
 
-  /**
-   * assignment operator
-   * \param link the peer link
-   * \returns the peer link assigned
-   */
-  PeerLink& operator= (const PeerLink & link);
-  /**
-   * type conversion operator
-   * \returns the peer link
-   */
+  PeerLink& operator= (const PeerLink &);
   PeerLink (const PeerLink &);
 
   /// The number of interface I am associated with

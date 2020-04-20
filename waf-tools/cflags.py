@@ -131,8 +131,6 @@ compiler_mapping = {
 	'msvc': msvc,
 	'icc': icc,
 	'icpc': icc,
-	'clang': gcc,
-	'clang++': gcc,
 }
 
 profiles = {
@@ -152,16 +150,11 @@ def options(opt):
 		       help=("Specify the build profile.  "
 			     "Build profiles control the default compilation flags"
 			     " used for C/C++ programs, if CCFLAGS/CXXFLAGS are not"
-			     " set in the environment. [Allowed Values: %s]"
-			     % ", ".join([repr(p) for p in list(profiles.keys())])),
-		       choices=list(profiles.keys()),
+			     " set set in the environment. [Allowed Values: %s]"
+			     % ", ".join([repr(p) for p in profiles.keys()])),
+		       choices=profiles.keys(),
 		       dest='build_profile')
-	opt.add_option('--check-profile',
-		       help=('print out current build profile'),
-		       default=False, dest='check_profile', action="store_true")
-	opt.add_option('--disable-werror',
-		       help=('disable -Werror flag (warnings treated as errors'),
-		       default=False, dest='disable_werror', action="store_true")
+
 def configure(conf):
 	cc = conf.env['COMPILER_CC'] or None
 	cxx = conf.env['COMPILER_CXX'] or None
@@ -184,12 +177,6 @@ def configure(conf):
 	optimizations = compiler.get_optimization_flags(opt_level)
 	debug, debug_defs = compiler.get_debug_flags(dbg_level)
 	warnings = compiler.get_warnings_flags(warn_level)
-
-	if Options.options.disable_werror:
-		try:
-			warnings.remove ('-Werror')
-		except ValueError:
-			pass
 	
 	if cc and not conf.env['CCFLAGS']:
 		conf.env.append_value('CCFLAGS', optimizations)

@@ -43,11 +43,8 @@ class SingleModelSpectrumChannel : public SpectrumChannel
 public:
   SingleModelSpectrumChannel ();
 
-  /**
-   * \brief Get the type ID.
-   * \return the object TypeId
-   */
   static TypeId GetTypeId (void);
+
 
   // inherited from SpectrumChannel
   virtual void AddPropagationLossModel (Ptr<PropagationLossModel> loss);
@@ -58,23 +55,19 @@ public:
 
 
   // inherited from Channel
-  virtual std::size_t GetNDevices (void) const;
-  virtual Ptr<NetDevice> GetDevice (std::size_t i) const;
+  virtual uint32_t GetNDevices (void) const;
+  virtual Ptr<NetDevice> GetDevice (uint32_t i) const;
 
-  /// Container: SpectrumPhy objects
+
   typedef std::vector<Ptr<SpectrumPhy> > PhyList;
 
-  /**
-   * Get the frequency-dependent propagation loss model.
-   * \returns a pointer to the propagation loss model.
-   */
   virtual Ptr<SpectrumPropagationLossModel> GetSpectrumPropagationLossModel (void);
 
 private:
   virtual void DoDispose ();
 
   /**
-   * Used internally to reschedule transmission after the propagation delay.
+   * used internally to reschedule transmission after the propagation delay
    *
    * @param params
    * @param receiver
@@ -82,45 +75,40 @@ private:
   void StartRx (Ptr<SpectrumSignalParameters> params, Ptr<SpectrumPhy> receiver);
 
   /**
-   * List of SpectrumPhy instances attached to the channel.
+   * list of SpectrumPhy instances attached to
+   * the channel
    */
   PhyList m_phyList;
 
   /**
-   * SpectrumModel that this channel instance is supporting.
+   * SpectrumModel that this channel instance
+   * is supporting
    */
   Ptr<const SpectrumModel> m_spectrumModel;
 
 
   /**
-   * Propagation delay model to be used with this channel.
+   * propagation delay model to be used with this channel
+   *
    */
   Ptr<PropagationDelayModel> m_propagationDelay;
 
 
   /**
-   * Single-frequency propagation loss model to be used with this channel.
-   */
+    * single-frequency propagation loss model to be used with this channel
+    *
+    */
   Ptr<PropagationLossModel> m_propagationLoss;
 
   /**
-   * Frequency-dependent propagation loss model to be used with this channel.
+   * frequency-dependent propagation loss model to be used with this channel
+   *
    */
   Ptr<SpectrumPropagationLossModel> m_spectrumPropagationLoss;
 
 
-  /**
-   * Maximum loss [dB].
-   *
-   * Any device above this loss is considered out of range.
-   */
   double m_maxLossDb;
 
-  /**
-   * \deprecated The non-const \c Ptr<SpectrumPhy> argument
-   * is deprecated and will be changed to \c Ptr<const SpectrumPhy>
-   * in a future release.
-   */
   TracedCallback<Ptr<SpectrumPhy>, Ptr<SpectrumPhy>, double > m_pathLossTrace;
 };
 

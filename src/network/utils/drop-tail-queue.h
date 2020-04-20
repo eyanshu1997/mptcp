@@ -19,23 +19,21 @@
 #ifndef DROPTAIL_H
 #define DROPTAIL_H
 
+#include <queue>
+#include "ns3/packet.h"
 #include "ns3/queue.h"
 
 namespace ns3 {
+
+class TraceContainer;
 
 /**
  * \ingroup queue
  *
  * \brief A FIFO packet queue that drops tail-end packets on overflow
  */
-template <typename Item>
-class DropTailQueue : public Queue<Item>
-{
+class DropTailQueue : public Queue {
 public:
-  /**
-   * \brief Get the type ID.
-   * \return the object TypeId
-   */
   static TypeId GetTypeId (void);
   /**
    * \brief DropTailQueue Constructor
@@ -44,98 +42,34 @@ public:
    */
   DropTailQueue ();
 
-  virtual ~DropTailQueue ();
+  virtual ~DropTailQueue();
 
-  virtual bool Enqueue (Ptr<Item> item);
-  virtual Ptr<Item> Dequeue (void);
-  virtual Ptr<Item> Remove (void);
-  virtual Ptr<const Item> Peek (void) const;
+  /**
+   * Set the operating mode of this device.
+   *
+   * \param mode The operating mode of this device.
+   *
+   */
+  void SetMode (DropTailQueue::QueueMode mode);
+
+  /**
+   * Get the encapsulation mode of this device.
+   *
+   * \returns The encapsulation mode of this device.
+   */
+  DropTailQueue::QueueMode GetMode (void);
 
 private:
-  using Queue<Item>::Head;
-  using Queue<Item>::Tail;
-  using Queue<Item>::DoEnqueue;
-  using Queue<Item>::DoDequeue;
-  using Queue<Item>::DoRemove;
-  using Queue<Item>::DoPeek;
+  virtual bool DoEnqueue (Ptr<Packet> p);
+  virtual Ptr<Packet> DoDequeue (void);
+  virtual Ptr<const Packet> DoPeek (void) const;
 
-  NS_LOG_TEMPLATE_DECLARE;     //!< redefinition of the log component
+  std::queue<Ptr<Packet> > m_packets;
+  uint32_t m_maxPackets;
+  uint32_t m_maxBytes;
+  uint32_t m_bytesInQueue;
+  QueueMode m_mode;
 };
-
-
-/**
- * Implementation of the templates declared above.
- */
-
-template <typename Item>
-TypeId
-DropTailQueue<Item>::GetTypeId (void)
-{
-  static TypeId tid = TypeId (("ns3::DropTailQueue<" + GetTypeParamName<DropTailQueue<Item> > () + ">").c_str ())
-    .SetParent<Queue<Item> > ()
-    .SetGroupName ("Network")
-    .template AddConstructor<DropTailQueue<Item> > ()
-  ;
-  return tid;
-}
-
-template <typename Item>
-DropTailQueue<Item>::DropTailQueue () :
-  Queue<Item> (),
-  NS_LOG_TEMPLATE_DEFINE ("DropTailQueue")
-{
-  NS_LOG_FUNCTION (this);
-}
-
-template <typename Item>
-DropTailQueue<Item>::~DropTailQueue ()
-{
-  NS_LOG_FUNCTION (this);
-}
-
-template <typename Item>
-bool
-DropTailQueue<Item>::Enqueue (Ptr<Item> item)
-{
-  NS_LOG_FUNCTION (this << item);
-
-  return DoEnqueue (Tail (), item);
-}
-
-template <typename Item>
-Ptr<Item>
-DropTailQueue<Item>::Dequeue (void)
-{
-  NS_LOG_FUNCTION (this);
-
-  Ptr<Item> item = DoDequeue (Head ());
-
-  NS_LOG_LOGIC ("Popped " << item);
-
-  return item;
-}
-
-template <typename Item>
-Ptr<Item>
-DropTailQueue<Item>::Remove (void)
-{
-  NS_LOG_FUNCTION (this);
-
-  Ptr<Item> item = DoRemove (Head ());
-
-  NS_LOG_LOGIC ("Removed " << item);
-
-  return item;
-}
-
-template <typename Item>
-Ptr<const Item>
-DropTailQueue<Item>::Peek (void) const
-{
-  NS_LOG_FUNCTION (this);
-
-  return DoPeek (Head ());
-}
 
 } // namespace ns3
 

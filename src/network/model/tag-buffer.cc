@@ -22,9 +22,9 @@
 #include "ns3/log.h"
 #include <cstring>
 
-namespace ns3 {
-
 NS_LOG_COMPONENT_DEFINE ("TagBuffer");
+
+namespace ns3 {
 
 #ifndef TAG_BUFFER_USE_INLINE
 
@@ -176,9 +176,10 @@ void
 TagBuffer::Read (uint8_t *buffer, uint32_t size)
 {
   NS_LOG_FUNCTION (this << &buffer << size);
-  std::memcpy (buffer, m_current, size);
-  m_current += size;
-  NS_ASSERT (m_current <= m_end);
+  for (uint32_t i = 0; i < size; ++i, ++buffer)
+    {
+      *buffer = ReadU8 ();
+    }
 }
 TagBuffer::TagBuffer (uint8_t *start, uint8_t *end)
   : m_current (start),

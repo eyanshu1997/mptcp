@@ -31,11 +31,7 @@
 #include "ns3/ipv4-address-helper.h"
 #include "ns3/packet-sink-helper.h"
 #include "ns3/tcp-socket-factory.h"
-#include "ns3/traffic-control-helper.h"
 #include "ns3/simulator.h"
-#include "ns3/point-to-point-net-device.h"
-#include "ns3/pointer.h"
-#include "ns3/queue.h"
 
 using namespace ns3;
 
@@ -59,7 +55,7 @@ NS_LOG_COMPONENT_DEFINE ("Ns3CwndTest");
 // The topology is just two nodes communicating over a point-to-point network.
 // The point-to-point network is chosen because it is simple and allows us to
 // easily generate pcap traces we can use to separately verify that the ns-3
-// implementation is responding correctly.  Once the operation is verified, we
+// implementation is responding correctly.  Once the oopration is verified, we
 // enter a list of responses that capture the response succinctly.
 //
 //         node 0                 node 1
@@ -83,12 +79,6 @@ public:
   SimpleSource ();
   virtual ~SimpleSource();
 
-  /**
-   * Register this type.
-   * \return The TypeId.
-   */
-  static TypeId GetTypeId (void);
-  
   void Setup (Ptr<Socket> socket, Address address, uint32_t packetSize, uint32_t nPackets, DataRate dataRate);
 
 private:
@@ -125,18 +115,6 @@ SimpleSource::~SimpleSource()
   m_socket = 0;
 }
 
-/* static */
-TypeId
-SimpleSource::GetTypeId (void)
-{
-  static TypeId tid = TypeId ("SimpleSource")
-    .SetParent<Application> ()
-    .SetGroupName ("Stats")
-    .AddConstructor<SimpleSource> ()
-    ;
-  return tid;
-}
-  
 void
 SimpleSource::Setup (Ptr<Socket> socket, Address address, uint32_t packetSize, uint32_t nPackets, DataRate dataRate)
 {
@@ -235,16 +213,13 @@ Ns3TcpCwndTestCase1::CwndChange (uint32_t oldCwnd, uint32_t newCwnd)
   event.m_newCwnd = newCwnd;
 
   m_responses.Add (event);
-
-  NS_LOG_DEBUG ("Cwnd change event " << m_responses.GetN () << " at " << Now ().As (Time::S) << " " << oldCwnd << " " << newCwnd);
 }
 
 void
 Ns3TcpCwndTestCase1::DoRun (void)
 {
-  NS_LOG_DEBUG ("Starting test case 1");
   //
-  // Create two nodes.  One (node zero) will be the node with the TCP
+  // Just create two nodes.  One (node zero) will be the node with the TCP
   // under test which is the ns-3 TCP implementation.  The other node (node
   // one) will be the node with the reference implementation we use to drive
   // the tests.
@@ -261,6 +236,9 @@ Ns3TcpCwndTestCase1::DoRun (void)
   pointToPoint.SetDeviceAttribute ("DataRate", StringValue ("5Mbps"));
   pointToPoint.SetChannelAttribute ("Delay", StringValue ("2ms"));
 
+  //
+  // Install the point-to-point devices on both nodes and connec them up.
+  //
   NetDeviceContainer devices;
   devices = pointToPoint.Install (nodes);
 
@@ -300,22 +278,29 @@ Ns3TcpCwndTestCase1::DoRun (void)
   sinkApps.Stop (Seconds (1.1));
 
   //
-  // This test uses a custom application that provides a direct handle to
-  // the socket (the socket of applications such as the OnOffApplication
-  // is not created until Application Start time, and is not easily accessible).
+  // We want to look at changes in the ns-3 TCP congestion window.  The 
+  // congestion window is flow clontrol imposed by the sender, so we need
+  // to crank up a flow from the ns-3 TCP node to the NSC TCP node and hook the
+  // CongestionWindow attribute on the socket.  Normally one would use an on-off
+  // application to generate a flow, but this has a couple of problems.  First,
+  // the socket of the on-off application is not created until Application Start
+  // time, so we wouldn't be able to hook the socket now at configuration time.
+  // Second, even if we could arrange a call after start time, the socket is not 
+  // public.
+  //
+  // So, we can cook up a simple version of the on-off application that does what
+  // we want.  On the plus side we don't need all of the complexity of the on-off
+  // application.  On the minus side, we don't have a helper, so we have to get
+  // a little more involved in the details, but this is trivial.
   //
   // So first, we create a socket and do the trace connect on it; then we pass this
   // socket into the constructor of our simple application which we then install
   // in the node with the ns-3 TCP.
   //
   Ptr<Socket> ns3TcpSocket = Socket::CreateSocket (nodes.Get (0), TcpSocketFactory::GetTypeId ());
-  ns3TcpSocket->TraceConnectWithoutContext ("CongestionWindowInflated", MakeCallback (&Ns3TcpCwndTestCase1::CwndChange, this));
+  ns3TcpSocket->TraceConnectWithoutContext ("CongestionWindow", MakeCallback (&Ns3TcpCwndTestCase1::CwndChange, this));
 
   Ptr<SimpleSource> app = CreateObject<SimpleSource> ();
-  // 1040 is size of packet objects used to write data to the socket (note:
-  // the actual TCP segment size will be 536 bytes).  10 is the number
-  // of packets, so we write 10 * 1040 bytes.  This requires 20 segments
-  // of payload size 536, with the last one being a partially full segment
   app->Setup (ns3TcpSocket, sinkAddress, 1040, 10, DataRate ("5Mbps"));
   nodes.Get (0)->AddApplication (app);
   app->SetStartTime (Seconds (1.));
@@ -330,7 +315,7 @@ Ns3TcpCwndTestCase1::DoRun (void)
   // program.  So we provide the ability to generate a pcap trace of the 
   // test execution for your perusal.
   //
-  // Once the validation test is determined to be running exactly as expected,
+  // Once the validation test is determined to be running exactly as exptected,
   // the set of congestion window changes is collected and hard coded into the 
   // test results which will then be checked during the actual execution of the
   // test.
@@ -354,15 +339,18 @@ Ns3TcpCwndTestCase1::DoRun (void)
   // transmits its bits
   //
   // From inspecting the results, we know that we should see N_EVENTS congestion
-  // window change events (each time by MSS bytes) until reaching the largest
-  // value when the client closes.
+  // window change events.  The window should expand N_EVENTS - 1 times (each
+  // time by MSS bytes) until it gets to its largest value.  Then the application
+  // sending stops and the window should be slammed shut, with the last event 
+  // reflecting the change from LARGEST_CWND back to MSS
   //
   const uint32_t MSS = 536;
-  const uint32_t N_EVENTS = 20;
+  const uint32_t N_EVENTS = 21;
 
   CwndEvent event;
 
   NS_TEST_ASSERT_MSG_EQ (m_responses.GetN (), N_EVENTS, "Unexpectedly low number of cwnd change events");
+
 
   // Ignore the first event logged (i=0) when m_cWnd goes from 0 to MSS bytes
   for (uint32_t i = 1, from = MSS, to = MSS * 2; i < N_EVENTS; ++i, from += MSS, to += MSS)
@@ -408,7 +396,6 @@ public:
   TestVectors<CwndEvent> m_responses;
 
   void CwndChange (uint32_t oldCwnd, uint32_t newCwnd);
-  void CwndChangeNotInflated (uint32_t oldCwnd, uint32_t newCwnd);
 };
 
 Ns3TcpCwndTestCase2::Ns3TcpCwndTestCase2 ()
@@ -430,22 +417,13 @@ Ns3TcpCwndTestCase2::CwndChange (uint32_t oldCwnd, uint32_t newCwnd)
   event.m_newCwnd = newCwnd;
 
   m_responses.Add (event);
-  NS_LOG_DEBUG ("Cwnd change event " << m_responses.GetN () << " at " << Now ().As (Time::S) << " " << oldCwnd << " " << newCwnd);
-}
-
-void
-Ns3TcpCwndTestCase2::CwndChangeNotInflated (uint32_t oldCwnd, uint32_t newCwnd)
-{
-  NS_LOG_DEBUG ("Cwnd NOT INFLATED change event " << m_responses.GetN () << " at " << Now ().As (Time::S) << " " << oldCwnd << " " << newCwnd);
 }
 
 void
 Ns3TcpCwndTestCase2::DoRun (void)
 { 
-  NS_LOG_DEBUG ("Starting test case 2");
   // Set up some default values for the simulation.
-  Config::SetDefault ("ns3::QueueBase::MaxSize", QueueSizeValue (QueueSize (QueueSizeUnit::PACKETS, 4)));
-  Packet::EnablePrinting ();
+  Config::SetDefault ("ns3::DropTailQueue::MaxPackets", UintegerValue (4));
 
   NodeContainer n0n1;
   n0n1.Create (2);
@@ -486,12 +464,6 @@ Ns3TcpCwndTestCase2::DoRun (void)
   // and setup ip routing tables to get total ip-level connectivity.
   Ipv4GlobalRoutingHelper::PopulateRoutingTables ();
 
-  // Disable traffic control layer so that drops occur
-  TrafficControlHelper tch;
-  tch.Uninstall (dev0);
-  tch.Uninstall (dev1);
-  tch.Uninstall (dev2);
-
   // Set up the apps
   uint16_t servPort = 50000;
 
@@ -506,17 +478,14 @@ Ns3TcpCwndTestCase2::DoRun (void)
   // Create the socket for n0
   Address sinkAddress (InetSocketAddress (ipInterfs.GetAddress (1), servPort));
   Ptr<Socket> ns3TcpSocket = Socket::CreateSocket (n0n1.Get (0), TcpSocketFactory::GetTypeId ());
-  // Disable SACK because this test is testing NewReno behavior
-  ns3TcpSocket->SetAttribute ("Sack", BooleanValue (false));
-  ns3TcpSocket->TraceConnectWithoutContext ("CongestionWindowInflated", MakeCallback (&Ns3TcpCwndTestCase2::CwndChange, this));
-  ns3TcpSocket->TraceConnectWithoutContext ("CongestionWindow", MakeCallback (&Ns3TcpCwndTestCase2::CwndChangeNotInflated, this));
+  ns3TcpSocket->TraceConnectWithoutContext ("CongestionWindow", MakeCallback (&Ns3TcpCwndTestCase2::CwndChange, this));
 
   // Create and start the app for n0
   Ptr<SimpleSource> app = CreateObject<SimpleSource> ();
   app->Setup (ns3TcpSocket, sinkAddress, 1040, 1000, DataRate ("1Mbps"));
   n0n1.Get (0)->AddApplication (app);
   app->SetStartTime (Seconds (1.0));
-  app->SetStopTime (Seconds (4.1));
+  app->SetStopTime (Seconds (4.4));
 
   if (m_writeResults)
     {
@@ -526,7 +495,7 @@ Ns3TcpCwndTestCase2::DoRun (void)
     }
 
   // Finally, set up the simulator to run.
-  Simulator::Stop (Seconds (4.1));
+  Simulator::Stop (Seconds (4.4));
   Simulator::Run ();
   Simulator::Destroy ();
 
@@ -544,57 +513,57 @@ Ns3TcpCwndTestCase2::DoRun (void)
   // cut in half, and then add 3 segments (5360/2 + 3*536 = 4288)
   //
   
+  
+  
   const uint32_t MSS = 536;
-  const uint32_t N_EVENTS = 38;
+  const uint32_t N_EVENTS = 45;
 
   CwndEvent event;
 
-  NS_LOG_DEBUG ("Number of response events: " << m_responses.GetN ());
-  //NS_TEST_ASSERT_MSG_EQ (m_responses.GetN (), N_EVENTS, "Unexpected number of cwnd change events");
+  NS_TEST_ASSERT_MSG_EQ (m_responses.GetN (), N_EVENTS, "Unexpected number of cwnd change events");
 
   // Ignore the first event logged (i=0) when m_cWnd goes from 0 to MSS bytes
   VerifyCwndRun (1, 10, 2 * MSS, MSS);
   
-  // At the point of loss, sndNxt = 15545; sndUna = 9113.  FlightSize is 4824, 
-  // so there are 9 segments outstanding.  Cut ssthresh to 9/2 (2412) and 
-  // cwnd to (9/2 + 3) = 4020
+  // Cwnd should be back to (10/2 + 3) = 8*MSS
   event = m_responses.Get (10);
-  NS_TEST_ASSERT_MSG_EQ (event.m_newCwnd, (MSS * 15)/2, "Wrong new cwnd value in cwnd change event " << 10);
+  NS_TEST_ASSERT_MSG_EQ (event.m_newCwnd, 8*MSS, "Wrong new cwnd value in cwnd change event " << 10);
 
-  // Verify that cwnd increments by one for a few segments
-  // from 8.5 at index 11 to 12.5 at index 15
-  VerifyCwndRun (11, 15, (MSS * 17)/2, MSS);
-
-  // partial ack at event 16, cwnd reset from 6700 (12.5*MSS) to 5092 (9.5*MSS)
-  NS_TEST_ASSERT_MSG_EQ (m_responses.Get (16).m_newCwnd, (MSS * 19)/2, "Wrong new cwnd value in cwnd change event " << 16);
-
-  // partial ack again of 3 segments after one more acks, cwnd reset to 7.5 
-  NS_TEST_ASSERT_MSG_EQ (m_responses.Get (18).m_newCwnd, (MSS * 15)/2, "Wrong new cwnd value in cwnd change event " << 18);
-
-  //DUP ACKS in remaining fast recovery
-  VerifyCwndRun (18, 20, (MSS * 15)/2, MSS);
-
-  // Process another partial ack
-  VerifyCwndRun (21, 24, (MSS * 13)/2, MSS);
- 
-  // Leaving fast recovery at event 25; set cwnd to 4 segments as per RFC 2582
-  // Sec. 3 para. 5 option 2 (sshthresh is 2412, 4.5 times MSS)
-  NS_TEST_ASSERT_MSG_EQ (m_responses.Get (25).m_newCwnd,  2412, "Wrong new cwnd value in cwnd change event " << 25);
+  VerifyCwndRun (11, 13, 9 * MSS, MSS);
   
+  //Partial ack will end up modifying cwnd 2X due to how code is written
+  //Partial ACK in fast recovery: cwnd set to 4824
+  NS_TEST_ASSERT_MSG_EQ (m_responses.Get (15).m_newCwnd, 9 * MSS, "Wrong new cwnd value in cwnd change event " << 15);
+
+  //DUP ACKS in fast recovery
+  VerifyCwndRun (16, 17, 10 * MSS, MSS);
+
+  //Partial ack will end up modifying cwnd 2X due to how code is written, therefore eat 18 and 19
+  //Partial ACK in fast recovery: cwnd set to 4824
+  NS_TEST_ASSERT_MSG_EQ (m_responses.Get (19).m_newCwnd, 9 * MSS, "Wrong new cwnd value in cwnd change event " << 19);
+
+  //DUP ACKS in fast recovery
+  VerifyCwndRun (20, 22, 10 * MSS, MSS);
+  
+  //Partial ack will end up modifying cwnd 2X due to how code is written, therefore eat 23, 24
+  //Partial ACK in fast recovery: cwnd set to 4824
+  NS_TEST_ASSERT_MSG_EQ (m_responses.Get (24).m_newCwnd, 10 * MSS, "Wrong new cwnd value in cwnd change event " << 24);  
+  
+  //DUP ACKS in fast recovery 
+  VerifyCwndRun (25, 29, 11 * MSS, MSS);
+  
+  //Leaving fast recovery
+  NS_TEST_ASSERT_MSG_EQ (m_responses.Get (29).m_newCwnd, 5 * MSS, "Wrong new cwnd value in cwnd change event " << 29);  
+  
+  uint32_t cwnd = 5 * MSS;
   //In CongAvoid each event will increase cwnd by (MSS * MSS / cwnd)
-  uint32_t cwnd = 2412;
-  for (uint32_t i = 26; i < N_EVENTS; ++i)
+  for (uint32_t i = 30; i < N_EVENTS; ++i)
     {
       double adder = static_cast<double> (MSS * MSS) / cwnd;
       adder = std::max (1.0, adder);
       cwnd += static_cast<uint32_t> (adder);    
       NS_TEST_ASSERT_MSG_EQ (m_responses.Get (i).m_newCwnd, cwnd, "Wrong new cwnd value in cwnd change event " << i); 
     }
-  NS_LOG_DEBUG ("Reading out the cwnd event log");  
-  for (uint32_t i = 0; i < N_EVENTS; ++i)
-  {
-    NS_LOG_DEBUG ("i: " << i << " newCwnd: " << m_responses.Get(i).m_newCwnd << " newCwnd segments " << static_cast<double> (m_responses.Get(i).m_newCwnd)/MSS);
-  }
 }
 
 void 

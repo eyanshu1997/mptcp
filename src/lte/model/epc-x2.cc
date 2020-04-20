@@ -27,9 +27,10 @@
 #include "ns3/epc-x2-header.h"
 #include "ns3/epc-x2.h"
 
+NS_LOG_COMPONENT_DEFINE ("EpcX2");
+
 namespace ns3 {
 
-NS_LOG_COMPONENT_DEFINE ("EpcX2");
 
 X2IfaceInfo::X2IfaceInfo (Ipv4Address remoteIpAddr, Ptr<Socket> localCtrlPlaneSocket, Ptr<Socket> localUserPlaneSocket)
 {
@@ -79,7 +80,8 @@ X2CellInfo::operator= (const X2CellInfo& value)
 
 ///////////////////////////////////////////
 
-NS_OBJECT_ENSURE_REGISTERED (EpcX2);
+NS_OBJECT_ENSURE_REGISTERED (EpcX2)
+  ;
 
 EpcX2::EpcX2 ()
   : m_x2cUdpPort (4444),
@@ -109,8 +111,7 @@ TypeId
 EpcX2::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::EpcX2")
-    .SetParent<Object> ()
-    .SetGroupName("Lte");
+    .SetParent<Object> ();
   return tid;
 }
 
@@ -348,7 +349,6 @@ EpcX2::RecvFromX2cSocket (Ptr<Socket> socket)
           NS_LOG_INFO ("X2 ResourceStatusUpdate header: " << x2ResStatUpdHeader);
 
           EpcX2SapUser::ResourceStatusUpdateParams params;
-          params.targetCellId = 0;
           params.enb1MeasurementId = x2ResStatUpdHeader.GetEnb1MeasurementId ();
           params.enb2MeasurementId = x2ResStatUpdHeader.GetEnb2MeasurementId ();
           params.cellMeasurementResultList = x2ResStatUpdHeader.GetCellMeasurementResultList ();

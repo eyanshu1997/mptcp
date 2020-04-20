@@ -38,15 +38,17 @@
 namespace ns3
 {
 
-NS_LOG_COMPONENT_DEFINE ("Ipv6RawSocketImpl");
+NS_LOG_COMPONENT_DEFINE ("Ipv6RawSocketImpl")
+  ;
 
-NS_OBJECT_ENSURE_REGISTERED (Ipv6RawSocketImpl);
+
+NS_OBJECT_ENSURE_REGISTERED (Ipv6RawSocketImpl)
+  ;
 
 TypeId Ipv6RawSocketImpl::GetTypeId ()
 {
   static TypeId tid = TypeId ("ns3::Ipv6RawSocketImpl")
     .SetParent<Socket> ()
-    .SetGroupName ("Internet")
     .AddAttribute ("Protocol", "Protocol number to match.", 
                    UintegerValue (0),
                    MakeUintegerAccessor (&Ipv6RawSocketImpl::m_protocol),
@@ -134,28 +136,11 @@ int Ipv6RawSocketImpl::GetSockName (Address& address) const
   return 0;
 }
 
-int
-Ipv6RawSocketImpl::GetPeerName (Address& address) const
-{
-  NS_LOG_FUNCTION (this << address);
-
-  if (m_dst.IsAny ())
-    {
-      m_err = ERROR_NOTCONN;
-      return -1;
-    }
-
-  address = Inet6SocketAddress (m_dst, 0);
-
-  return 0;
-}
-
 int Ipv6RawSocketImpl::Close ()
 {
   NS_LOG_FUNCTION_NOARGS ();
   Ptr<Ipv6L3Protocol> ipv6 = m_node->GetObject<Ipv6L3Protocol> ();
 
-  Ipv6LeaveGroup ();
   if (ipv6)
     {
       ipv6->DeleteRawSocket (this);
@@ -186,9 +171,9 @@ int Ipv6RawSocketImpl::Connect (const Address& address)
       m_err = Socket::ERROR_INVAL;
       return -1;
     }
+
   Inet6SocketAddress ad = Inet6SocketAddress::ConvertFrom (address);
   m_dst = ad.GetIpv6 ();
-
   return 0;
 }
 
@@ -225,27 +210,13 @@ int Ipv6RawSocketImpl::SendTo (Ptr<Packet> p, uint32_t flags, const Address& toA
   Ptr<Ipv6L3Protocol> ipv6 = m_node->GetObject<Ipv6L3Protocol> ();
   Ipv6Address dst = ad.GetIpv6 ();
 
-  if (IsManualIpv6Tclass ())
-    {
-      SocketIpv6TclassTag ipTclassTag;
-      ipTclassTag.SetTclass (GetIpv6Tclass ());
-      p->AddPacketTag (ipTclassTag);
-    }
-
-  if (IsManualIpv6HopLimit () && GetIpv6HopLimit () != 0 && !dst.IsMulticast ())
-    {
-      SocketIpv6HopLimitTag tag;
-      tag.SetHopLimit (GetIpv6HopLimit ());
-      p->AddPacketTag (tag);
-    }
-
   if (ipv6->GetRoutingProtocol ())
     {
       Ipv6Header hdr;
       hdr.SetDestinationAddress (dst);
       SocketErrno err = ERROR_NOTERROR;
       Ptr<Ipv6Route> route = 0;
-      Ptr<NetDevice> oif = m_boundnetdevice; //specify non-zero if bound to a specific device
+      Ptr<NetDevice> oif (0); /*specify non-zero if bound to a source address */
 
       if (!m_src.IsAny ())
         {
@@ -275,7 +246,6 @@ int Ipv6RawSocketImpl::SendTo (Ptr<Packet> p, uint32_t flags, const Address& toA
                 }
             }
 
-          uint32_t pktSize = p->GetSize ();
           if (m_src.IsAny ())
             {
               ipv6->Send (p, route->GetSource (), dst, m_protocol, route);
@@ -285,9 +255,7 @@ int Ipv6RawSocketImpl::SendTo (Ptr<Packet> p, uint32_t flags, const Address& toA
               ipv6->Send (p, m_src, dst, m_protocol, route);
             }
           // Return only payload size (as Linux does).
-          NotifyDataSent (pktSize);
-          NotifySend (GetTxAvailable ());
-          return pktSize;
+          return p->GetSize () - hdr.GetSerializedSize ();
         }
       else
         {
@@ -314,7 +282,7 @@ Ptr<Packet> Ipv6RawSocketImpl::RecvFrom (uint32_t maxSize, uint32_t flags, Addre
     }
 
   /* get packet */
-  Data data = m_data.front ();
+  struct Data data = m_data.front ();
   m_data.pop_front ();
   fromAddress = Inet6SocketAddress (data.fromIp, data.fromProtocol);
   if (data.packet->GetSize () > maxSize)
@@ -329,50 +297,6 @@ Ptr<Packet> Ipv6RawSocketImpl::RecvFrom (uint32_t maxSize, uint32_t flags, Addre
     }
 
   return data.packet;
-}
-
-void
-Ipv6RawSocketImpl::Ipv6JoinGroup (Ipv6Address address, Socket::Ipv6MulticastFilterMode filterMode, std::vector<Ipv6Address> sourceAddresses)
-{
-  NS_LOG_FUNCTION (this << address << &filterMode << &sourceAddresses);
-
-  // We can join only one multicast group (or change its params)
-  NS_ASSERT_MSG ((m_ipv6MulticastGroupAddress == address || m_ipv6MulticastGroupAddress.IsAny ()), "Can join only one IPv6 multicast group.");
-
-  m_ipv6MulticastGroupAddress = address;
-
-  Ptr<Ipv6L3Protocol> ipv6l3 = m_node->GetObject <Ipv6L3Protocol> ();
-  if (ipv6l3)
-    {
-      if (filterMode == INCLUDE && sourceAddresses.empty ())
-        {
-          // it is a leave
-          if (m_boundnetdevice)
-            {
-              int32_t index = ipv6l3->GetInterfaceForDevice (m_boundnetdevice);
-              NS_ASSERT_MSG (index >= 0, "Interface without a valid index");
-              ipv6l3->RemoveMulticastAddress (address, index);
-            }
-          else
-            {
-              ipv6l3->RemoveMulticastAddress (address);
-            }
-        }
-      else
-        {
-          // it is a join or a modification
-          if (m_boundnetdevice)
-            {
-              int32_t index = ipv6l3->GetInterfaceForDevice (m_boundnetdevice);
-              NS_ASSERT_MSG (index >= 0, "Interface without a valid index");
-              ipv6l3->AddMulticastAddress (address, index);
-            }
-          else
-            {
-              ipv6l3->AddMulticastAddress (address);
-            }
-        }
-    }
 }
 
 uint32_t Ipv6RawSocketImpl::GetTxAvailable () const
@@ -432,7 +356,7 @@ bool Ipv6RawSocketImpl::ForwardUp (Ptr<const Packet> p, Ipv6Header hdr, Ptr<NetD
             }
         }
 
-      // Should check via getsockopt ().
+      // Should check via getsockopt ()..
       if (IsRecvPktInfo ())
         {
           Ipv6PacketInfoTag tag;
@@ -441,23 +365,8 @@ bool Ipv6RawSocketImpl::ForwardUp (Ptr<const Packet> p, Ipv6Header hdr, Ptr<NetD
           copy->AddPacketTag (tag);
         }
 
-      // Check only version 6 options
-      if (IsIpv6RecvTclass ())
-        {
-          SocketIpv6TclassTag ipTclassTag;
-          ipTclassTag.SetTclass (hdr.GetTrafficClass ());
-          copy->AddPacketTag (ipTclassTag);
-        }
-
-      if (IsIpv6RecvHopLimit ())
-        {
-          SocketIpv6HopLimitTag ipHopLimitTag;
-          ipHopLimitTag.SetHopLimit (hdr.GetHopLimit ());
-          copy->AddPacketTag (ipHopLimitTag);
-        }
-
       copy->AddHeader (hdr);
-      Data data;
+      struct Data data;
       data.packet = copy;
       data.fromIp = hdr.GetSourceAddress ();
       data.fromProtocol = hdr.GetNextHeader ();
@@ -487,13 +396,13 @@ Ipv6RawSocketImpl::GetAllowBroadcast () const
 void
 Ipv6RawSocketImpl::Icmpv6FilterSetPassAll()
 {
-  memset(&m_icmpFilter, 0xff, sizeof(Icmpv6Filter));
+  memset(&m_icmpFilter, 0xff, sizeof(icmpv6Filter));
 }
 
 void
 Ipv6RawSocketImpl::Icmpv6FilterSetBlockAll()
 {
-  memset(&m_icmpFilter, 0x00, sizeof(Icmpv6Filter));
+  memset(&m_icmpFilter, 0x00, sizeof(icmpv6Filter));
 }
 
 void

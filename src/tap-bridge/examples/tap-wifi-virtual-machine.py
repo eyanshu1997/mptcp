@@ -25,9 +25,6 @@ import ns.tap_bridge
 import ns.wifi
 
 def main(argv):
-
-    ns.core.CommandLine().Parse(argv)
-    
     #
     # We are interacting with the outside, real, world.  This means we have to 
     # interact in real-time and therefore we have to use the real-time simulator
@@ -47,18 +44,18 @@ def main(argv):
     #
     # We're going to use 802.11 A so set up a wifi helper to reflect that.
     #
-    wifi = ns.wifi.WifiHelper()
+    wifi = ns.wifi.WifiHelper.Default()
     wifi.SetStandard (ns.wifi.WIFI_PHY_STANDARD_80211a);
     wifi.SetRemoteStationManager ("ns3::ConstantRateWifiManager", "DataMode", ns.core.StringValue ("OfdmRate54Mbps"));
 
     #
     # No reason for pesky access points, so we'll use an ad-hoc network.
     #
-    wifiMac = ns.wifi.WifiMacHelper
+    wifiMac = ns.wifi.NqosWifiMacHelper.Default()
     wifiMac.SetType ("ns3::AdhocWifiMac");
 
     #
-    # Configure the physical layer.
+    # Configure the physcial layer.
     #
     wifiChannel = ns.wifi.YansWifiChannelHelper.Default()
     wifiPhy = ns.wifi.YansWifiPhyHelper.Default()

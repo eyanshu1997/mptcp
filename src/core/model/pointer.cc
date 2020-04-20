@@ -22,15 +22,9 @@
 #include "log.h"
 #include <sstream>
 
-/**
- * \file
- * \ingroup attribute_Pointer
- * ns3::PointerValue attribute value implementations.
- */
+NS_LOG_COMPONENT_DEFINE ("Pointer");
 
 namespace ns3 {
-
-NS_LOG_COMPONENT_DEFINE ("Pointer");
 
 PointerValue::PointerValue ()
   : m_value ()

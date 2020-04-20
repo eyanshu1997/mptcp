@@ -24,7 +24,8 @@
 
 namespace ns3 {
 
-NS_OBJECT_ENSURE_REGISTERED (RlcTag);
+NS_OBJECT_ENSURE_REGISTERED (RlcTag)
+  ;
 
 RlcTag::RlcTag ()
   : m_senderTimestamp (Seconds (0))
@@ -45,7 +46,6 @@ RlcTag::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::RlcTag")
     .SetParent<Tag> ()
-    .SetGroupName("Lte")
     .AddConstructor<RlcTag> ();
   return tid;
 }

@@ -17,19 +17,17 @@
  *
  * Author: Mirko Banchi <mk.banchi@gmail.com>
  */
-
-#include "ns3/log.h"
 #include "block-ack-cache.h"
-#include "qos-utils.h"
-#include "wifi-utils.h"
-#include "wifi-mac-header.h"
 #include "ctrl-headers.h"
+#include "wifi-mac-header.h"
+#include "qos-utils.h"
+#include "ns3/log.h"
 
 #define WINSIZE_ASSERT NS_ASSERT ((m_winEnd - m_winStart + 4096) % 4096 == m_winSize - 1)
 
-namespace ns3 {
-
 NS_LOG_COMPONENT_DEFINE ("BlockAckCache");
+
+namespace ns3 {
 
 void
 BlockAckCache::Init (uint16_t winStart, uint16_t winSize)
@@ -41,12 +39,6 @@ BlockAckCache::Init (uint16_t winStart, uint16_t winSize)
   memset (m_bitmap, 0, sizeof (m_bitmap));
 }
 
-uint16_t
-BlockAckCache::GetWinStart () const
-{
-  return m_winStart;
-}
-
 void
 BlockAckCache::UpdateWithMpdu (const WifiMacHeader *hdr)
 {
@@ -54,7 +46,7 @@ BlockAckCache::UpdateWithMpdu (const WifiMacHeader *hdr)
   uint16_t seqNumber = hdr->GetSequenceNumber ();
   if (!QosUtilsIsOldPacket (m_winStart, seqNumber))
     {
-      if (!IsInWindow (seqNumber, m_winStart, m_winSize))
+      if (!IsInWindow (seqNumber))
         {
           uint16_t delta = (seqNumber - m_winEnd + 4096) % 4096;
           if (delta > 1)
@@ -76,7 +68,7 @@ BlockAckCache::UpdateWithBlockAckReq (uint16_t startingSeq)
   NS_LOG_FUNCTION (this << startingSeq);
   if (!QosUtilsIsOldPacket (m_winStart, startingSeq))
     {
-      if (IsInWindow (startingSeq, m_winStart, m_winSize))
+      if (IsInWindow (startingSeq))
         {
           if (startingSeq != m_winStart)
             {
@@ -103,12 +95,19 @@ void
 BlockAckCache::ResetPortionOfBitmap (uint16_t start, uint16_t end)
 {
   NS_LOG_FUNCTION (this << start << end);
-  uint16_t i = start;
+  uint32_t i = start;
   for (; i != end; i = (i + 1) % 4096)
     {
       m_bitmap[i] = 0;
     }
   m_bitmap[i] = 0;
+}
+
+bool
+BlockAckCache::IsInWindow (uint16_t seq)
+{
+  NS_LOG_FUNCTION (this << seq);
+  return ((seq - m_winStart + 4096) % 4096) < m_winSize;
 }
 
 void
@@ -121,8 +120,8 @@ BlockAckCache::FillBlockAckBitmap (CtrlBAckResponseHeader *blockAckHeader)
     }
   else if (blockAckHeader->IsCompressed ())
     {
-      uint16_t i = blockAckHeader->GetStartingSequence ();
-      uint16_t end = (i + m_winSize - 1) % 4096;
+      uint32_t i = blockAckHeader->GetStartingSequence ();
+      uint32_t end = (i + m_winSize - 1) % 4096;
       for (; i != end; i = (i + 1) % 4096)
         {
           if (m_bitmap[i] == 1)
@@ -141,4 +140,4 @@ BlockAckCache::FillBlockAckBitmap (CtrlBAckResponseHeader *blockAckHeader)
     }
 }
 
-} //namespace ns3
+} // namespace ns3

@@ -27,9 +27,10 @@
 #include "lte-test-rlc-am-transmitter.h"
 #include "lte-test-entities.h"
 
-using namespace ns3;
-
 NS_LOG_COMPONENT_DEFINE ("LteRlcAmTransmitterTest");
+
+namespace ns3 {
+
 
 /**
  * TestSuite 4.1.1 RLC AM: Only transmitter
@@ -139,7 +140,6 @@ LteRlcAmTransmitterOneSduTestCase::DoRun (void)
   txMac->SendTxOpportunity (Seconds (0.150), 30);
   CheckDataReceived (Seconds (0.200), "ABCDEFGHIJKLMNOPQRSTUVWXYZ", "SDU is not OK");
 
-  Simulator::Stop (Seconds (0.3));
   Simulator::Run ();
   Simulator::Destroy ();
 }
@@ -182,7 +182,6 @@ LteRlcAmTransmitterSegmentationTestCase::DoRun (void)
   txMac->SendTxOpportunity (Seconds (0.450), 7);
   CheckDataReceived (Seconds (0.500), "YZZ", "Segment #4 is not OK");
 
-  Simulator::Stop (Seconds (0.6));
   Simulator::Run ();
   Simulator::Destroy ();
 }
@@ -219,7 +218,6 @@ LteRlcAmTransmitterConcatenationTestCase::DoRun (void)
   txMac->SendTxOpportunity (Seconds (0.250), 33);
   CheckDataReceived (Seconds (0.300), "ABCDEFGHIJKLMNOPQRSTUVWXYZ", "Concatenation is not OK");
 
-  Simulator::Stop (Seconds (0.4));
   Simulator::Run ();
   Simulator::Destroy ();
 }
@@ -296,7 +294,9 @@ LteRlcAmTransmitterReportBufferStatusTestCase::DoRun (void)
   txMac->SendTxOpportunity (Seconds (1.650), (4+2+1+2) + (3+10+10+7));
   CheckDataReceived (Seconds (1.700), "XYZABCDEFGHIJKLMNOPQRSTUVWXYZ", "SDU #9 is not OK");
 
-  Simulator::Stop (Seconds (2));
   Simulator::Run ();
   Simulator::Destroy ();
 }
+
+} // namespace ns3
+

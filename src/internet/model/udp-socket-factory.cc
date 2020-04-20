@@ -22,13 +22,13 @@
 
 namespace ns3 {
 
-NS_OBJECT_ENSURE_REGISTERED (UdpSocketFactory);
+NS_OBJECT_ENSURE_REGISTERED (UdpSocketFactory)
+  ;
 
 TypeId UdpSocketFactory::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::UdpSocketFactory")
     .SetParent<SocketFactory> ()
-    .SetGroupName ("Internet")
   ;
   return tid;
 }

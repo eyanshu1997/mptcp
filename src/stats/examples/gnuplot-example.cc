@@ -253,7 +253,7 @@ void Create3DPlotFile ()
   plotFile.close ();
 }
 
-}  // unnamed namespace
+} // anonymous namespace
 
 
 int main (int argc, char *argv[])

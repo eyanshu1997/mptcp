@@ -24,18 +24,18 @@
 #include "ipv4.h"
 #include "ns3/log.h"
 
-namespace ns3 {
-
 NS_LOG_COMPONENT_DEFINE ("Ipv4");
 
-NS_OBJECT_ENSURE_REGISTERED (Ipv4);
+namespace ns3 {
+
+NS_OBJECT_ENSURE_REGISTERED (Ipv4)
+  ;
 
 TypeId 
 Ipv4::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::Ipv4")
     .SetParent<Object> ()
-    .SetGroupName ("Internet")
     .AddAttribute ("IpForward", "Globally enable or disable IP forwarding for all current and future Ipv4 devices.",
                    BooleanValue (true),
                    MakeBooleanAccessor (&Ipv4::SetIpForward,

@@ -40,24 +40,17 @@
 
 namespace ns3 {
 namespace dsr {
-/**
+/*
  * The gratuitous table entries, it maintains the already sent gratuitous route reply entries.
  * When the node "promiscuously" received a packet destined for other nodes, and inferred a shorter
  * route for the data packet, it will construct a route reply and send back to the source
  */
 struct GraReplyEntry
 {
-  Ipv4Address m_replyTo; ///< reply to address
-  Ipv4Address m_hearFrom; ///< heard from address
-  Time m_gratReplyHoldoff; ///< gratuitous reply holdoff time
+  Ipv4Address m_replyTo;
+  Ipv4Address m_hearFrom;
+  Time m_gratReplyHoldoff;
 
-  /**
-   * Constructor
-   *
-   * \param t IPv4 address to reply to
-   * \param f IPv4 address to hear from
-   * \param h gratuitous hold off time
-   */
   GraReplyEntry (Ipv4Address t, Ipv4Address f, Time h)
     : m_replyTo (t),
       m_hearFrom (f),
@@ -69,39 +62,28 @@ struct GraReplyEntry
  * \ingroup dsr
  * \brief maintain the gratuitous reply
  */
-class DsrGraReply  : public Object
+class GraReply  : public Object
 {
 public:
-  /**
-   * \brief Get the type ID.
-   * \return the object TypeId
-   */
+
   static TypeId GetTypeId ();
 
-  DsrGraReply ();
-  virtual ~DsrGraReply ();
+  GraReply ();
+  virtual ~GraReply ();
 
   /// Set the gratuitous reply table size
-  /// \param g The gratuitous reply table size
   void SetGraTableSize (uint32_t g)
   {
     GraReplyTableSize = g;
   }
   /// Get the gratuitous reply table size
-  /// \returns The gratuitous reply table size
   uint32_t GetGraTableSize () const
   {
     return GraReplyTableSize;
   }
   /// Add a new gratuitous reply entry
-  /// \param graTableEntry The gratuitous reply entry
-  /// \return true on success
   bool AddEntry (GraReplyEntry & graTableEntry);
-  /// Update the route entry if found
-  /// \param replyTo Entry directed to
-  /// \param replyFrom Entry heard from
-  /// \param gratReplyHoldoff New gratuitous reply holdoff time
-  /// \return true on success
+  /// Update the route entry if found, create a new one if not
   bool FindAndUpdate (Ipv4Address replyTo, Ipv4Address replyFrom, Time gratReplyHoldoff);
   /// Remove all expired entries
   void Purge ();
@@ -120,12 +102,6 @@ private:
   /// Check if the entry is expired or not
   struct IsExpired
   {
-    /**
-     * Check if the entry is expired
-     *
-     * \param b GraReplyEntry entry
-     * \return true if expired, false otherwise
-     */
     bool operator() (const struct GraReplyEntry & b) const
     {
       return (b.m_gratReplyHoldoff < Simulator::Now ());

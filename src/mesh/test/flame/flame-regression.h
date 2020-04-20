@@ -25,16 +25,8 @@
 #include "ns3/pcap-file.h"
 
 using namespace ns3;
-
 /**
- * \ingroup mesh-test
- * \defgroup flame-test flame sub-module tests
- */
-
-/**
- * \ingroup flame-test
- * \ingroup tests
- *
+ * \ingroup flame
  * \brief FLAME protocol regression test of three stations:
  * \verbatim
  * <-----------|----------->   Broadcast frame
@@ -68,7 +60,6 @@ public:
   virtual ~FlameRegressionTest();
 
   virtual void DoRun ();
-  /// Check results function
   void CheckResults ();
 
 private:
@@ -79,43 +70,8 @@ private:
   /// Needed to install applications
   Ipv4InterfaceContainer m_interfaces;
 
-  /// Create nodes function
   void CreateNodes ();
-  /// Create devices function
   void CreateDevices ();
-  /// Install application function
   void InstallApplications ();
-
-  /// Server-side socket
-  Ptr<Socket> m_serverSocket;
-  /// Client-side socket
-  Ptr<Socket> m_clientSocket;
-
-  /// sent packets counter
-  uint32_t m_sentPktsCounter;
-
-  /**
-   * Send data
-   * \param socket the sending socket
-   */
-  void SendData (Ptr<Socket> socket);
-
-  /**
-   * \brief Handle a packet reception.
-   *
-   * This function is called by lower layers.
-   *
-   * \param socket the socket the packet was received to.
-   */
-  void HandleReadServer (Ptr<Socket> socket);
-
-  /**
-   * \brief Handle a packet reception.
-   *
-   * This function is called by lower layers.
-   *
-   * \param socket the socket the packet was received to.
-   */
-  void HandleReadClient (Ptr<Socket> socket);
 };
 

@@ -22,11 +22,12 @@
 
 #include "ns3/lte-pdcp-header.h"
 
-namespace ns3 {
-
 NS_LOG_COMPONENT_DEFINE ("LtePdcpHeader");
 
-NS_OBJECT_ENSURE_REGISTERED (LtePdcpHeader);
+namespace ns3 {
+
+NS_OBJECT_ENSURE_REGISTERED (LtePdcpHeader)
+  ;
 
 LtePdcpHeader::LtePdcpHeader ()
   : m_dcBit (0xff),
@@ -70,7 +71,6 @@ LtePdcpHeader::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::LtePdcpHeader")
     .SetParent<Header> ()
-    .SetGroupName("Lte")
     .AddConstructor<LtePdcpHeader> ()
   ;
   return tid;

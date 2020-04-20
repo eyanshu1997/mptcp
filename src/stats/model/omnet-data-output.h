@@ -41,12 +41,6 @@ public:
   OmnetDataOutput();
   virtual ~OmnetDataOutput();
 
-  /**
-   * Register this type.
-   * \return The TypeId.
-   */
-  static TypeId GetTypeId (void);
-  
   virtual void Output (DataCollector &dc);
 
 protected:

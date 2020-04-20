@@ -71,7 +71,6 @@ EOF
 
 # script arguments
 say
-say using doxygen: $(which doxygen) $(doxygen --version)
 public=0
 nsnam=0
 daily=0
@@ -152,7 +151,7 @@ elif [ $tag -eq 1 ]; then
 else
     version=`hg log -r tip --template '{node|short}'`
     # Check for uncommitted changes
-    hg summary | grep 'commit:' | grep -q '(clean)'
+    hg summary | grep -q 'commit: (clean)'
     if [ ! $? ] ; then
 	say "beyond latest tag, last commit: $version, dirty"
 	dirty="(+)"

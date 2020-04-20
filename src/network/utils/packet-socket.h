@@ -43,7 +43,7 @@ class PacketSocketAddress;
  *
  * A PacketSocket can be used to connect an application to a net
  * device. The application provides the buffers of data, the socket
- * converts them to a raw packet and the net device then adds the
+ * conserts them to a raw packet and the net device then adds the
  * protocol specific headers and trailers. This socket type
  * is very similar to the linux and BSD "packet" sockets.
  *
@@ -74,66 +74,22 @@ class PacketSocketAddress;
  * - Accept: not allowed
  *
  * - Listen: returns -1 (OPNOTSUPP)
- *
- * Socket data that is read from this socket using the methods returning
- * an ns3::Packet object (i.e., Recv (), RecvMsg (), RecvFrom ()) will
- * return Packet objects with three PacketTag objects attached.
- * Applications may wish to read the extra out-of-band data provided in
- * these tags, and may safely remove the tags from the Packet.
- *
- * - PacketSocketTag: contains destination address (type PacketSocketAddress)
- *   and packet type of the received packet
- *
- * - DeviceNameTag:  contains the TypeId string of the relevant NetDevice
- *
- * \see class PacketSocketTag
- * \see class DeviceNameTag
  */
-
 class PacketSocket : public Socket
 {
 public:
-  /**
-   * \brief Get the type ID.
-   * \return the object TypeId
-   */
   static TypeId GetTypeId (void);
 
   PacketSocket ();
   virtual ~PacketSocket ();
 
-  /**
-   * \brief Set the associated node.
-   * \param node the node
-   */
   void SetNode (Ptr<Node> node);
 
   virtual enum SocketErrno GetErrno (void) const;
   virtual enum SocketType GetSocketType (void) const;
   virtual Ptr<Node> GetNode (void) const;
-  /**
-   * \brief Bind the socket to the NetDevice and register the protocol handler.
-   *
-   * \warning this will actually bind protocol "0".
-   *
-   * \returns 0 on success, -1 on failure.
-   */
   virtual int Bind (void);
-  /**
-   * \brief Bind the socket to the NetDevice and register the protocol handler.
-   *
-   * \warning this will actually bind protocol "0".
-   *
-   * \returns 0 on success, -1 on failure.
-   */
   virtual int Bind6 (void);
-  /**
-   * \brief Bind the socket to the NetDevice and register the
-   *        protocol handler specified in the address.
-   *
-   * \param address the packet socket address
-   * \returns 0 on success, -1 on failure.
-   */
   virtual int Bind (const Address & address);
   virtual int Close (void);
   virtual int ShutdownSend (void);
@@ -148,73 +104,46 @@ public:
   virtual Ptr<Packet> RecvFrom (uint32_t maxSize, uint32_t flags,
                                 Address &fromAddress);
   virtual int GetSockName (Address &address) const; 
-  virtual int GetPeerName (Address &address) const;
   virtual bool SetAllowBroadcast (bool allowBroadcast);
   virtual bool GetAllowBroadcast () const;
 
 private:
-  /**
-   * \brief Called by the L3 protocol when it received a packet to pass on to TCP.
-   *
-   * \param device the incoming NetDevice
-   * \param packet the incoming packet
-   * \param protocol the protocol
-   * \param from sender address
-   * \param to destination address
-   * \param packetType packet type
-   */
   void ForwardUp (Ptr<NetDevice> device, Ptr<const Packet> packet, 
                   uint16_t protocol, const Address &from, const Address &to,
                   NetDevice::PacketType packetType);
-  /**
-   * \brief Bind the socket to the NetDevice and register the
-   *        protocol handler specified in the address.
-   * \param address the packet socket address
-   * \returns 0 on success, -1 on failure.
-   */
   int DoBind (const PacketSocketAddress &address);
-
-  /**
-   * \brief Get the minimum MTU supported by the NetDevices bound to a specific address
-   * \param ad the socket address to check for
-   * \returns The minimum MTU
-   */
   uint32_t GetMinMtu (PacketSocketAddress ad) const;
   virtual void DoDispose (void);
 
-  /**
-   * \brief States of the socket
-   */
   enum State {
     STATE_OPEN,
     STATE_BOUND,     // open and bound
     STATE_CONNECTED, // open, bound and connected
     STATE_CLOSED
   };
+  Ptr<Node> m_node;
+  enum SocketErrno m_errno;
+  bool m_shutdownSend;
+  bool m_shutdownRecv;
+  enum State m_state;
+  uint16_t m_protocol;
+  bool m_isSingleDevice;
+  uint32_t m_device;
+  Address m_destAddr; /// Default destination address
 
-  Ptr<Node> m_node;         //!< the associated node
-  mutable enum SocketErrno m_errno; //!< Socket error code
-  bool m_shutdownSend;      //!< Send no longer allowed
-  bool m_shutdownRecv;      //!< Receive no longer allowed
-  enum State m_state;       //!< Socket state
-  uint16_t m_protocol;      //!< Socket protocol
-  bool m_isSingleDevice;    //!< Is bound to a single netDevice
-  uint32_t m_device;        //!< index of the bound NetDevice
-  Address m_destAddr;       //!< Default destination address
+  std::queue<Ptr<Packet> > m_deliveryQueue;
+  uint32_t m_rxAvailable;
 
-  std::queue<std::pair<Ptr<Packet>, Address> > m_deliveryQueue; //!< Rx queue
-  uint32_t m_rxAvailable; //!< Rx queue size [Bytes]
-
-  /// Traced callback: dropped packets
   TracedCallback<Ptr<const Packet> > m_dropTrace;
 
   // Socket options (attributes)
-  uint32_t m_rcvBufSize; //!< Rx buffer size [Bytes]
+  uint32_t m_rcvBufSize;
 
 };
 
 /**
  * \brief  This class implements a tag that carries the dest address of a packet and the packet type.
+ *
  */
 class PacketSocketTag : public Tag
 {
@@ -244,10 +173,6 @@ public:
    */
   Address GetDestAddress (void) const;
 
-  /**
-   * \brief Get the type ID.
-   * \return the object TypeId
-   */
   static TypeId GetTypeId (void);
   virtual TypeId GetInstanceTypeId (void) const;
   virtual uint32_t GetSerializedSize (void) const;
@@ -256,11 +181,13 @@ public:
   virtual void Print (std::ostream &os) const;
 
 private:
-  NetDevice::PacketType m_packetType; //!< Packet type
-  Address m_destAddr; //!< Destination address
+  std::string m_deviceName;
+  NetDevice::PacketType m_packetType;
+  Address m_destAddr;
 };
 /**
  * \brief  This class implements a tag that carries the ns3 device name from where a packet is coming.
+ *
  */
 class DeviceNameTag : public Tag
 {
@@ -279,10 +206,6 @@ public:
    * @return the device name from where the corresponding packet is coming.
    */
   std::string GetDeviceName (void) const;
-  /**
-   * \brief Get the type ID.
-   * \return the object TypeId
-   */
   static TypeId GetTypeId (void);
   virtual TypeId GetInstanceTypeId (void) const;
   virtual uint32_t GetSerializedSize (void) const;
@@ -291,7 +214,7 @@ public:
   virtual void Print (std::ostream &os) const;
 
 private:
-  std::string m_deviceName; //!< Device name
+  std::string m_deviceName;
 };
 
 } // namespace ns3

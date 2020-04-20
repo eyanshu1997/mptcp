@@ -21,7 +21,12 @@
  * Author: Mirko Banchi <mk.banchi@gmail.com>
  * Author: Junling Bu <linlinjavaer@gmail.com>
  */
+#include "ns3/wifi-mac.h"
+#include "ns3/wifi-phy.h"
+#include "ns3/log.h"
+#include "ns3/pointer.h"
 #include "ns3/boolean.h"
+#include "ns3/string.h"
 #include "wave-mac-helper.h"
 
 namespace ns3 {
@@ -54,16 +59,13 @@ NqosWaveMacHelper::SetType (std::string type,
                             std::string n4, const AttributeValue &v4,
                             std::string n5, const AttributeValue &v5,
                             std::string n6, const AttributeValue &v6,
-                            std::string n7, const AttributeValue &v7,
-                            std::string n8, const AttributeValue &v8,
-                            std::string n9, const AttributeValue &v9,
-                            std::string n10, const AttributeValue &v10)
+                            std::string n7, const AttributeValue &v7)
 {
   if (type.compare ("ns3::OcbWifiMac") != 0)
     {
       NS_FATAL_ERROR ("QosWaveMacHelper shall set OcbWifiMac");
     }
-  WifiMacHelper::SetType ("ns3::OcbWifiMac",
+  NqosWifiMacHelper::SetType ("ns3::OcbWifiMac",
                               n0, v0,
                               n1, v1,
                               n2, v2,
@@ -71,10 +73,7 @@ NqosWaveMacHelper::SetType (std::string type,
                               n4, v4,
                               n5, v5,
                               n6, v6,
-                              n7, v7,
-                              n8, v8,
-                              n9, v9,
-                              n10, v10);
+                              n7, v7);
 }
 
 /**********  QosWifi80211pMacHelper *********/
@@ -106,16 +105,13 @@ QosWaveMacHelper::SetType (std::string type,
                            std::string n4, const AttributeValue &v4,
                            std::string n5, const AttributeValue &v5,
                            std::string n6, const AttributeValue &v6,
-                           std::string n7, const AttributeValue &v7,
-                           std::string n8, const AttributeValue &v8,
-                           std::string n9, const AttributeValue &v9,
-                           std::string n10, const AttributeValue &v10)
+                           std::string n7, const AttributeValue &v7)
 {
   if (type.compare ("ns3::OcbWifiMac") != 0)
     {
       NS_FATAL_ERROR ("QosWaveMacHelper shall set OcbWifiMac");
     }
-  WifiMacHelper::SetType ("ns3::OcbWifiMac",
+  QosWifiMacHelper::SetType ("ns3::OcbWifiMac",
                              n0, v0,
                              n1, v1,
                              n2, v2,
@@ -123,10 +119,7 @@ QosWaveMacHelper::SetType (std::string type,
                              n4, v4,
                              n5, v5,
                              n6, v6,
-                             n7, v7,
-                             n8, v8,
-                             n9, v9,
-                             n10, v10);
+                             n7, v7);
 }
 
 } // namespace ns3

@@ -37,7 +37,7 @@ One problem that this design choice raises is that it is difficult to
 pretty-print the packet headers without context. The packet metadata describes
 the type of the headers and trailers which were serialized in the byte buffer.
 The maintenance of metadata is optional and disabled by default. To enable it,
-you must call Packet::EnablePrinting() and this will allow you to get non-empty
+you must call Packet::EnableMetadata() and this will allow you to get non-empty
 output from Packet::Print and Packet::Print.
 
 Also, developers often want to store data in packet objects that is not found
@@ -247,9 +247,7 @@ Packet API can be used to add or remove such headers.::
   void AddHeader (const Header & header);
   /**
    * Deserialize and remove the header from the internal buffer.
-   *
-   * This method invokes Header::Deserialize (begin) and should be used for
-   * fixed-length headers.
+   * This method invokes Header::Deserialize.
    *
    * \param header a reference to the header to remove from the internal buffer.
    * \returns the number of bytes removed from the packet.
@@ -276,28 +274,6 @@ For instance, here are the typical operations to add and remove a UDP header.::
  UdpHeader udpHeader;
  packet->RemoveHeader (udpHeader); 
  // Read udpHeader fields as needed
-
-If the header is variable-length, then another variant of RemoveHeader() is
-needed::
-
-  /**
-   * \brief Deserialize and remove the header from the internal buffer.
-   *
-   * This method invokes Header::Deserialize (begin, end) and should be
-   * used for variable-length headers (where the size is determined somehow
-   * by the caller).
-   *
-   * \param header a reference to the header to remove from the internal buffer.
-   * \param size number of bytes to deserialize
-   * \returns the number of bytes removed from the packet.
-   */
-  uint32_t RemoveHeader (Header &header, uint32_t size);
-
-In this case, the caller must figure out and provide the right 'size' as
-an argument (the Deserialization routine may not know when to stop).  An
-example of this type of header would be a series of Type-Length-Value (TLV)
-information elements, where the ending point of the series of TLVs can
-be deduced from the packet length.
 
 Adding and removing Tags
 ++++++++++++++++++++++++

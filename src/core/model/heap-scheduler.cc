@@ -25,24 +25,18 @@
 #include "assert.h"
 #include "log.h"
 
-/**
- * \file
- * \ingroup scheduler
- * Implementation of ns3::HeapScheduler class.
- */
+NS_LOG_COMPONENT_DEFINE ("HeapScheduler");
 
 namespace ns3 {
 
-NS_LOG_COMPONENT_DEFINE ("HeapScheduler");
-
-NS_OBJECT_ENSURE_REGISTERED (HeapScheduler);
+NS_OBJECT_ENSURE_REGISTERED (HeapScheduler)
+  ;
 
 TypeId
 HeapScheduler::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::HeapScheduler")
     .SetParent<Scheduler> ()
-    .SetGroupName ("Core")
     .AddConstructor<HeapScheduler> ()
   ;
   return tid;
@@ -51,7 +45,7 @@ HeapScheduler::GetTypeId (void)
 HeapScheduler::HeapScheduler ()
 {
   NS_LOG_FUNCTION (this);
-  // we purposely waste an item at the start of
+  // we purposedly waste an item at the start of
   // the array to make sure the indexes in the
   // array start at one.
   Scheduler::Event empty = { 0,{ 0,0}};
@@ -63,32 +57,32 @@ HeapScheduler::~HeapScheduler ()
   NS_LOG_FUNCTION (this);
 }
 
-std::size_t
-HeapScheduler::Parent (std::size_t id) const
+uint32_t
+HeapScheduler::Parent (uint32_t id) const
 {
   NS_LOG_FUNCTION (this << id);
   return id / 2;
 }
-std::size_t
-HeapScheduler::Sibling (std::size_t id) const
+uint32_t
+HeapScheduler::Sibling (uint32_t id) const
 {
   NS_LOG_FUNCTION (this << id);
   return id + 1;
 }
-std::size_t
-HeapScheduler::LeftChild (std::size_t id) const
+uint32_t
+HeapScheduler::LeftChild (uint32_t id) const
 {
   NS_LOG_FUNCTION (this << id);
   return id * 2;
 }
-std::size_t
-HeapScheduler::RightChild (std::size_t id) const
+uint32_t
+HeapScheduler::RightChild (uint32_t id) const
 {
   NS_LOG_FUNCTION (this << id);
   return id * 2 + 1;
 }
 
-std::size_t
+uint32_t
 HeapScheduler::Root (void) const
 {
   NS_LOG_FUNCTION (this);
@@ -96,13 +90,13 @@ HeapScheduler::Root (void) const
 }
 
 bool
-HeapScheduler::IsRoot (std::size_t id) const
+HeapScheduler::IsRoot (uint32_t id) const
 {
   NS_LOG_FUNCTION (this << id);
   return (id == Root ()) ? true : false;
 }
 
-std::size_t
+uint32_t
 HeapScheduler::Last (void) const
 {
   NS_LOG_FUNCTION (this);
@@ -111,14 +105,14 @@ HeapScheduler::Last (void) const
 
 
 bool
-HeapScheduler::IsBottom (std::size_t id) const
+HeapScheduler::IsBottom (uint32_t id) const
 {
   NS_LOG_FUNCTION (this << id);
   return (id >= m_heap.size ()) ? true : false;
 }
 
 void
-HeapScheduler::Exch (std::size_t a, std::size_t b)
+HeapScheduler::Exch (uint32_t a, uint32_t b)
 {
   NS_LOG_FUNCTION (this << a << b);
   NS_ASSERT (b < m_heap.size () && a < m_heap.size ());
@@ -129,14 +123,14 @@ HeapScheduler::Exch (std::size_t a, std::size_t b)
 }
 
 bool
-HeapScheduler::IsLessStrictly (std::size_t a, std::size_t b) const
+HeapScheduler::IsLessStrictly (uint32_t a, uint32_t b) const
 {
   NS_LOG_FUNCTION (this << a << b);
   return m_heap[a] < m_heap[b];
 }
 
-std::size_t
-HeapScheduler::Smallest (std::size_t a, std::size_t b) const
+uint32_t
+HeapScheduler::Smallest (uint32_t a, uint32_t b) const
 {
   NS_LOG_FUNCTION (this << a << b);
   return IsLessStrictly (a,b) ? a : b;
@@ -153,7 +147,7 @@ void
 HeapScheduler::BottomUp (void)
 {
   NS_LOG_FUNCTION (this);
-  std::size_t index = Last ();
+  uint32_t index = Last ();
   while (!IsRoot (index)
          && IsLessStrictly (index, Parent (index)))
     {
@@ -163,15 +157,15 @@ HeapScheduler::BottomUp (void)
 }
 
 void
-HeapScheduler::TopDown (std::size_t start)
+HeapScheduler::TopDown (uint32_t start)
 {
   NS_LOG_FUNCTION (this << start);
-  std::size_t index = start;
-  std::size_t right = RightChild (index);
+  uint32_t index = start;
+  uint32_t right = RightChild (index);
   while (!IsBottom (right))
     {
-      std::size_t left = LeftChild (index);
-      std::size_t tmp = Smallest (left, right);
+      uint32_t left = LeftChild (index);
+      uint32_t tmp = Smallest (left, right);
       if (IsLessStrictly (index, tmp))
         {
           return;
@@ -185,7 +179,7 @@ HeapScheduler::TopDown (std::size_t start)
       return;
     }
   NS_ASSERT (!IsBottom (index));
-  std::size_t left = LeftChild (index);
+  uint32_t left = LeftChild (index);
   if (IsBottom (left))
     {
       return;
@@ -228,8 +222,8 @@ void
 HeapScheduler::Remove (const Event &ev)
 {
   NS_LOG_FUNCTION (this << &ev);
-  std::size_t uid = ev.key.m_uid;
-  for (std::size_t i = 1; i < m_heap.size (); i++)
+  uint32_t uid = ev.key.m_uid;
+  for (uint32_t i = 1; i < m_heap.size (); i++)
     {
       if (uid == m_heap[i].key.m_uid)
         {

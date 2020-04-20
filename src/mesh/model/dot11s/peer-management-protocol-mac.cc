@@ -26,13 +26,10 @@
 #include "peer-link-frame.h"
 #include "ns3/mesh-wifi-interface-mac.h"
 #include "ns3/simulator.h"
+#include "ns3/wifi-mac-header.h"
 #include "ns3/mesh-information-element-vector.h"
 #include "ns3/log.h"
-
 namespace ns3 {
-
-NS_LOG_COMPONENT_DEFINE ("PeerManagementProtocolMac");
-
 namespace dot11s {
 PeerManagementProtocolMac::PeerManagementProtocolMac (uint32_t interface,
                                                       Ptr<PeerManagementProtocol> protocol)
@@ -65,141 +62,89 @@ PeerManagementProtocolMac::TxOk (WifiMacHeader const &hdr)
 bool
 PeerManagementProtocolMac::Receive (Ptr<Packet> const_packet, const WifiMacHeader & header)
 {
-  NS_LOG_FUNCTION (this << const_packet << header);
   // First of all we copy a packet, because we need to remove some
   //headers
   Ptr<Packet> packet = const_packet->Copy ();
   if (header.IsBeacon ())
     {
-      NS_LOG_DEBUG ("Is Beacon from " << header.GetAddr2 ());
       MgtBeaconHeader beacon_hdr;
       packet->RemoveHeader (beacon_hdr);
       MeshInformationElementVector elements;
-      // To determine header size here, we can rely on the knowledge that 
-      // this is the last header to remove.
-      packet->RemoveHeader (elements, packet->GetSize ());
-      Ptr<IeBeaconTiming> beaconTiming = DynamicCast<IeBeaconTiming> (elements.FindFirst (IE_BEACON_TIMING));
-      Ptr<IeMeshId> meshId = DynamicCast<IeMeshId> (elements.FindFirst (IE_MESH_ID));
+      packet->RemoveHeader (elements);
+      Ptr<IeBeaconTiming> beaconTiming = DynamicCast<IeBeaconTiming> (elements.FindFirst (IE11S_BEACON_TIMING));
+      Ptr<IeMeshId> meshId = DynamicCast<IeMeshId> (elements.FindFirst (IE11S_MESH_ID));
 
       if ((meshId != 0) && (m_protocol->GetMeshId ()->IsEqual (*meshId)))
         {
           m_protocol->ReceiveBeacon (m_ifIndex, header.GetAddr2 (), MicroSeconds (
                                        beacon_hdr.GetBeaconIntervalUs ()), beaconTiming);
         }
-      else
-        {
-          NS_LOG_DEBUG ("MeshId mismatch " << m_protocol->GetMeshId ()->PeekString () << " " << (*meshId) << "; ignoring");
-        }
       // Beacon shall not be dropped. May be needed to another plugins
       return true;
     }
-  uint16_t aid = 0;  // applicable only in Confirm message
-  IeConfiguration config;
   if (header.IsAction ())
     {
-      NS_LOG_DEBUG ("Is action");
       WifiActionHeader actionHdr;
       packet->RemoveHeader (actionHdr);
       WifiActionHeader::ActionValue actionValue = actionHdr.GetAction ();
       // If can not handle - just return;
-      if (actionHdr.GetCategory () != WifiActionHeader::SELF_PROTECTED)
+      if (actionHdr.GetCategory () != WifiActionHeader::MESH_PEERING_MGT)
         {
-          NS_LOG_DEBUG ("Cannot handle non SELF PROTECTED");
           return m_protocol->IsActiveLink (m_ifIndex, header.GetAddr2 ());
         }
       m_stats.rxMgt++;
       m_stats.rxMgtBytes += packet->GetSize ();
       Mac48Address peerAddress = header.GetAddr2 ();
       Mac48Address peerMpAddress = header.GetAddr3 ();
-      if (actionValue.selfProtectedAction == WifiActionHeader::PEER_LINK_OPEN)
+      PeerLinkFrameStart::PlinkFrameStartFields fields;
+      {
+        PeerLinkFrameStart peerFrame;
+        peerFrame.SetPlinkFrameSubtype ((uint8_t) actionValue.peerLink);
+        packet->RemoveHeader (peerFrame);
+        fields = peerFrame.GetFields ();
+        NS_ASSERT (fields.subtype == actionValue.peerLink);
+      }
+      if ((actionValue.peerLink != WifiActionHeader::PEER_LINK_CLOSE) && !(m_parent->CheckSupportedRates (
+                                                                             fields.rates)))
         {
-          NS_LOG_DEBUG ("Received PEER_LINK_OPEN");
-          PeerLinkOpenStart::PlinkOpenStartFields fields;
-          PeerLinkOpenStart peerFrame;
-          packet->RemoveHeader (peerFrame);
-          fields = peerFrame.GetFields ();
-          if (!fields.meshId.IsEqual ( *(m_protocol->GetMeshId ())))
-            {
-              NS_LOG_DEBUG ("PEER_LINK_OPEN:  MeshId mismatch");
-              m_protocol->ConfigurationMismatch (m_ifIndex, peerAddress);
-              // Broken peer link frame - drop it
-              m_stats.brokenMgt++;
-              return false;
-            }
-          if (!(m_parent->CheckSupportedRates (fields.rates)))
-            {
-              NS_LOG_DEBUG ("PEER_LINK_OPEN:  configuration mismatch");
-              m_protocol->ConfigurationMismatch (m_ifIndex, peerAddress);
-              // Broken peer link frame - drop it
-              m_stats.brokenMgt++;
-              return false;
-            }
-          config = fields.config;
+          m_protocol->ConfigurationMismatch (m_ifIndex, peerAddress);
+          // Broken peer link frame - drop it
+          m_stats.brokenMgt++;
+          return false;
         }
-      else if (actionValue.selfProtectedAction == WifiActionHeader::PEER_LINK_CONFIRM)
+      if ((actionValue.peerLink != WifiActionHeader::PEER_LINK_CONFIRM) && !fields.meshId.IsEqual (
+            *(m_protocol->GetMeshId ())))
         {
-          NS_LOG_DEBUG ("Received PEER_LINK_CONFIRM");
-          PeerLinkConfirmStart::PlinkConfirmStartFields fields;
-          PeerLinkConfirmStart peerFrame;
-          packet->RemoveHeader (peerFrame);
-          fields = peerFrame.GetFields ();
-          if (!(m_parent->CheckSupportedRates (fields.rates)))
-            {
-              NS_LOG_DEBUG ("PEER_LINK_CONFIRM:  configuration mismatch");
-              m_protocol->ConfigurationMismatch (m_ifIndex, peerAddress);
-              // Broken peer link frame - drop it
-              m_stats.brokenMgt++;
-              return false;
-            }
-          aid = fields.aid;
-          config = fields.config;
-        }
-      else if (actionValue.selfProtectedAction == WifiActionHeader::PEER_LINK_CLOSE)
-        {
-          NS_LOG_DEBUG ("Received PEER_LINK_CLOSE");
-          PeerLinkCloseStart::PlinkCloseStartFields fields;
-          PeerLinkCloseStart peerFrame;
-          packet->RemoveHeader (peerFrame);
-          fields = peerFrame.GetFields ();
-          if (!fields.meshId.IsEqual ( *(m_protocol->GetMeshId ())))
-            {
-              NS_LOG_DEBUG ("PEER_LINK_CLOSE:  configuration mismatch");
-              m_protocol->ConfigurationMismatch (m_ifIndex, peerAddress);
-              // Broken peer link frame - drop it
-              m_stats.brokenMgt++;
-              return false;
-            }
-        }
-      else
-        {
-          NS_FATAL_ERROR ("Unknown Self-protected Action type: " << actionValue.selfProtectedAction);
+          m_protocol->ConfigurationMismatch (m_ifIndex, peerAddress);
+          // Broken peer link frame - drop it
+          m_stats.brokenMgt++;
+          return false;
         }
       Ptr<IePeerManagement> peerElement;
+      //Peer Management element is the last element in this frame - so, we can use MeshInformationElementVector
       MeshInformationElementVector elements;
-      // To determine header size here, we can rely on the knowledge that 
-      // this is the last header to remove.
-      packet->RemoveHeader (elements, packet->GetSize ());
-      peerElement = DynamicCast<IePeerManagement>(elements.FindFirst (IE_MESH_PEERING_MANAGEMENT));
-
+      packet->RemoveHeader (elements);
+      peerElement = DynamicCast<IePeerManagement>(elements.FindFirst (IE11S_PEERING_MANAGEMENT));
       NS_ASSERT (peerElement != 0);
-      //Check that frame subtype corresponds to peer link subtype
+      //Check taht frame subtype corresponds peer link subtype
       if (peerElement->SubtypeIsOpen ())
         {
           m_stats.rxOpen++;
-          NS_ASSERT (actionValue.selfProtectedAction == WifiActionHeader::PEER_LINK_OPEN);
+          NS_ASSERT (actionValue.peerLink == WifiActionHeader::PEER_LINK_OPEN);
         }
       if (peerElement->SubtypeIsConfirm ())
         {
           m_stats.rxConfirm++;
-          NS_ASSERT (actionValue.selfProtectedAction == WifiActionHeader::PEER_LINK_CONFIRM); 
+          NS_ASSERT (actionValue.peerLink == WifiActionHeader::PEER_LINK_CONFIRM);
         }
       if (peerElement->SubtypeIsClose ())
         {
           m_stats.rxClose++;
-          NS_ASSERT (actionValue.selfProtectedAction == WifiActionHeader::PEER_LINK_CLOSE); 
+          NS_ASSERT (actionValue.peerLink == WifiActionHeader::PEER_LINK_CLOSE);
         }
       //Deliver Peer link management frame to protocol:
-      m_protocol->ReceivePeerLinkFrame (m_ifIndex, peerAddress, peerMpAddress, aid, *peerElement, config);
+      m_protocol->ReceivePeerLinkFrame (m_ifIndex, peerAddress, peerMpAddress, fields.aid, *peerElement,
+                                        fields.config);
       // if we can handle a frame - drop it
       return false;
     }
@@ -209,12 +154,11 @@ bool
 PeerManagementProtocolMac::UpdateOutcomingFrame (Ptr<Packet> packet, WifiMacHeader & header,
                                                  Mac48Address from, Mac48Address to)
 {
-  NS_LOG_FUNCTION (this << packet << header << from << to);
   if (header.IsAction ())
     {
       WifiActionHeader actionHdr;
       packet->PeekHeader (actionHdr);
-      if (actionHdr.GetCategory () == WifiActionHeader::SELF_PROTECTED) 
+      if (actionHdr.GetCategory () == WifiActionHeader::MESH_PEERING_MGT)
         {
           return true;
         }
@@ -252,68 +196,55 @@ void
 PeerManagementProtocolMac::SendPeerLinkManagementFrame (Mac48Address peerAddress, Mac48Address peerMpAddress,
                                                         uint16_t aid, IePeerManagement peerElement, IeConfiguration meshConfig)
 {
-  NS_LOG_FUNCTION (this << peerAddress << peerMpAddress);
   //Create a packet:
   meshConfig.SetNeighborCount (m_protocol->GetNumberOfLinks ());
   Ptr<Packet> packet = Create<Packet> ();
   MeshInformationElementVector elements;
   elements.AddInformationElement (Ptr<IePeerManagement> (&peerElement));
   packet->AddHeader (elements);
+  PeerLinkFrameStart::PlinkFrameStartFields fields;
+  fields.rates = m_parent->GetSupportedRates ();
+  fields.capability = 0;
+  fields.meshId = *(m_protocol->GetMeshId ());
+  fields.config = meshConfig;
+  PeerLinkFrameStart plinkFrame;
   //Create an 802.11 frame header:
   //Send management frame to MAC:
+  WifiActionHeader actionHdr;
   if (peerElement.SubtypeIsOpen ())
     {
-      PeerLinkOpenStart::PlinkOpenStartFields fields;
-      fields.rates = m_parent->GetSupportedRates ();
-      fields.capability = 0;
-      fields.meshId = *(m_protocol->GetMeshId ());
-      fields.config = meshConfig;
-      PeerLinkOpenStart plinkOpen;
-      WifiActionHeader actionHdr;
       m_stats.txOpen++;
       WifiActionHeader::ActionValue action;
-      action.selfProtectedAction = WifiActionHeader::PEER_LINK_OPEN;
-      actionHdr.SetAction (WifiActionHeader::SELF_PROTECTED, action); 
-      plinkOpen.SetPlinkOpenStart (fields);
-      packet->AddHeader (plinkOpen);
-      packet->AddHeader (actionHdr);
+      action.peerLink = WifiActionHeader::PEER_LINK_OPEN;
+      fields.subtype = WifiActionHeader::PEER_LINK_OPEN;
+      actionHdr.SetAction (WifiActionHeader::MESH_PEERING_MGT, action);
     }
   if (peerElement.SubtypeIsConfirm ())
     {
-      PeerLinkConfirmStart::PlinkConfirmStartFields fields;
-      fields.rates = m_parent->GetSupportedRates ();
-      fields.capability = 0;
-      fields.config = meshConfig;
-      PeerLinkConfirmStart plinkConfirm;
-      WifiActionHeader actionHdr;
       m_stats.txConfirm++;
       WifiActionHeader::ActionValue action;
-      action.selfProtectedAction = WifiActionHeader::PEER_LINK_CONFIRM; 
+      action.peerLink = WifiActionHeader::PEER_LINK_CONFIRM;
       fields.aid = aid;
-      actionHdr.SetAction (WifiActionHeader::SELF_PROTECTED, action); 
-      plinkConfirm.SetPlinkConfirmStart (fields);
-      packet->AddHeader (plinkConfirm);
-      packet->AddHeader (actionHdr);
+      fields.subtype = WifiActionHeader::PEER_LINK_CONFIRM;
+      actionHdr.SetAction (WifiActionHeader::MESH_PEERING_MGT, action);
     }
   if (peerElement.SubtypeIsClose ())
     {
-      PeerLinkCloseStart::PlinkCloseStartFields fields;
-      fields.meshId = *(m_protocol->GetMeshId ());
-      PeerLinkCloseStart plinkClose;
-      WifiActionHeader actionHdr;
       m_stats.txClose++;
       WifiActionHeader::ActionValue action;
-      action.selfProtectedAction = WifiActionHeader::PEER_LINK_CLOSE; 
-      actionHdr.SetAction (WifiActionHeader::SELF_PROTECTED, action); 
-      plinkClose.SetPlinkCloseStart (fields);
-      packet->AddHeader (plinkClose);
-      packet->AddHeader (actionHdr);
+      action.peerLink = WifiActionHeader::PEER_LINK_CLOSE;
+      fields.subtype = WifiActionHeader::PEER_LINK_CLOSE;
+      fields.reasonCode = peerElement.GetReasonCode ();
+      actionHdr.SetAction (WifiActionHeader::MESH_PEERING_MGT, action);
     }
+  plinkFrame.SetPlinkFrameStart (fields);
+  packet->AddHeader (plinkFrame);
+  packet->AddHeader (actionHdr);
   m_stats.txMgt++;
   m_stats.txMgtBytes += packet->GetSize ();
   // Wifi Mac header:
   WifiMacHeader hdr;
-  hdr.SetType (WIFI_MAC_MGT_ACTION);
+  hdr.SetAction ();
   hdr.SetAddr1 (peerAddress);
   hdr.SetAddr2 (m_parent->GetAddress ());
   //Addr is not used here, we use it as our MP address

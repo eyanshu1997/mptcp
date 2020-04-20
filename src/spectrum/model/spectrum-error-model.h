@@ -40,30 +40,10 @@ class SpectrumErrorModel :  public Object
 {
 public:
 
-  /**
-   * Register this type.
-   * \return The TypeId.
-   */
   static TypeId GetTypeId ();
   virtual ~SpectrumErrorModel ();
-
-  /**
-   * Start a packet reception
-   * \param p the packet
-   */
   virtual void StartRx (Ptr<const Packet> p) = 0;
-
-  /**
-   * Evaluates a chunk
-   * \param sinr the SpectrumValue experienced by the Chunk
-   * \param duration the Chunk length
-   */
   virtual void EvaluateChunk (const SpectrumValue& sinr, Time duration) = 0;
-
-  /**
-   * Checks if the packet being received is correct
-   * \returns true if the packet is correct.
-   */
   virtual bool IsRxCorrect () = 0;
 };
 
@@ -82,19 +62,14 @@ protected:
   virtual void DoDispose ();
 
 public:
-  /**
-   * Register this type.
-   * \return The TypeId.
-   */
-  static TypeId GetTypeId (void);
   // inherited from SpectrumErrorModel
   void StartRx (Ptr<const Packet> p);
   void EvaluateChunk (const SpectrumValue& sinr, Time duration);
   bool IsRxCorrect ();
 
 private:
-  uint32_t m_bytes;             //!< Length of the packet being received
-  uint32_t m_deliverableBytes;  //!< Bytes that can be received according to the Shnanon's formula
+  uint32_t m_bytes;
+  uint32_t m_deliverableBytes;
 
 };
 

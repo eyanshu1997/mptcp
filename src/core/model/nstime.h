@@ -31,40 +31,19 @@
 #include <ostream>
 #include <set>
 
-/**
- * \file
- * \ingroup time
- * Declaration of classes ns3::Time and ns3::TimeWithUnit,
- * and the TimeValue implementation classes.
- */
-
 namespace ns3 {
 
-class TimeWithUnit;
-  
 /**
  * \ingroup core
- * \defgroup time Virtual Time
- * \brief Management of virtual time in real world units.
- *
- * The underlying simulator is unit agnostic, just dealing with
- * dimensionless virtual time.  Models usually need to handle
- * time in real world units, such as seconds, and conversions/scaling
- * between different units, between minutes and seconds, for example.
- *
- * The convenience constructors in the \ref timecivil "Standard Units" module
- * make it easy to create Times in specific units.
- *
- * The Time::SetResolution() function allows a one-time change of the
- * base resolution, before Simulator::Run().
+ * \defgroup time Time
  */
 /**
  * \ingroup time
- * \brief Simulation virtual time values and global simulation resolution.
+ * \brief keep track of time values and allow control of global simulation resolution
  *
  * This class defines all the classic C++ addition/subtraction
  * operators: +, -, +=, -=; and all the classic comparison operators:
- * ==, !=, <, >, <=, >=. It is thus easy to add, subtract, or
+ * ==, !=, <, >, <=, >=. It is thus easy to add, substract, or
  * compare Time objects.
  *
  * For example:
@@ -77,9 +56,9 @@ class TimeWithUnit;
  *
  * You can also use the following non-member functions to manipulate
  * any of these ns3::Time object:
- *  - Abs(Time)
- *  - Max(Time,Time)
- *  - Min(Time,Time)
+ *  - \ref Abs()
+ *  - \ref Max()
+ *  - \ref Min()
  *
  * This class also controls the resolution of the underlying time value.
  * The resolution is the smallest representable time interval.
@@ -120,62 +99,27 @@ public:
     LAST = 10
   };
 
-  /**
-   *  Assignment operator
-   * \param [in] o Time to assign.
-   * \return The Time.
-   */
-  inline Time & operator = (const Time & o)
+  inline Time &operator = (const Time &o)
   {
     m_data = o.m_data;
     return *this;
   }
-  /** Default constructor, with value 0. */
   inline Time ()
     : m_data ()
   {
     if (g_markingTimes)
       {
-        Mark (this);
+	Mark (this);
       }
   }
-  /**
-   *  Copy constructor
-   *
-   * \param [in] o Time to copy
-   */
-  inline Time(const Time & o)
+  inline Time(const Time &o)
     : m_data (o.m_data)
   {
     if (g_markingTimes)
       {
-        Mark (this);
+	Mark (this);
       }
   }
-
-  /**
-   * \brief Move constructor
-   *
-   * \param [in] o Time from which take the data
-   */
-  Time (Time &&o)
-    : m_data (o.m_data)
-  {
-    if (g_markingTimes)
-      {
-        Mark (this);
-      }
-  }
-  /**
-   * \name Numeric constructors.
-   *  Construct from a numeric value.
-   * @{
-   */
-  /**
-   *  Construct from a numeric value.
-   *  The current time resolution will be assumed as the unit.
-   *  \param [in] v The value.
-   */
   explicit inline Time (double v)
     : m_data (lround (v))
   {
@@ -232,16 +176,6 @@ public:
 	Mark (this);
       }
   }
-  explicit inline Time (const int64x64_t & v)
-    : m_data (v.GetHigh ())
-  {
-    if (g_markingTimes)
-      {
-	Mark (this);
-      }
-  }
-  /**@}*/
-  
   /**
    * \brief Construct Time object from common time expressions like "1ms"
    *
@@ -260,22 +194,28 @@ public:
    * There can be no white space between the numerical portion
    * and the units.  Any otherwise malformed string causes a fatal error to
    * occur.
-   * \param [in] s The string to parse into a Time
+   * \param s The string to parse into a Time
    */
   explicit Time (const std::string & s);
 
-  /** Minimum representable Time */
+  /**
+   * \brief Minimum representable Time
+   */
   static Time Min ()
   {
     return Time (std::numeric_limits<int64_t>::min ());
   }
-  /** Maximum representable Time */
+  /**
+   * \brief Maximum representable Time
+   */
   static Time Max ()
   {
     return Time (std::numeric_limits<int64_t>::max ());
   }
 
-  /** Destructor */
+  /**
+   *  Destructor
+   */
   ~Time ()
   {
     if (g_markingTimes)
@@ -284,109 +224,134 @@ public:
       }
   }
 
-  /** \return \c true if the time is zero, \c false otherwise. */
+  /**
+   * \return true if the time is zero, false otherwise.
+   */
   inline bool IsZero (void) const
   {
     return m_data == 0;
   }
-  /** \return \c true if the time is negative or zero, \c false otherwise. */
+  /**
+   * \return true if the time is negative or zero, false otherwise.
+   */
   inline bool IsNegative (void) const
   {
     return m_data <= 0;
   }
-  /** \return \c true if the time is positive or zero, \c false otherwise. */
+  /**
+   * \return true if the time is positive or zero, false otherwise.
+   */
   inline bool IsPositive (void) const
   {
     return m_data >= 0;
   }
-  /** \return \c true if the time is strictly negative, \c false otherwise. */
+  /**
+   * \return true if the time is strictly negative, false otherwise.
+   */
   inline bool IsStrictlyNegative (void) const
   {
     return m_data < 0;
   }
-  /** \return \c true if the time is strictly positive, \c false otherwise. */
+  /**
+   * \return true if the time is strictly positive, false otherwise.
+   */
   inline bool IsStrictlyPositive (void) const
   {
     return m_data > 0;
   }
   /**
-   *  Compare \p this to another Time
-   *
-   *  \param [in] o The other Time
    *  \return -1,0,+1 if `this < o`, `this == o`, or `this > o`
    */
-  inline int Compare (const Time & o) const
+  inline int Compare (const Time &o) const
   {
     return (m_data < o.m_data) ? -1 : (m_data == o.m_data) ? 0 : 1;
   }
 
   /**
-   * \name Convert to Number in a Unit.
-   * Convert a Time to number, in indicated units.
-   *
-   * Conversions to seconds and larger will return doubles, with
-   * possible loss of precision.  Conversions to units smaller than
-   * seconds will by rounded.
-   *
-   * @{
+   * \returns an approximation in seconds of the time stored in this
+   *          instance.
    */
+  inline double GetSeconds (void) const
+  {
+    return ToDouble (Time::S);
+  }
+
   /**
-   * Get an approximation of the time stored in this instance
-   * in the indicated unit.
-   *
-   * \return An approximate value in the indicated unit.
+   * \returns an approximation in milliseconds of the time stored in this
+   *          instance.
+   */
+  inline int64_t GetMilliSeconds (void) const
+  {
+    return ToInteger (Time::MS);
+  }
+  /**
+   * \returns an approximation in microseconds of the time stored in this
+   *          instance.
+   */
+  inline int64_t GetMicroSeconds (void) const
+  {
+    return ToInteger (Time::US);
+  }
+  /**
+   * \returns an approximation in nanoseconds of the time stored in this
+   *          instance.
+   */
+  inline int64_t GetNanoSeconds (void) const
+  {
+    return ToInteger (Time::NS);
+  }
+  /**
+   * \returns an approximation in picoseconds of the time stored in this
+   *          instance.
+   */
+  inline int64_t GetPicoSeconds (void) const
+  {
+    return ToInteger (Time::PS);
+  }
+  /**
+   * \returns an approximation in femtoseconds of the time stored in this
+   *          instance.
+   */
+  inline int64_t GetFemtoSeconds (void) const
+  {
+    return ToInteger (Time::FS);
+  }
+
+  /**
+   * \returns an approximation in minutes of the time stored in this
+   *          instance.
+   */
+  inline double GetMinutes (void) const
+  {
+    return ToDouble (Time::MIN);
+  }
+  /**
+   * \returns an approximation in hours of the time stored in this
+   *          instance.
+   */
+  inline double GetHours (void) const
+  {
+    return ToDouble (Time::H);
+  }
+  /**
+   * \returns an approximation in days of the time stored in this
+   *          instance.
+   */
+  inline double GetDays (void) const
+  {
+    return ToDouble (Time::D);
+  }
+  /**
+   * \returns an approximation in years of the time stored in this
+   *          instance.
    */
   inline double GetYears (void) const
   {
     return ToDouble (Time::Y);
   }
-  inline double GetDays (void) const
-  {
-    return ToDouble (Time::D);
-  }
-  inline double GetHours (void) const
-  {
-    return ToDouble (Time::H);
-  }
-  inline double GetMinutes (void) const
-  {
-    return ToDouble (Time::MIN);
-  }
-  inline double GetSeconds (void) const
-  {
-    return ToDouble (Time::S);
-  }
-  inline int64_t GetMilliSeconds (void) const
-  {
-    return ToInteger (Time::MS);
-  }
-  inline int64_t GetMicroSeconds (void) const
-  {
-    return ToInteger (Time::US);
-  }
-  inline int64_t GetNanoSeconds (void) const
-  {
-    return ToInteger (Time::NS);
-  }
-  inline int64_t GetPicoSeconds (void) const
-  {
-    return ToInteger (Time::PS);
-  }
-  inline int64_t GetFemtoSeconds (void) const
-  {
-    return ToInteger (Time::FS);
-  }
-  /**@}*/
 
   /**
-   * \name Convert to Raw Value.
-   * Convert a Time to a number in the current resolution units.
-   *
-   * @{
-   */
-  /**
-   * Get the raw time value, in the current resolution unit.
-   * \returns The raw time value
+   * \returns the raw time value, in the current units
    */
   inline int64_t GetTimeStep (void) const
   {
@@ -394,17 +359,16 @@ public:
   }
   inline double GetDouble (void) const
   {
-    return static_cast<double> (m_data);
+    return m_data;
   }
   inline int64_t GetInteger (void) const
   {
     return GetTimeStep ();
   }
-  /**@}*/
 
 
   /**
-   * \param [in] resolution The new resolution to use
+   * \param resolution the new resolution to use
    *
    * Change the global resolution used to convert all
    * user-provided time values in Time objects and Time objects
@@ -412,37 +376,22 @@ public:
    */
   static void SetResolution (enum Unit resolution);
   /**
-   * \returns The current global resolution.
+   * \returns the current global resolution.
    */
   static enum Unit GetResolution (void);
-
-  
   /**
-   *  Create a Time in the current unit.
+   * \param value to convert into a Time object
+   * \param timeUnit the unit of the value to convert
+   * \return a new Time object
    *
-   *  \param [in] value The value of the new Time.
-   *  \return A Time with \p value in the current time unit.
+   * This method interprets the input value according to the input
+   * unit and constructs a matching Time object.
+   *
+   * \sa FromDouble, ToDouble, ToInteger
    */
-  inline static Time From (const int64x64_t & value)
+  inline static Time FromInteger (uint64_t value, enum Unit timeUnit)
   {
-    return Time (value);
-  }
-  /**
-   * \name Create Times from Values and Units.
-   * Create Times from values given in the indicated units.
-   *
-   * @{
-   */
-  /**
-   *  Create a Time equal to \p value  in unit \c unit
-   *
-   *  \param [in] value The new Time value, expressed in \c unit
-   *  \param [in] unit The unit of \p value
-   *  \return The Time representing \p value in \c unit
-   */
-  inline static Time FromInteger (uint64_t value, enum Unit unit)
-  {
-    struct Information *info = PeekInformation (unit);
+    struct Information *info = PeekInformation (timeUnit);
     if (info->fromMul)
       {
         value *= info->factor;
@@ -453,44 +402,16 @@ public:
       }
     return Time (value);
   }
-  inline static Time FromDouble (double value, enum Unit unit)
-  {
-    return From (int64x64_t (value), unit);
-  }
-  inline static Time From (const int64x64_t & value, enum Unit unit)
-  {
-    struct Information *info = PeekInformation (unit);
-    // DO NOT REMOVE this temporary variable. It's here
-    // to work around a compiler bug in gcc 3.4
-    int64x64_t retval = value;
-    if (info->fromMul)
-      {
-        retval *= info->timeFrom;
-      }
-    else
-      {
-        retval.MulByInvert (info->timeFrom);
-      }
-    return Time (retval);
-  }
-  /**@}*/
-
-
   /**
-   * \name Get Times as Numbers in Specified Units
-   * Get the Time as integers or doubles in the indicated unit.
+   * \param timeUnit the unit of the value to return
+   * \return int64_t time value
    *
-   * @{
+   * Convert the input time into an integer value according to the requested
+   * time unit.
    */
-  /**
-   *  Get the Time value expressed in a particular unit.
-   *
-   *  \param [in] unit The desired unit
-   *  \return The Time expressed in \p unit
-   */
-  inline int64_t ToInteger (enum Unit unit) const
+  inline int64_t ToInteger (enum Unit timeUnit) const
   {
-    struct Information *info = PeekInformation (unit);
+    struct Information *info = PeekInformation (timeUnit);
     int64_t v = m_data;
     if (info->toMul)
       {
@@ -502,13 +423,47 @@ public:
       }
     return v;
   }
-  inline double ToDouble (enum Unit unit) const
+  /**
+   * \param value to convert into a Time object
+   * \param timeUnit the unit of the value to convert
+   * \return a new Time object
+   *
+   * \sa FromInteger, ToInteger, ToDouble
+   */
+  inline static Time FromDouble (double value, enum Unit timeUnit)
   {
-    return To (unit).GetDouble ();
+    return From (int64x64_t (value), timeUnit);
   }
-  inline int64x64_t To (enum Unit unit) const
+  /**
+   * \param timeUnit the unit of the value to return
+   * \return double time value
+   *
+   * Convert the input time into a floating point value according to the requested
+   * time unit.
+   */
+  inline double ToDouble (enum Unit timeUnit) const
   {
-    struct Information *info = PeekInformation (unit);
+    return To (timeUnit).GetDouble ();
+  }
+  static inline Time From (const int64x64_t &from, enum Unit timeUnit)
+  {
+    struct Information *info = PeekInformation (timeUnit);
+    // DO NOT REMOVE this temporary variable. It's here
+    // to work around a compiler bug in gcc 3.4
+    int64x64_t retval = from;
+    if (info->fromMul)
+      {
+        retval *= info->timeFrom;
+      }
+    else
+      {
+        retval.MulByInvert (info->timeFrom);
+      }
+    return Time (retval);
+  }
+  inline int64x64_t To (enum Unit timeUnit) const
+  {
+    struct Information *info = PeekInformation (timeUnit);
     int64x64_t retval = int64x64_t (m_data);
     if (info->toMul)
       {
@@ -520,40 +475,27 @@ public:
       }
     return retval;
   }
-  /**@}*/
-
-  
-  /** Cast to int64x64_t */
   inline operator int64x64_t () const
   {
     return int64x64_t (m_data);
   }
-
-  
-  /**
-   * Attach a unit to a Time, to facilitate output in a specific unit.
-   *
-   * For example,
-   * \code
-   *   Time t (3.14e9);  // Pi seconds
-   *   std::cout << t.As (Time::MS) << std::endl;
-   * \endcode
-   * will print ``+3140.0ms``
-   *
-   * \param [in] unit The unit to use.
-   * \return The Time with embedded unit.
-   */
-  TimeWithUnit As (const enum Unit unit) const;
-
-  /**
-   * TracedCallback signature for Time
-   *
-   * \param [in] value Current value of Time
-   */
-  typedef void (* TracedCallback)(Time value);
+  explicit inline Time (const int64x64_t &value)
+    : m_data (value.GetHigh ())
+  {
+    if (g_markingTimes)
+      {
+	Mark (this);
+      }
+  }
+  inline static Time From (const int64x64_t &value)
+  {
+    return Time (value);
+  }
 
 private:
-  /** How to convert between other units and the current unit. */
+  /**
+   * How to convert between other units and the current unit
+   */
   struct Information
   {
     bool toMul;                     //!< Multiply when converting To, otherwise divide
@@ -562,47 +504,26 @@ private:
     int64x64_t timeTo;              //!< Multiplier to convert to this unit
     int64x64_t timeFrom;            //!< Multiplier to convert from this unit
   };
-  /** Current time unit, and conversion info. */
+  /**
+   * Current time unit, and conversion info.
+   */
   struct Resolution
   {
     struct Information info[LAST];  //!<  Conversion info from current unit
     enum Time::Unit unit;           //!<  Current time unit
   };
 
-  /**
-   *  Get the current Resolution
-   *
-   * \return A pointer to the current Resolution
-   */
   static inline struct Resolution *PeekResolution (void)
   {
     static struct Time::Resolution resolution = SetDefaultNsResolution ();
-    return & resolution;
+    return &resolution;
   }
-  /**
-   *  Get the Information record for \p timeUnit for the current Resolution
-   *
-   *  \param [in] timeUnit The Unit to get Information for
-   *  \return The Information for \p timeUnit
-   */
   static inline struct Information *PeekInformation (enum Unit timeUnit)
   {
-    return & (PeekResolution ()->info[timeUnit]);
+    return &(PeekResolution ()->info[timeUnit]);
   }
 
-  /**
-   *  Set the default resolution
-   *
-   * \return The Resolution object for the default resolution.
-   */
   static struct Resolution SetDefaultNsResolution (void);
-  /**
-   *  Set the current Resolution.
-   *
-   *  \param [in] unit The unit to use as the new resolution.
-   *  \param [in,out] resolution The Resolution record to update.
-   *  \param [in] convert Whether to convert existing Time objects to the new resolution.
-   */
   static void SetResolution (enum Unit unit, struct Resolution *resolution,
                              const bool convert = true);
 
@@ -610,7 +531,7 @@ private:
    *  Record all instances of Time, so we can rescale them when
    *  the resolution changes.
    *
-   *  \internal
+   *  \intern
    *
    *  We use a std::set so we can remove the record easily when
    *  ~Time() is called.
@@ -622,7 +543,7 @@ private:
    *  [Stack Overflow](http://stackoverflow.com/questions/5526019/compile-errors-stdset-with-const-members)
    *  says otherwise, quoting the standard:
    *
-   *  > & sect;23.1/3 states that std::set key types must be assignable
+   *  > &sect;23.1/3 states that std::set key types must be assignable
    *  > and copy constructable; clearly a const type will not be assignable.
    */
   typedef std::set< Time * > MarkedTimes;
@@ -630,7 +551,7 @@ private:
    *  Record of outstanding Time objects which will need conversion
    *  when the resolution is set.
    *
-   *  \internal
+   *  \intern
    *
    *  Use a classic static variable so we can check in Time ctors
    *  without a function call.
@@ -643,9 +564,7 @@ private:
   static MarkedTimes * g_markingTimes;
 public:
   /**
-   *  Function to force static initialization of Time.
-   *
-   * \return \c true on the first call
+   *  Function to force static initialization of Time
    */
   static bool StaticInit ();
 private:
@@ -657,441 +576,403 @@ private:
   /**
    *  Remove all MarkedTimes.
    *
-   *  \internal
+   *  \intern
    *  Has to be visible to the Simulator class, hence the friending.
    */
   static void ClearMarkedTimes ();
   /**
-   *  Record a Time instance with the MarkedTimes.
-   *  \param [in] time The Time instance to record.
+   *  Record a Time instance with the MarkedTimes
    */
   static void Mark (Time * const time);
   /**
-   *  Remove a Time instance from the MarkedTimes, called by ~Time().
-   *  \param [in] time The Time instance to remove.
+   *  Remove a Time instance from the MarkedTimes, called by ~Time()
    */
   static void Clear (Time * const time);
   /**
    *  Convert existing Times to the new unit.
-   *  \param [in] unit The Unit to convert existing Times to.
    */
   static void ConvertTimes (const enum Unit unit);
 
-  /*
-   * \name Arithmetic Operators
-   * Arithmetic operators between Times, and scaling by scalars.
-   */
-  /**
-   * @{
-   *  Arithmetic operator.
-   *  \param [in] lhs Left hand argument
-   *  \param [in] rhs Right hand argument
-   *  \return The result of the operator.
-   */
-  friend bool operator == (const Time & lhs, const Time & rhs);
-  friend bool operator != (const Time & lhs, const Time & rhs);
-  friend bool operator <= (const Time & lhs, const Time & rhs);
-  friend bool operator >= (const Time & lhs, const Time & rhs);
-  friend bool operator < (const Time & lhs, const Time & rhs);
-  friend bool operator > (const Time & lhs, const Time & rhs);
-  friend Time operator + (const Time & lhs, const Time & rhs);
-  friend Time operator - (const Time & lhs, const Time & rhs);
-  friend Time operator * (const Time & lhs, const int64_t & rhs);
-  friend Time operator * (const int64_t & lhs, const Time & rhs);
-  friend int64_t operator / (const Time & lhs, const Time & rhs);
-  friend Time operator / (const Time & lhs, const int64_t & rhs);
-  friend Time & operator += (Time & lhs, const Time & rhs);
-  friend Time & operator -= (Time & lhs, const Time & rhs);
-  /** @} */
+  friend bool operator == (const Time &lhs, const Time &rhs);
+  friend bool operator != (const Time &lhs, const Time &rhs);
+  friend bool operator <= (const Time &lhs, const Time &rhs);
+  friend bool operator >= (const Time &lhs, const Time &rhs);
+  friend bool operator < (const Time &lhs, const Time &rhs);
+  friend bool operator > (const Time &lhs, const Time &rhs);
+  friend Time operator + (const Time &lhs, const Time &rhs);
+  friend Time operator - (const Time &lhs, const Time &rhs);
+  friend Time &operator += (Time &lhs, const Time &rhs);
+  friend Time &operator -= (Time &lhs, const Time &rhs);
+  friend Time Abs (const Time &time);
+  friend Time Max (const Time &ta, const Time &tb);
+  friend Time Min (const Time &ta, const Time &tb);
 
-  /**
-   *  Absolute value function for Time
-   *  \param [in] time The input value
-   *  \returns The absolute value of the input value.
-   */
-  friend Time Abs (const Time & time);
-  /**
-   *  Max function for Time.
-   *  \param [in] ta The first value
-   *  \param [in] tb The seconds value
-   *  \returns The max of the two input values.
-   */
-  friend Time Max (const Time & ta, const Time & tb);
-  /**
-   *  Min function for Time.
-   *  \param [in] ta The first value
-   *  \param [in] tb The seconds value
-   *  \returns The min of the two input values.
-   */
-  friend Time Min (const Time & ta, const Time & tb);
 
-  int64_t m_data;  //!< Virtual time value, in the current unit.
+  int64_t m_data;                   //!< Virtual time value, in the current unit.
 
 };  // class Time
 
-namespace TracedValueCallback {
-  
-  /**
-   * TracedValue callback signature for Time
-   *
-   * \param [in] oldValue Original value of the traced variable
-   * \param [in] newValue New value of the traced variable
-   */
-  typedef void (* Time)(Time oldValue, Time newValue);
-  
-}  // namespace TracedValueCallback
 
-/// Force static initialization of Time
+// Force static initialization of Time
 static bool NS_UNUSED_GLOBAL (g_TimeStaticInit) = Time::StaticInit ();
 
-/**
- * \ingroup time
- * \brief Equality operator for Time.
- * \param [in] lhs The first value
- * \param [in] rhs The second value
- * \returns true if the two input values are equal.
- */
 inline bool
-operator == (const Time & lhs, const Time & rhs)
+operator == (const Time &lhs, const Time &rhs)
 {
   return lhs.m_data == rhs.m_data;
 }
-/**
- * \ingroup time
- * \brief Inequality operator for Time.
- * \param [in] lhs The first value
- * \param [in] rhs The second value
- * \returns true if the two input values not are equal.
- */
 inline bool
-operator != (const Time & lhs, const Time & rhs)
+operator != (const Time &lhs, const Time &rhs)
 {
   return lhs.m_data != rhs.m_data;
 }
-/**
- * \ingroup time
- * \brief Less than or equal operator for Time.
- * \param [in] lhs The first value
- * \param [in] rhs The second value
- * \returns true if the first input value is less than or equal to the second input value.
- */
 inline bool
-operator <= (const Time & lhs, const Time & rhs)
+operator <= (const Time &lhs, const Time &rhs)
 {
   return lhs.m_data <= rhs.m_data;
 }
-/**
- * \ingroup time
- * \brief Greater than or equal operator for Time.
- * \param [in] lhs The first value
- * \param [in] rhs The second value
- * \returns true if the first input value is greater than or equal to the second input value.
- */
 inline bool
-operator >= (const Time & lhs, const Time & rhs)
+operator >= (const Time &lhs, const Time &rhs)
 {
   return lhs.m_data >= rhs.m_data;
 }
-/**
- * \ingroup time
- * \brief Less than operator for Time.
- * \param [in] lhs The first value
- * \param [in] rhs The second value
- * \returns true if the first input value is less than the second input value.
- */
 inline bool
-operator < (const Time & lhs, const Time & rhs)
+operator < (const Time &lhs, const Time &rhs)
 {
   return lhs.m_data < rhs.m_data;
 }
-/**
- * \ingroup time
- * \brief Greater than operator for Time.
- * \param [in] lhs The first value
- * \param [in] rhs The second value
- * \returns true if the first input value is greater than the second input value.
- */
 inline bool
-operator > (const Time & lhs, const Time & rhs)
+operator > (const Time &lhs, const Time &rhs)
 {
   return lhs.m_data > rhs.m_data;
 }
-/**
- * \ingroup time
- * \brief Addition operator for Time.
- * \param [in] lhs The first value
- * \param [in] rhs The second value
- * \returns the sum of the two input values.
- */
-inline Time operator + (const Time & lhs, const Time & rhs)
+inline Time operator + (const Time &lhs, const Time &rhs)
 {
   return Time (lhs.m_data + rhs.m_data);
 }
-/**
- * \ingroup time
- * \brief Difference operator for Time.
- * \param [in] lhs The first value
- * \param [in] rhs The seconds value
- * \returns the difference of the two input values.
- */
-inline Time operator - (const Time & lhs, const Time & rhs)
+inline Time operator - (const Time &lhs, const Time &rhs)
 {
   return Time (lhs.m_data - rhs.m_data);
 }
-/**
- * \ingroup time
- * \brief Multiplication operator for Time.
- * \param [in] lhs The first value
- * \param [in] rhs The second value
- * \returns the product of the two input values.
- */
-inline Time
-operator * (const Time & lhs, const int64_t & rhs)
-{
-  Time res = lhs;
-  res.m_data *= rhs;
-  return res;
-}
-/**
- * \ingroup time
- * \brief Multiplication operator for Time.
- * \param [in] lhs The first value
- * \param [in] rhs The second value
- * \returns the product of the two input values.
- */
-inline Time
-operator * (const int64_t & lhs, const Time & rhs)
-{
-  Time res = rhs;
-  res.m_data *= lhs;
-  return res;
-}
-/**
- * \ingroup time
- * \brief Division operator for Time.
- * \param [in] lhs The first value
- * \param [in] rhs The second value
- * \returns the resultof the first input value divided by the second input value.
- */
-inline int64_t
-operator / (const Time & lhs, const Time & rhs)
-{
-  int64_t res = lhs.m_data / rhs.m_data;
-  return res;
-}
-/**
- * \ingroup time
- * \brief Division operator for Time.
- * \param [in] lhs The first value
- * \param [in] rhs The second value
- * \returns the resultof the first input value divided by the second input value.
- */
-inline Time
-operator / (const Time & lhs, const int64_t & rhs)
-{
-  Time res = lhs;
-  res.m_data /= rhs;
-  return res;
-}
-/**
- * \ingroup time
- * \brief Addition operator for Time.
- * \param [in] lhs The first value
- * \param [in] rhs The second value
- * \returns the result of the first input value plus the second input value.
- */
-inline Time & operator += (Time & lhs, const Time & rhs)
+inline Time &operator += (Time &lhs, const Time &rhs)
 {
   lhs.m_data += rhs.m_data;
   return lhs;
 }
-/**
- * \ingroup time
- * \brief Subtraction operator for Time.
- * \param [in] lhs The first value
- * \param [in] rhs The second value
- * \returns the result of the first input value minus the second input value.
- */
-inline Time & operator -= (Time & lhs, const Time & rhs)
+inline Time &operator -= (Time &lhs, const Time &rhs)
 {
   lhs.m_data -= rhs.m_data;
   return lhs;
 }
-/**@}*/
-  
-inline Time Abs (const Time & time)
+
+/**
+ * \anchor ns3-Time-Abs
+ * \relates ns3::TimeUnit
+ * Absolute value function for Time
+ * \param time the input value
+ * \returns the absolute value of the input value.
+ */
+inline Time Abs (const Time &time)
 {
   return Time ((time.m_data < 0) ? -time.m_data : time.m_data);
 }
-inline Time Max (const Time & ta, const Time & tb)
+/**
+ * \anchor ns3-Time-Max
+ * \relates ns3::TimeUnit
+ * \param ta the first value
+ * \param tb the seconds value
+ * \returns the max of the two input values.
+ */
+inline Time Max (const Time &ta, const Time &tb)
 {
   return Time ((ta.m_data < tb.m_data) ? tb : ta);
 }
-inline Time Min (const Time & ta, const Time & tb)
+/**
+ * \param ta the first value
+ * \param tb the seconds value
+ * \returns the min of the two input values.
+ */
+inline Time Min (const Time &ta, const Time &tb)
 {
   return Time ((ta.m_data > tb.m_data) ? tb : ta);
 }
 
+
 /**
- * \ingroup time
  * \brief Time output streamer.
  * 
- * Generates output such as "3.96ns".  Times are printed with the
- * following format flags (independent of the stream flags):
- *   - `showpos`
- *   - `fixed`
- *   - `left`
- * The stream `width` and `precision` are ignored; Time output always
- * includes ".0".
- *
- * \param [in,out] os The output stream.
- * \param [in] time The Time to put on the stream.
- * \return The stream.
+ * Generates output such as "3.96ns"
+ * \relates ns3::Time
  */
-std::ostream & operator << (std::ostream & os, const Time & time);
+std::ostream& operator<< (std::ostream& os, const Time & time);
 /**
- * \ingroup time
  * \brief Time input streamer
  *
  * Uses the Time::Time (const std::string &) constructor
- *
- * \param [in,out] is The input stream.
- * \param [out] time The Time variable to set from the stream data.
- * \return The stream.
+ * \relates ns3::Time
  */
-std::istream & operator >> (std::istream & is, Time & time);
+std::istream& operator>> (std::istream& is, Time & time);
 
 /**
- * \ingroup time
- * \defgroup timecivil Standard Time Units.
- * \brief Convenience constructors in standard units.
+ * \brief create ns3::Time instances in units of seconds.
  *
  * For example:
  * \code
- *   Time t = Seconds (2.0);
- *   Simulator::Schedule (Seconds (5.0), ...);
+ * Time t = Seconds (2.0);
+ * Simulator::Schedule (Seconds (5.0), ...);
  * \endcode
+ * \param seconds seconds value
+ * \relates ns3::Time
  */
-/**
- * \ingroup timecivil
- * Construct a Time in the indicated unit.
- * \param [in] value The value
- * \return The Time
- * @{
- */
-inline Time Years (double value)
+inline Time Seconds (double seconds)
 {
-  return Time::FromDouble (value, Time::Y);
+  return Time::FromDouble (seconds, Time::S);
 }
-inline Time Years (int64x64_t value)
-{
-  return Time::From (value, Time::Y);
-}
-inline Time Days (double value)
-{
-  return Time::FromDouble (value, Time::D);
-}
-inline Time Days (int64x64_t value)
-{
-  return Time::From (value, Time::D);
-}
-inline Time Hours (double value)
-{
-  return Time::FromDouble (value, Time::H);
-}
-inline Time Hours (int64x64_t value)
-{
-  return Time::From (value, Time::H);
-}
-inline Time Minutes (double value)
-{
-  return Time::FromDouble (value, Time::MIN);
-}
-inline Time Minutes (int64x64_t value)
-{
-  return Time::From (value, Time::MIN);
-}
-inline Time Seconds (double value)
-{
-  return Time::FromDouble (value, Time::S);
-}
-inline Time Seconds (int64x64_t value)
-{
-  return Time::From (value, Time::S);
-}
-inline Time MilliSeconds (uint64_t value)
-{
-  return Time::FromInteger (value, Time::MS);
-}
-inline Time MilliSeconds (int64x64_t value)
-{
-  return Time::From (value, Time::MS);
-}
-inline Time MicroSeconds (uint64_t value)
-{
-  return Time::FromInteger (value, Time::US);
-}
-inline Time MicroSeconds (int64x64_t value)
-{
-  return Time::From (value, Time::US);
-}
-inline Time NanoSeconds (uint64_t value)
-{
-  return Time::FromInteger (value, Time::NS);
-}
-inline Time NanoSeconds (int64x64_t value)
-{
-  return Time::From (value, Time::NS);
-}
-inline Time PicoSeconds (uint64_t value)
-{
-  return Time::FromInteger (value, Time::PS);
-}
-inline Time PicoSeconds (int64x64_t value)
-{
-  return Time::From (value, Time::PS);
-}
-inline Time FemtoSeconds (uint64_t value)
-{
-  return Time::FromInteger (value, Time::FS);
-}
-inline Time FemtoSeconds (int64x64_t value)
-{
-  return Time::From (value, Time::FS);
-}
-/**@}*/
-  
 
 /**
- *  \ingroup time
- *  \internal Scheduler interface
- *  \param [in] ts The time value, in the current unit.
- *  \return A Time.
+ * \brief create ns3::Time instances in units of milliseconds.
+ *
+ * For example:
+ * \code
+ * Time t = MilliSeconds (2);
+ * Simulator::Schedule (MilliSeconds (5), ...);
+ * \endcode
+ * \param ms milliseconds value
+ * \relates ns3::Time
  */
+inline Time MilliSeconds (uint64_t ms)
+{
+  return Time::FromInteger (ms, Time::MS);
+}
+/**
+ * \brief create ns3::Time instances in units of microseconds.
+ *
+ * For example:
+ * \code
+ * Time t = MicroSeconds (2);
+ * Simulator::Schedule (MicroSeconds (5), ...);
+ * \endcode
+ * \param us microseconds value
+ * \relates ns3::Time
+ */
+inline Time MicroSeconds (uint64_t us)
+{
+  return Time::FromInteger (us, Time::US);
+}
+/**
+ * \brief create ns3::Time instances in units of nanoseconds.
+ *
+ * For example:
+ * \code
+ * Time t = NanoSeconds (2);
+ * Simulator::Schedule (NanoSeconds (5), ...);
+ * \endcode
+ * \param ns nanoseconds value
+ * \relates ns3::Time
+ */
+inline Time NanoSeconds (uint64_t ns)
+{
+  return Time::FromInteger (ns, Time::NS);
+}
+/**
+ * \brief create ns3::Time instances in units of picoseconds.
+ *
+ * For example:
+ * \code
+ * Time t = PicoSeconds (2);
+ * Simulator::Schedule (PicoSeconds (5), ...);
+ * \endcode
+ * \param ps picoseconds value
+ * \relates ns3::Time
+ */
+inline Time PicoSeconds (uint64_t ps)
+{
+  return Time::FromInteger (ps, Time::PS);
+}
+/**
+ * \brief create ns3::Time instances in units of femtoseconds.
+ *
+ * For example:
+ * \code
+ * Time t = FemtoSeconds (2);
+ * Simulator::Schedule (FemtoSeconds (5), ...);
+ * \endcode
+ * \param fs femtoseconds value
+ * \relates ns3::Time
+ */
+inline Time FemtoSeconds (uint64_t fs)
+{
+  return Time::FromInteger (fs, Time::FS);
+}
+/**
+ * \brief create ns3::Time instances in units of minutes (equal to 60 seconds).
+ *
+ * For example:
+ * \code
+ * Time t = Minutes (2.0);
+ * Simulator::Schedule (Minutes (5.0), ...);
+ * \endcode
+ * \param minutes mintues value
+ * \relates ns3::Time
+ */
+inline Time Minutes (double minutes)
+{
+  return Time::FromDouble (minutes, Time::MIN);
+}
+/**
+ * \brief create ns3::Time instances in units of hours (equal to 60 minutes).
+ *
+ * For example:
+ * \code
+ * Time t = Hours (2.0);
+ * Simulator::Schedule (Hours (5.0), ...);
+ * \endcode
+ * \param hours hours value
+ * \relates ns3::Time
+ */
+inline Time Hours (double hours)
+{
+  return Time::FromDouble (hours, Time::H);
+}
+/**
+ * \brief create ns3::Time instances in units of days (equal to 24 hours).
+ *
+ * For example:
+ * \code
+ * Time t = Days (2.0);
+ * Simulator::Schedule (Days (5.0), ...);
+ * \endcode
+ * \param days days value
+ * \relates ns3::Time
+ */
+inline Time Days (double days)
+{
+  return Time::FromDouble (days, Time::D);
+}
+/**
+ * \brief create ns3::Time instances in units of years (equal to 365 days).
+ *
+ * For example:
+ * \code
+ * Time t = Years (2.0);
+ * Simulator::Schedule (Years (5.0), ...);
+ * \endcode
+ * \param years years value
+ * \relates ns3::Time
+ */
+inline Time Years (double years)
+{
+  return Time::FromDouble (years, Time::Y);
+}
+
+/**
+ * \see Seconds(double)
+ * \relates ns3::Time
+ */
+inline Time Seconds (int64x64_t seconds)
+{
+  return Time::From (seconds, Time::S);
+}
+/**
+ * \see MilliSeconds(uint64_t)
+ * \relates ns3::Time
+ */
+inline Time MilliSeconds (int64x64_t ms)
+{
+  return Time::From (ms, Time::MS);
+}
+/**
+ * \see MicroSeconds(uint64_t)
+ * \relates ns3::Time
+ */
+inline Time MicroSeconds (int64x64_t us)
+{
+  return Time::From (us, Time::US);
+}
+/**
+ * \see NanoSeconds(uint64_t)
+ * \relates ns3::Time
+ */
+inline Time NanoSeconds (int64x64_t ns)
+{
+  return Time::From (ns, Time::NS);
+}
+/**
+ * \see PicoSeconds(uint64_t)
+ * \relates ns3::Time
+ */
+inline Time PicoSeconds (int64x64_t ps)
+{
+  return Time::From (ps, Time::PS);
+}
+/**
+ * \see FemtoSeconds(uint64_t)
+ * \relates ns3::Time
+ */
+inline Time FemtoSeconds (int64x64_t fs)
+{
+  return Time::From (fs, Time::FS);
+}
+/**
+ * \see Minutes(uint64_t)
+ * \relates ns3::Time
+ */
+inline Time Minutes (int64x64_t minutes)
+{
+  return Time::From (minutes, Time::MIN);
+}
+/**
+ * \see Minutes(uint64_t)
+ * \relates ns3::Time
+ */
+inline Time Hours (int64x64_t hours)
+{
+  return Time::From (hours, Time::H);
+}
+/**
+ * \see Minutes(uint64_t)
+ * \relates ns3::Time
+ */
+inline Time Days (int64x64_t days)
+{
+  return Time::From (days, Time::D);
+}
+/**
+ * \see Minutes(uint64_t)
+ * \relates ns3::Time
+ */
+inline Time Years (int64x64_t years)
+{
+  return Time::From (years, Time::Y);
+}
+
+// internal function not publicly documented
 inline Time TimeStep (uint64_t ts)
 {
   return Time (ts);
 }
 
+/**
+ * \class ns3::TimeValue
+ * \brief hold objects of type ns3::Time
+ */
+
+
 ATTRIBUTE_VALUE_DEFINE (Time);
 ATTRIBUTE_ACCESSOR_DEFINE (Time);
 
 /**
- *  \ingroup time
- *  \brief Helper to make a Time checker with bounded range.
- *  Both limits are inclusive
+ * \brief Helper to make a Time checker with bounded range.
+ * Both limits are inclusive
  *
- *  \param [in] min Minimum allowed value.
- *  \param [in] max Maximum allowed value.
- *  \return The AttributeChecker
+ * \return the AttributeChecker
  */
 Ptr<const AttributeChecker> MakeTimeChecker (const Time min, const Time max);
 
 /**
- * \ingroup time
  * \brief Helper to make an unbounded Time checker.
  *
- * \return The AttributeChecker
+ * \return the AttributeChecker
  */
 inline
 Ptr<const AttributeChecker> MakeTimeChecker (void)
@@ -1100,11 +981,9 @@ Ptr<const AttributeChecker> MakeTimeChecker (void)
 }
 
 /**
- * \ingroup time
  * \brief Helper to make a Time checker with a lower bound.
  *
- *  \param [in] min Minimum allowed value.
- * \return The AttributeChecker
+ * \return the AttributeChecker
  */
 inline
 Ptr<const AttributeChecker> MakeTimeChecker (const Time min)
@@ -1112,37 +991,6 @@ Ptr<const AttributeChecker> MakeTimeChecker (const Time min)
   return MakeTimeChecker (min, Time::Max ());
 }
 
-/**
- * \ingroup time
- * \brief A Time with attached unit, to facilitate output in that unit.
- */
-class TimeWithUnit
-{
-public:
-  /**
-   * Attach a unit to a Time
-   *
-   * \param [in] time The time.
-   * \param [in] unit The unit to use for output
-   */
-  TimeWithUnit (const Time time, const Time::Unit unit)
-    : m_time (time),
-      m_unit (unit)
-  { };
-
-private:
-  Time m_time;        //!< The time
-  Time::Unit m_unit;  //!< The unit to use in output
-
-  /**
-   *  Output streamer
-   *  \param [in,out] os The stream.
-   *  \param [in] timeU The Time with desired unit
-   *  \returns The stream.
-   */
-  friend std::ostream & operator << (std::ostream & os, const TimeWithUnit & timeU);
-
-};  // class TimeWithUnit
 
 } // namespace ns3
 

@@ -49,7 +49,7 @@ public:
    *  LteEnbPhy::ReceiveLteControlMessageList in order to remove the ones 
    *  that has been already handoff by the eNB for avoiding propagation of
    *  spurious messages. When new messaged have to been added, consider to
-   *  update the switch statement implementing the filtering.
+   *  update the switch statement implementing teh filtering.
    */
   enum MessageType
   {
@@ -78,7 +78,7 @@ public:
   MessageType GetMessageType (void);
 
 private:
-  MessageType m_type; ///< message type
+  MessageType m_type;
 };
 
 
@@ -102,13 +102,13 @@ public:
   void SetDci (DlDciListElement_s dci);
 
   /**
-  * \brief Get dic information
+  * \brief Get dic informations
   * \return dci messages
   */
   DlDciListElement_s GetDci (void);
 
 private:
-  DlDciListElement_s m_dci; ///< DCI
+  DlDciListElement_s m_dci;
 };
 
 
@@ -132,13 +132,13 @@ public:
   void SetDci (UlDciListElement_s dci);
 
   /**
-  * \brief Get dic information
+  * \brief Get dic informations
   * \return dci messages
   */
   UlDciListElement_s GetDci (void);
 
 private:
-  UlDciListElement_s m_dci; ///< DCI
+  UlDciListElement_s m_dci;
 };
 
 
@@ -162,13 +162,13 @@ public:
   void SetDlCqi (CqiListElement_s dlcqi);
 
   /**
-  * \brief Get DL cqi information
+  * \brief Get DL cqi informations
   * \return dlcqi messages
   */
   CqiListElement_s GetDlCqi (void);
 
 private:
-  CqiListElement_s m_dlCqi; ///< DL CQI
+  CqiListElement_s m_dlCqi;
 };
 
 
@@ -192,13 +192,13 @@ public:
   void SetBsr (MacCeListElement_s bsr);
 
   /**
-  * \brief Get BSR information
+  * \brief Get BSR informations
   * \return BSR message
   */
   MacCeListElement_s GetBsr (void);
 
 private:
-  MacCeListElement_s m_bsr; ///< BSR
+  MacCeListElement_s m_bsr;
 
 };
 
@@ -223,13 +223,13 @@ public:
   void SetDlHarqFeedback (DlInfoListElement_s m);
 
   /**
-  * \brief Get DL HARQ information
+  * \brief Get DL HARQ informations
   * \return DL HARQ message
   */
   DlInfoListElement_s GetDlHarqFeedback (void);
 
 private:
-  DlInfoListElement_s m_dlInfoListElement; ///< DL info list element
+  DlInfoListElement_s m_dlInfoListElement;
 
 };
 
@@ -260,7 +260,7 @@ public:
   uint32_t GetRapId () const;
 
 private:
-  uint32_t m_rapId; ///< the RAPID
+  uint32_t m_rapId;
 
 };
 
@@ -295,8 +295,8 @@ public:
    */
   struct Rar
   {
-    uint8_t rapId; ///< RAPID
-    BuildRarListElement_s rarPayload; ///< RAR payload
+    uint8_t rapId;
+    BuildRarListElement_s rarPayload;
   };
 
   /** 
@@ -319,8 +319,8 @@ public:
   std::list<Rar>::const_iterator RarListEnd () const;
 
 private:
-  std::list<Rar> m_rarList; ///< RAR list
-  uint16_t m_raRnti; ///< RA RNTI
+  std::list<Rar> m_rarList;
+  uint16_t m_raRnti;
 
 };
 
@@ -359,7 +359,7 @@ public:
   LteRrcSap::MasterInformationBlock GetMib () const;
 
 private:
-  LteRrcSap::MasterInformationBlock m_mib; ///< MIB
+  LteRrcSap::MasterInformationBlock m_mib;
 
 }; // end of class MibLteControlMessage
 
@@ -398,7 +398,7 @@ public:
   LteRrcSap::SystemInformationBlockType1 GetSib1 () const;
 
 private:
-  LteRrcSap::SystemInformationBlockType1 m_sib1; ///< SIB1
+  LteRrcSap::SystemInformationBlockType1 m_sib1;
 
 }; // end of class Sib1LteControlMessage
 

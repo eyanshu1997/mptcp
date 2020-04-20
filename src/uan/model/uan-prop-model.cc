@@ -187,7 +187,7 @@ UanPdp::GetEnd (void) const
 uint32_t
 UanPdp::GetNTaps (void) const
 {
-  return static_cast<uint32_t> (m_taps.size ());
+  return m_taps.size ();
 }
 
 Time
@@ -204,8 +204,7 @@ UanPdp::SumTapsFromMaxC (Time delay, Time duration) const
       NS_ASSERT_MSG (GetNTaps () == 1, "Attempted to sum taps over time interval in "
                      "UanPdp with resolution 0 and multiple taps");
 
-      if (delay.IsZero ()) return m_taps[0].GetAmp ();
-      return std::complex<double> (0.0, 0.0);
+      return m_taps[0].GetAmp ();
     }
 
   uint32_t numTaps =  static_cast<uint32_t> (duration.GetSeconds () / m_resolution.GetSeconds () + 0.5);
@@ -237,8 +236,7 @@ UanPdp::SumTapsFromMaxNc (Time delay, Time duration) const
       NS_ASSERT_MSG (GetNTaps () == 1, "Attempted to sum taps over time interval in "
                      "UanPdp with resolution 0 and multiple taps");
 
-      if (delay.IsZero ()) return std::abs (m_taps[0].GetAmp ());
-      return 0;
+      return std::abs (m_taps[0].GetAmp ());
     }
 
   uint32_t numTaps =  static_cast<uint32_t> (duration.GetSeconds () / m_resolution.GetSeconds () + 0.5);
@@ -330,25 +328,6 @@ UanPdp::SumTapsC (Time begin, Time end) const
 }
 
 UanPdp
-UanPdp::NormalizeToSumNc (void) const
-{
-  double sumNc = 0.0;
-  std::vector<Tap> newTaps;
-
-  for (uint32_t i = 0; i < GetNTaps (); i++)
-    {
-      sumNc += std::abs (m_taps[i].GetAmp ());
-    }
-
-  for (uint32_t i = 0; i < GetNTaps (); i++)
-    {
-      newTaps.push_back ( Tap (m_taps[i].GetDelay (), (m_taps[i].GetAmp () / sumNc)));
-    }
-
-  return UanPdp (newTaps, m_resolution);
-}
-
-UanPdp
 UanPdp::CreateImpulsePdp (void)
 {
   UanPdp pdp;
@@ -357,14 +336,13 @@ UanPdp::CreateImpulsePdp (void)
   return pdp;
 }
 
-NS_OBJECT_ENSURE_REGISTERED (UanPropModel);
+NS_OBJECT_ENSURE_REGISTERED (UanPropModel)
+  ;
 
 TypeId UanPropModel::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::UanPropModel")
-    .SetParent<Object> ()
-    .SetGroupName ("Uan")
-  ;
+    .SetParent<Object> ();
   return tid;
 }
 

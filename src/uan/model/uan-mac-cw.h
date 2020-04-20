@@ -26,7 +26,7 @@
 #include "ns3/simulator.h"
 #include "ns3/uan-phy.h"
 #include "ns3/uan-tx-mode.h"
-#include "ns3/mac8-address.h"
+#include "ns3/uan-address.h"
 #include "ns3/random-variable-stream.h"
 
 namespace ns3 {
@@ -83,9 +83,12 @@ public:
   virtual Time GetSlotTime (void);
 
   // Inherited methods from UanMac
-  virtual bool Enqueue (Ptr<Packet> pkt, uint16_t protocolNumber, const Address &dest);
-  virtual void SetForwardUpCb (Callback<void, Ptr<Packet>, uint16_t, const Mac8Address&> cb);
+  virtual Address GetAddress ();
+  virtual void SetAddress (UanAddress addr);
+  virtual bool Enqueue (Ptr<Packet> pkt, const Address &dest, uint16_t protocolNumber);
+  virtual void SetForwardUpCb (Callback<void, Ptr<Packet>, const UanAddress&> cb);
   virtual void AttachPhy (Ptr<UanPhy> phy);
+  virtual Address GetBroadcast (void) const;
   virtual void Clear (void);
   int64_t AssignStreams (int64_t stream);
 
@@ -97,14 +100,6 @@ public:
   virtual void NotifyCcaEnd (void);
   virtual void NotifyTxStart (Time duration);
 
-  /**
-   *  TracedCallback signature for enqueue/dequeue of a packet.
-   *
-   * \param [in] packet The Packet being received.
-   * \param [in] proto The protocol number.
-   */
-  typedef void (* QueueTracedCallback)
-    (Ptr<const Packet> packet, uint16_t proto);
 
 private:
   /** Enum defining possible Phy states. */
@@ -116,9 +111,9 @@ private:
   } State;
 
   /** Forwarding up callback. */
-  Callback <void, Ptr<Packet>, uint16_t, const Mac8Address&> m_forwardUpCb;
+  Callback <void, Ptr<Packet>, const UanAddress& > m_forwardUpCb;
   /** The MAC address. */
-  Mac8Address m_address;
+  UanAddress m_address;
   /** PHY layer attached to this MAC. */
   Ptr<UanPhy> m_phy;
   /** A packet destined for this MAC was received. */

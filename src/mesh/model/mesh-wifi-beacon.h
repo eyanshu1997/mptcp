@@ -23,13 +23,11 @@
 
 #include "ns3/object.h"
 #include "ns3/packet.h"
-#include "ns3/mgt-headers.h"
+#include "ns3/mgt-headers.h"        // from wifi module
+#include "ns3/wifi-mac-header.h"
 #include "ns3/mesh-information-element-vector.h"
 
 namespace ns3 {
-
-class WifiMacHeader;
-class Time;
 
 /**
  * \brief Beacon is beacon header + list of arbitrary information elements
@@ -48,45 +46,28 @@ public:
    * \param us beacon interval in microseconds
    */
   MeshWifiBeacon (Ssid ssid, SupportedRates rates, uint64_t us);
-  /**
-   * Read standard Wifi beacon header
-   *
-   * \returns the management beacon header
-   */
+  /// Read standard Wifi beacon header
   MgtBeaconHeader BeaconHeader () const { return m_header; }
-  /**
-   * Add information element
-   *
-   * \param ie the Wifi information element
-   */
+  /// Add information element
   void AddInformationElement (Ptr<WifiInformationElement> ie);
 
   /**
-   * Create Wifi header for beacon frame.
+   * Create wifi header for beacon frame.
    *
    * \param address is sender address
    * \param mpAddress is mesh point address
-   * \returns the WifiMacHeader
    */
   WifiMacHeader CreateHeader (Mac48Address address, Mac48Address mpAddress);
-  /**
-   * Returns the beacon interval of Wifi beacon
-   *
-   * \returns the beacon interval time
-   */
+  /// Returns a beacon interval of wifi beacon
   Time GetBeaconInterval () const;
-  /**
-   * Create frame = { beacon header + all information elements sorted by ElementId () }
-   *
-   * \returns the frame
-   */
+  /// Create frame = { beacon header + all information elements sorted by ElementId () }
   Ptr<Packet> CreatePacket ();
 
 private:
   /// Beacon header
   MgtBeaconHeader m_header;
   /// List of information elements added
-  MeshInformationElementVector m_elements;
+  WifiInformationElementVector m_elements;
 };
 
 }

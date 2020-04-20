@@ -1,8 +1,4 @@
 /**
- * \file
- * Main page of the Doxygen-generated documentation.
- */
-/**
  * \mainpage ns-3 Documentation
  *
  * \section intro-sec Introduction
@@ -17,7 +13,8 @@
  *
  * \section install-sec Building the Documentation
  * 
- * ns-3 requires Doxygen version 1.8.3.1 or greater.
+ * ns-3 requires Doxygen version 1.5.4 or greater to fully build all items,
+ * although earlier versions of Doxygen will mostly work.
  * 
  * Type "./waf --doxygen" or "./waf --doxygen-no-build" to build the 
  *  documentation.  The doc/ directory contains
@@ -59,7 +56,6 @@
  *     - spectrum
  *     - stats
  *     - tap-bridge
- *     - traffic-control
  *     - test
  *     - topology-read
  *     - uan
@@ -75,35 +71,3 @@
  * ns3 namespace.
  */
 
-
-/**
- * \name Macros defined by the build system.
- * 
- * These have to be visible for doxygen to document them,
- * so we put them here in a file only seen by doxygen, not the compiler.
- * 
- * @{
- */
-/**
- * \ingroup assert
- *
- * \def NS3_ASSERT_ENABLE
- *
- * Enable asserts at compile time.
- *
- * This is normally set by `./waf configure --build-profile=debug`.
- */
-#define NS3_ASSERT_ENABLE
-
-/**
- * \ingroup logging
- *
- * \def NS3_LOG_ENABLE
- *
- * Enable logging at compile time.
- *
- * This is normally set by `./waf configure --build-profile=debug`.
- */
-#define NS3_LOG_ENABLE
-
-/**@}*/

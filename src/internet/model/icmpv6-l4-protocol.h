@@ -30,7 +30,6 @@
 
 #include "icmpv6-header.h"
 #include "ip-l4-protocol.h"
-#include "ndisc-cache.h"
 
 namespace ns3 {
 
@@ -38,23 +37,17 @@ class NetDevice;
 class Node;
 class Packet;
 class TraceContext;
+class NdiscCache;
 
 /**
- * \ingroup ipv6
- * \defgroup icmpv6 ICMPv6 protocol and associated headers.
- */
-
-/**
- * \ingroup icmpv6
- *
+ * \class Icmpv6L4Protocol
  * \brief An implementation of the ICMPv6 protocol.
  */
 class Icmpv6L4Protocol : public IpL4Protocol
 {
 public:
   /**
-   * \brief Get the type ID.
-   * \return the object TypeId
+   * \brief Interface ID
    */
   static TypeId GetTypeId ();
 
@@ -64,34 +57,89 @@ public:
   static const uint8_t PROT_NUMBER;
 
   /**
-   * \brief Neighbor Discovery node constants: max multicast solicitations.
-   * \returns The max multicast solicitations number.
+   * \brief Neighbor Discovery router constants : max initial RA initial interval.
    */
-  uint8_t GetMaxMulticastSolicit () const;
+  static const uint8_t MAX_INITIAL_RTR_ADVERT_INTERVAL;
 
   /**
-   * \brief Neighbor Discovery node constants: max unicast solicitations.
-   * \returns The max unicast solicitations number.
+   * \brief Neighbor Discovery router constants : max initial RA transmission.
    */
-  uint8_t GetMaxUnicastSolicit () const;;
+  static const uint8_t MAX_INITIAL_RTR_ADVERTISEMENTS;
 
   /**
-   * \brief Neighbor Discovery node constants: reachable time.
-   * \returns The Reachable time for an Neighbor cache entry.
+   * \brief Neighbor Discovery router constants : max final RA transmission.
    */
-  Time GetReachableTime () const;;
+  static const uint8_t MAX_FINAL_RTR_ADVERTISEMENTS;
 
   /**
-   * \brief Neighbor Discovery node constants: retransmission timer.
-   * \returns The Retransmission time for an Neighbor cache entry probe.
+   * \brief Neighbor Discovery router constants : min delay between RA.
    */
-  Time GetRetransmissionTime () const;
+  static const uint8_t MIN_DELAY_BETWEEN_RAS;
+
+  /**
+   * \brief Neighbor Discovery router constants : max delay between RA.
+   */
+  static const uint32_t MAX_RA_DELAY_TIME;
+
+  /**
+   * \brief Neighbor Discovery host constants : max RS delay.
+   */
+  static const uint8_t MAX_RTR_SOLICITATION_DELAY;
+
+  /**
+   * \brief Neighbor Discovery host constants : RS interval.
+   */
+  static const uint8_t RTR_SOLICITATION_INTERVAL;
+
+  /**
+   * \brief Neighbor Discovery host constants : max RS transmission.
+   */
+  static const uint8_t MAX_RTR_SOLICITATIONS;
+
+  /**
+   * \brief Neighbor Discovery node constants : max multicast solicitations.
+   */
+  static const uint8_t MAX_MULTICAST_SOLICIT;
+
+  /**
+   * \brief Neighbor Discovery node constants : max unicast solicitations.
+   */
+  static const uint8_t MAX_UNICAST_SOLICIT;
+
+  /**
+   * \brief Neighbor Discovery node constants : max anycast delay.
+   */
+  static const uint8_t MAX_ANYCAST_DELAY_TIME;
+
+  /**
+   * \brief Neighbor Discovery node constants : max NA transmission.
+   */
+  static const uint8_t MAX_NEIGHBOR_ADVERTISEMENT;
+
+  /**
+   * \brief Neighbor Discovery node constants : reachable time.
+   */
+  static const uint32_t REACHABLE_TIME;
+
+  /**
+   * \brief Neighbor Discovery node constants : retransmission timer.
+   */
+  static const uint32_t RETRANS_TIMER;
 
   /**
    * \brief Neighbor Discovery node constants : delay for the first probe.
-   * \returns The time before a first probe for an Neighbor cache entry.
    */
-  Time GetDelayFirstProbe () const;
+  static const uint8_t DELAY_FIRST_PROBE_TIME;
+
+  /**
+   * \brief Neighbor Discovery node constants : min random factor.
+   */
+  static const double MIN_RANDOM_FACTOR;
+
+  /**
+   * \brief Neighbor Discovery node constants : max random factor.
+   */
+  static const double MAX_RANDOM_FACTOR;
 
   /**
    * \brief Get ICMPv6 protocol number.
@@ -253,7 +301,7 @@ public:
    * \param hardwareAddress our mac address
    * \return NS packet (with IPv6 header)
    */
-  NdiscCache::Ipv6PayloadHeaderPair ForgeNS (Ipv6Address src, Ipv6Address dst, Ipv6Address target, Address hardwareAddress);
+  Ptr<Packet> ForgeNS (Ipv6Address src, Ipv6Address dst, Ipv6Address target, Address hardwareAddress);
 
   /**
    * \brief Forge a Neighbor Advertisement.
@@ -263,7 +311,7 @@ public:
    * \param flags flags (bitfield => R (4), S (2), O (1))
    * \return NA packet (with IPv6 header)
    */
-  NdiscCache::Ipv6PayloadHeaderPair ForgeNA (Ipv6Address src, Ipv6Address dst, Address* hardwareAddress, uint8_t flags);
+  Ptr<Packet> ForgeNA (Ipv6Address src, Ipv6Address dst, Address* hardwareAddress, uint8_t flags);
 
   /**
    * \brief Forge a Router Solicitation.
@@ -272,7 +320,7 @@ public:
    * \param hardwareAddress our mac address
    * \return RS packet (with IPv6 header)
    */
-  NdiscCache::Ipv6PayloadHeaderPair ForgeRS (Ipv6Address src, Ipv6Address dst, Address hardwareAddress);
+  Ptr<Packet> ForgeRS (Ipv6Address src, Ipv6Address dst, Address hardwareAddress);
 
   /**
    * \brief Forge an Echo Request.
@@ -281,9 +329,9 @@ public:
    * \param id ID of the packet
    * \param seq sequence number
    * \param data the data
-   * \return Echo Request packet (with IPv6 header)
+   * \return Echo Request packet (without IPv6 header)
    */
-  NdiscCache::Ipv6PayloadHeaderPair ForgeEchoRequest (Ipv6Address src, Ipv6Address dst, uint16_t id, uint16_t seq, Ptr<Packet> data);
+  Ptr<Packet> ForgeEchoRequest (Ipv6Address src, Ipv6Address dst, uint16_t id, uint16_t seq, Ptr<Packet> data);
 
   /**
    * \brief Receive method.
@@ -333,20 +381,19 @@ public:
    *
    * It also send NS request to target and store the waiting packet.
    * \param p the packet
-   * \param ipHeader IPv6 header
    * \param dst destination address
    * \param device device
    * \param cache the neighbor cache
    * \param hardwareDestination hardware address
    * \return true if the address is in the ND cache, the hardwareDestination is updated.
    */
-  bool Lookup (Ptr<Packet> p, const Ipv6Header & ipHeader, Ipv6Address dst, Ptr<NetDevice> device, Ptr<NdiscCache> cache, Address* hardwareDestination);
+  bool Lookup (Ptr<Packet> p, Ipv6Address dst, Ptr<NetDevice> device, Ptr<NdiscCache> cache, Address* hardwareDestination);
 
   /**
    * \brief Send a Router Solicitation.
    * \param src link-local source address
    * \param dst destination address (usealy ff02::2 i.e all-routers)
-   * \param hardwareAddress link-layer address (SHOULD be included if src is not ::)
+   * \param hardwareAddress link-layer address (SHOULD be included if src is not ::
    */
   void SendRS (Ipv6Address src, Ipv6Address dst,  Address hardwareAddress);
 
@@ -382,32 +429,6 @@ protected:
 
 private:
   typedef std::list<Ptr<NdiscCache> > CacheList; //!< container of NdiscCaches
-
-
-  /**
-   * \brief Neighbor Discovery node constants: max multicast solicitations.
-   */
-  uint8_t m_maxMulticastSolicit;
-
-  /**
-   * \brief Neighbor Discovery node constants: max unicast solicitations.
-   */
-  uint8_t m_maxUnicastSolicit;
-
-  /**
-   * \brief Neighbor Discovery node constants: reachable time.
-   */
-  Time m_reachableTime;
-
-  /**
-   * \brief Neighbor Discovery node constants: retransmission timer.
-   */
-  Time m_retransmissionTime;
-
-  /**
-   * \brief Neighbor Discovery node constants: delay for the first probe.
-   */
-  Time m_delayFirstProbe;
 
   /**
    * \brief The node.

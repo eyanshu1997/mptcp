@@ -39,19 +39,11 @@ class NetDevice;
 
 /**
  * \ingroup spectrum
- * \brief Setup a SpectrumChannel
+ *
  */
 class SpectrumChannelHelper
 {
 public:
-  /**
-   * \brief Setup a default SpectrumChannel. The Default mode is:
-   * Channel: "ns3::SingleModelSpectrumChannel",
-   * PropagationDelay: "ns3::ConstantSpeedPropagationDelayModel", and
-   * SpectrumPropagationLoss: "ns3::FriisSpectrumPropagationLossModel".
-   *
-   * \returns a Default-configured SpectrumChannelHelper
-   */
   static SpectrumChannelHelper Default ();
 
   /**
@@ -198,10 +190,10 @@ public:
   Ptr<SpectrumChannel> Create (void) const;
 
 private:
-  Ptr<SpectrumPropagationLossModel> m_spectrumPropagationLossModel; //!< Spectrum propagation loss model
-  Ptr<PropagationLossModel> m_propagationLossModel; //!< Propagation loss model
-  ObjectFactory m_propagationDelay; //!< Propagation delay
-  ObjectFactory m_channel; //!< Channel
+  Ptr<SpectrumPropagationLossModel> m_spectrumPropagationLossModel;
+  Ptr<PropagationLossModel> m_propagationLossModel;
+  ObjectFactory m_propagationDelay;
+  ObjectFactory m_channel;
 };
 
 
@@ -209,7 +201,7 @@ private:
 /**
  * \ingroup spectrum
  *
- * Create and configure several SpectrumPhy instances and connect them to a channel.
+ * create and configure several SpectrumPhy instances and connect them to a channel.
  */
 class SpectrumPhyHelper
 {
@@ -277,8 +269,8 @@ public:
 
 
 private:
-  ObjectFactory m_phy;      //!< Object factory for the phy objects
-  Ptr<SpectrumChannel> m_channel; //!< Channel
+  ObjectFactory m_phy;
+  Ptr<SpectrumChannel> m_channel;
 };
 
 

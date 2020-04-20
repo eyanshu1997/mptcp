@@ -16,27 +16,27 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * Authors: Mathieu Lacage <mathieu.lacage@sophia.inria.fr>
- *          Mirko Banchi <mk.banchi@gmail.com>
+ * Author: Mathieu Lacage <mathieu.lacage@sophia.inria.fr>
+ * Author: Mirko Banchi <mk.banchi@gmail.com>
  */
 
 #ifndef MAC_TX_MIDDLE_H
 #define MAC_TX_MIDDLE_H
 
+#include <stdint.h>
 #include <map>
-#include "ns3/simple-ref-count.h"
+#include "ns3/mac48-address.h"
 
 namespace ns3 {
 
 class WifiMacHeader;
-class Mac48Address;
 
 /**
  * \ingroup wifi
  *
  * Handles sequence numbering of IEEE 802.11 data frames
  */
-class MacTxMiddle : public SimpleRefCount<MacTxMiddle>
+class MacTxMiddle
 {
 public:
   MacTxMiddle ();
@@ -48,15 +48,7 @@ public:
    * \param hdr Wi-Fi header
    * \return the next sequence number
    */
-  uint16_t GetNextSequenceNumberFor (const WifiMacHeader *hdr);
-  /**
-   * Return the next sequence number for the Traffic ID and destination, but do not pick it (i.e. the current sequence number remains unchanged).
-   * This functions is used for A-MPDU aggregation.
-   *
-   * \param hdr Wi-Fi header
-   * \return the next sequence number
-   */
-  uint16_t PeekNextSequenceNumberFor (const WifiMacHeader *hdr);
+  uint16_t GetNextSequenceNumberfor (const WifiMacHeader *hdr);
   /**
    * Return the next sequence number for the Traffic ID and destination.
    *
@@ -66,12 +58,11 @@ public:
    */
   uint16_t GetNextSeqNumberByTidAndAddress (uint8_t tid, Mac48Address addr) const;
 
-
 private:
-  std::map <Mac48Address,uint16_t*> m_qosSequences; ///< QOS sequences
-  uint16_t m_sequence; ///< current sequence number
+  std::map <Mac48Address,uint16_t*> m_qosSequences;
+  uint16_t m_sequence;
 };
 
-} //namespace ns3
+} // namespace ns3
 
 #endif /* MAC_TX_MIDDLE_H */

@@ -56,21 +56,18 @@
 
 namespace ns3 {
 
-/// Result_e enumeration
 enum Result_e
 {
   SUCCESS,
   FAILURE
 };
 
-/// SetupRelease_e enumeration
 enum SetupRelease_e
 {
   setup,
   release
 };
 
-/// CeBitmap_e
 enum CeBitmap_e
 {
   TA,
@@ -78,7 +75,6 @@ enum CeBitmap_e
   CR
 };
 
-/// NormalExtended_e enumeration
 enum NormalExtended_e
 {
   normal,
@@ -88,73 +84,68 @@ enum NormalExtended_e
 
 /**
  * \brief See section 4.3.1 dlDciListElement
- * \struct DlDciListElement_s
  */
 struct DlDciListElement_s
 {
-  uint16_t  m_rnti; ///< RNTI
-  uint32_t  m_rbBitmap; ///< rb bitmap
-  uint8_t   m_rbShift; ///< rb shift
-  uint8_t   m_resAlloc; ///< res allocate
-  std::vector <uint16_t>  m_tbsSize; ///< tbs size
-  std::vector <uint8_t>   m_mcs; ///< mcs
-  std::vector <uint8_t>   m_ndi; ///< ndi
-  std::vector <uint8_t>   m_rv; ///< rv
-  uint8_t   m_cceIndex; ///< CCE index
-  uint8_t   m_aggrLevel; ///< aggr level
-  uint8_t   m_precodingInfo; ///< precoding info
-  /// Format enumeration
+  uint16_t  m_rnti;
+  uint32_t  m_rbBitmap;
+  uint8_t   m_rbShift;
+  uint8_t   m_resAlloc;
+  std::vector <uint16_t>  m_tbsSize;
+  std::vector <uint8_t>   m_mcs;
+  std::vector <uint8_t>   m_ndi;
+  std::vector <uint8_t>   m_rv;
+  uint8_t   m_cceIndex;
+  uint8_t   m_aggrLevel;
+  uint8_t   m_precodingInfo;
   enum Format_e
   {
     ONE, ONE_A, ONE_B, ONE_C, ONE_D, TWO, TWO_A, TWO_B
-  } m_format; ///< the format
-  uint8_t   m_tpc; ///< TPC
-  uint8_t   m_harqProcess; ///< HARQ process
-  uint8_t   m_dai; ///< DAI
-  /// Vrb Format enum
+  } m_format;
+  uint8_t   m_tpc;
+  uint8_t   m_harqProcess;
+  uint8_t   m_dai;
   enum VrbFormat_e
   {
     VRB_DISTRIBUTED,
     VRB_LOCALIZED
-  } m_vrbFormat; ///< the format
-  bool      m_tbSwap; ///< swap?
-  bool      m_spsRelease; ///< release?
-  bool      m_pdcchOrder; ///< cch order?
-  uint8_t   m_preambleIndex; ///< preamble index
-  uint8_t   m_prachMaskIndex; ///< RACH mask index
-  /// Ngap enum
+  } m_vrbFormat;
+  bool      m_tbSwap;
+  bool      m_spsRelease;
+  bool      m_pdcchOrder;
+  uint8_t   m_preambleIndex;
+  uint8_t   m_prachMaskIndex;
   enum Ngap_e
   {
     GAP1, GAP2
-  } m_nGap; ///< the gap
-  uint8_t   m_tbsIdx; ///< tbs index
-  uint8_t   m_dlPowerOffset; ///< DL power offset
-  uint8_t   m_pdcchPowerOffset; ///<  CCH power offset
+  } m_nGap;
+  uint8_t   m_tbsIdx;
+  uint8_t   m_dlPowerOffset;
+  uint8_t   m_pdcchPowerOffset;
 };
 
 /**
  * \brief See section 4.3.2 ulDciListElement
- * \struct UlDciListElement_s
  */
 struct UlDciListElement_s
 {
-  uint16_t  m_rnti; ///< RNTI
-  uint8_t   m_rbStart; ///< start
-  uint8_t   m_rbLen; ///< length
-  uint16_t  m_tbSize; ///< size
-  uint8_t   m_mcs; ///< MCS
-  uint8_t   m_ndi; ///< NDI
-  uint8_t   m_cceIndex; ///< CCE index
-  uint8_t   m_aggrLevel; ///< aggr level
-  uint8_t   m_ueTxAntennaSelection; ///< UE antenna selection
-  bool      m_hopping; ///< hopping?
-  uint8_t   m_n2Dmrs; ///< n2 DMRS
-  int8_t    m_tpc; ///< TPC
-  bool      m_cqiRequest; ///< CQI request
-  uint8_t   m_ulIndex; ///< UL index
-  uint8_t   m_dai; ///< DAI
-  uint8_t   m_freqHopping; ///< freq hopping
-  int8_t    m_pdcchPowerOffset; ///< CCH power offset
+  uint16_t  m_rnti;
+  uint8_t   m_rbStart;
+  uint8_t   m_rbLen;
+  uint16_t  m_tbSize;
+  uint8_t   m_mcs;
+  uint8_t   m_ndi;
+  uint8_t   m_cceIndex;
+  uint8_t   m_aggrLevel;
+  uint8_t   m_ueTxAntennaSelection;
+  bool      m_hopping;
+  uint8_t   m_n2Dmrs;
+  int8_t    m_tpc;
+  bool      m_cqiRequest;
+  uint8_t   m_ulIndex;
+  uint8_t   m_dai;
+  uint8_t   m_freqHopping;
+  int8_t    m_pdcchPowerOffset;
 };
 
 /**
@@ -168,68 +159,61 @@ struct VendorSpecificValue : public SimpleRefCount<VendorSpecificValue>
 
 /**
  * \brief See section 4.3.3 vendorSpecifiListElement
- * \struct VendorSpecificListElement_s
  */
 struct VendorSpecificListElement_s
 {
-  uint32_t m_type; ///< type
-  uint32_t m_length; ///< length
-  Ptr<VendorSpecificValue> m_value; ///< value
+  uint32_t m_type;
+  uint32_t m_length;
+  Ptr<VendorSpecificValue> m_value;
 };
 
 /**
  * \brief See section 4.3.4 logicalChannelConfigListElement
- * \struct LogicalChannelConfigListElement_s
  */
 struct LogicalChannelConfigListElement_s
 {
-  uint8_t   m_logicalChannelIdentity; ///< logical channel indentity
-  uint8_t   m_logicalChannelGroup; ///< logical channel group
+  uint8_t   m_logicalChannelIdentity;
+  uint8_t   m_logicalChannelGroup;
 
-  /// Direction enum
   enum Direction_e
   {
     DIR_UL,
     DIR_DL,
     DIR_BOTH
-  } m_direction; ///< the direction
+  } m_direction;
 
-  /// QosBearerType enum
   enum QosBearerType_e
   {
     QBT_NON_GBR,
     QBT_GBR
-  } m_qosBearerType; ///< the QOS bearer type
+  } m_qosBearerType;
 
-  uint8_t   m_qci; ///< QCI
-  uint64_t  m_eRabMaximulBitrateUl; ///< ERAB maximum bit rate UL
-  uint64_t  m_eRabMaximulBitrateDl; ///< ERAB mqximum bit rate DL
-  uint64_t  m_eRabGuaranteedBitrateUl; ///< ERAB guaranteed bit rate UL
-  uint64_t  m_eRabGuaranteedBitrateDl; ///< ERAB guaranteed bit rate DL
+  uint8_t   m_qci;
+  uint64_t  m_eRabMaximulBitrateUl;
+  uint64_t  m_eRabMaximulBitrateDl;
+  uint64_t  m_eRabGuaranteedBitrateUl;
+  uint64_t  m_eRabGuaranteedBitrateDl;
 };
 
 /**
  * \brief See section 4.3.6 rachListElement
- * \struct RachListElement_s 
  */
 struct RachListElement_s
 {
-  uint16_t  m_rnti; ///< RNTI
-  uint16_t  m_estimatedSize; ///< estimated size
+  uint16_t  m_rnti;
+  uint16_t  m_estimatedSize;
 };
 
 /**
  * \brief See section 4.3.7 phichListElement
- * \struct PhichListElement_s
  */
 struct PhichListElement_s
 {
-  uint16_t  m_rnti; ///< RNTI
-  /// Phich enum
+  uint16_t  m_rnti;
   enum Phich_e
   {
     ACK, NACK
-  } m_phich; ///< the phich
+  } m_phich;
 };
 
 /**
@@ -237,20 +221,19 @@ struct PhichListElement_s
  */
 struct RlcPduListElement_s
 {
-  uint8_t   m_logicalChannelIdentity; ///< logical channel indentity
-  uint16_t  m_size; ///< size
+  uint8_t   m_logicalChannelIdentity;
+  uint16_t  m_size;
 };
 
 /**
  * \brief See section 4.3.8 builDataListElement
- * \struct BuildDataListElement_s
  */
 struct BuildDataListElement_s
 {
-  uint16_t  m_rnti; ///< RNTI
-  struct DlDciListElement_s m_dci; ///< DCI
-  std::vector <enum CeBitmap_e> m_ceBitmap; ///< CE bitmap
-  std::vector < std::vector <struct RlcPduListElement_s> > m_rlcPduList; ///< RLC PDU list
+  uint16_t  m_rnti;
+  struct DlDciListElement_s m_dci;
+  std::vector <enum CeBitmap_e> m_ceBitmap;
+  std::vector < std::vector <struct RlcPduListElement_s> > m_rlcPduList;
 };
 
 /**
@@ -258,15 +241,15 @@ struct BuildDataListElement_s
  */
 struct UlGrant_s
 {
-  uint16_t m_rnti; ///< RNTI
-  uint8_t m_rbStart; ///< start
-  uint8_t m_rbLen; ///< length
-  uint16_t m_tbSize; ///< size
-  uint8_t m_mcs; ///< MCS
-  bool m_hopping; ///< hopping?
-  int8_t m_tpc; ///< TPC 
-  bool m_cqiRequest; ///< CQI request?
-  bool m_ulDelay; ///< UL delay?
+  uint16_t m_rnti;
+  uint8_t m_rbStart;
+  uint8_t m_rbLen;
+  uint16_t m_tbSize;
+  uint8_t m_mcs;
+  bool m_hopping;
+  int8_t m_tpc;
+  bool m_cqiRequest;
+  bool m_ulDelay;
 }; 
 
 /**
@@ -274,10 +257,10 @@ struct UlGrant_s
  */
 struct BuildRarListElement_s
 {
-  uint16_t  m_rnti; ///< RNTI
+  uint16_t  m_rnti;
   //uint32_t  m_grant; // Substituted with type UlGrant_s
-  UlGrant_s m_grant; ///< grant
-  struct DlDciListElement_s m_dci; ///< DCI
+  UlGrant_s m_grant;
+  struct DlDciListElement_s m_dci;
 };
 
 /**
@@ -285,13 +268,12 @@ struct BuildRarListElement_s
  */
 struct BuildBroadcastListElement_s
 {
-  /// Type enum
   enum Type_e
   {
     BCCH, PCCH
-  } m_type; ///< the type
-  uint8_t m_index; ///< index
-  struct DlDciListElement_s m_dci; ///< DCI
+  } m_type;
+  uint8_t m_index;
+  struct DlDciListElement_s m_dci;
 };
 
 /**
@@ -299,14 +281,13 @@ struct BuildBroadcastListElement_s
  */
 struct UlInfoListElement_s
 {
-  uint16_t  m_rnti; ///< RNTI
-  std::vector <uint16_t> m_ulReception; ///< UL reception
-  /// Reception status enum
-  enum ReceptionStatus_e 
+  uint16_t  m_rnti;
+  std::vector <uint16_t> m_ulReception;
+  enum ReceptionStatus_e
   {
     Ok, NotOk, NotValid
-  } m_receptionStatus; ///< the status
-  uint8_t   m_tpc; ///< TPC
+  } m_receptionStatus;
+  uint8_t   m_tpc;
 };
 
 /**
@@ -314,7 +295,7 @@ struct UlInfoListElement_s
  */
 struct SrListElement_s
 {
-  uint16_t  m_rnti; ///< RNTI
+  uint16_t  m_rnti;
 };
 
 /**
@@ -322,9 +303,9 @@ struct SrListElement_s
  */
 struct MacCeValue_u
 {
-  uint8_t   m_phr; ///< phr
-  uint8_t   m_crnti; ///< NRTI
-  std::vector <uint8_t> m_bufferStatus; ///< buffer status
+  uint8_t   m_phr;
+  uint8_t   m_crnti;
+  std::vector <uint8_t> m_bufferStatus;
 };
 
 /**
@@ -332,13 +313,12 @@ struct MacCeValue_u
  */
 struct MacCeListElement_s
 {
-  uint16_t  m_rnti; ///< RNTI
-  /// MAC CE type enum
+  uint16_t  m_rnti;
   enum MacCeType_e
   {
     BSR, PHR, CRNTI
-  } m_macCeType; ///< MAC CE type
-  struct MacCeValue_u m_macCeValue; ///< MAC CE value
+  } m_macCeType;
+  struct MacCeValue_u m_macCeValue;
 };
 
 /**
@@ -346,13 +326,13 @@ struct MacCeListElement_s
  */
 struct DrxConfig_s
 {
-  uint8_t   m_onDurationTimer; ///< on duration timer
-  uint16_t  m_drxInactivityTimer; ///< inactivity timer
-  uint16_t  m_drxRetransmissionTimer; ///< retransmission timer
-  uint16_t  m_longDrxCycle; ///< long DRX cycle 
-  uint16_t  m_longDrxCycleStartOffset; ///< long DRX cycle start offset
-  uint16_t  m_shortDrxCycle; ///< short DRX cycle
-  uint8_t   m_drxShortCycleTimer; ///< short DRX cycle timer
+  uint8_t   m_onDurationTimer;
+  uint16_t  m_drxInactivityTimer;
+  uint16_t  m_drxRetransmissionTimer;
+  uint16_t  m_longDrxCycle;
+  uint16_t  m_longDrxCycleStartOffset;
+  uint16_t  m_shortDrxCycle;
+  uint8_t   m_drxShortCycleTimer;
 };
 
 /**
@@ -360,12 +340,12 @@ struct DrxConfig_s
  */
 struct SpsConfig_s
 {
-  uint16_t  m_semiPersistSchedIntervalUl; ///< UL semi persist schedule interval
-  uint16_t  m_semiPersistSchedIntervalDl; ///< DL semi persist schedule interval
-  uint8_t   m_numberOfConfSpsProcesses; ///< number of conf SPS process
-  uint8_t   m_n1PucchAnPersistentListSize; ///< N1pu CCH  persistent list size
-  std::vector <uint16_t> m_n1PucchAnPersistentList; ///< N1pu CCH persistent list
-  uint8_t   m_implicitReleaseAfter; ///< implicit release after
+  uint16_t  m_semiPersistSchedIntervalUl;
+  uint16_t  m_semiPersistSchedIntervalDl;
+  uint8_t   m_numberOfConfSpsProcesses;
+  uint8_t   m_n1PucchAnPersistentListSize;
+  std::vector <uint16_t> m_n1PucchAnPersistentList;
+  uint8_t   m_implicitReleaseAfter;
 };
 
 /**
@@ -373,9 +353,9 @@ struct SpsConfig_s
  */
 struct SrConfig_s
 {
-  enum SetupRelease_e m_action; ///< action
-  uint8_t   m_schedInterval; ///< sched interval
-  uint8_t   m_dsrTransMax; ///< trans max
+  enum SetupRelease_e m_action;
+  uint8_t   m_schedInterval;
+  uint8_t   m_dsrTransMax;
 };
 
 /**
@@ -383,9 +363,9 @@ struct SrConfig_s
  */
 struct CqiConfig_s
 {
-  enum SetupRelease_e m_action; ///< action
-  uint16_t  m_cqiSchedInterval; ///< CQI schedule interval
-  uint8_t   m_riSchedInterval; ///< RI schedule interval
+  enum SetupRelease_e m_action;
+  uint16_t  m_cqiSchedInterval;
+  uint8_t   m_riSchedInterval;
 };
 
 /**
@@ -393,11 +373,11 @@ struct CqiConfig_s
  */
 struct UeCapabilities_s
 {
-  bool      m_halfDuplex; ///< half duplex
-  bool      m_intraSfHopping; ///< intra SF hopping
-  bool      m_type2Sb1; ///< type 2Sb1
-  uint8_t   m_ueCategory; ///< UE category
-  bool      m_resAllocType1; ///< alloc type 1
+  bool      m_halfDuplex;
+  bool      m_intraSfHopping;
+  bool      m_type2Sb1;
+  uint8_t   m_ueCategory;
+  bool      m_resAllocType1;
 };
 
 /**
@@ -405,8 +385,8 @@ struct UeCapabilities_s
  */
 struct SiMessageListElement_s
 {
-  uint16_t  m_periodicity; ///< periodicity
-  uint16_t  m_length; ///< length
+  uint16_t  m_periodicity;
+  uint16_t  m_length;
 };
 
 /**
@@ -414,10 +394,10 @@ struct SiMessageListElement_s
  */
 struct SiConfiguration_s
 {
-  uint16_t  m_sfn; ///< sfn
-  uint16_t  m_sib1Length; ///< sib1 length
-  uint8_t   m_siWindowLength; ///< window length
-  std::vector <struct SiMessageListElement_s> m_siMessageList; ///< message list
+  uint16_t  m_sfn;
+  uint16_t  m_sib1Length;
+  uint8_t   m_siWindowLength;
+  std::vector <struct SiMessageListElement_s> m_siMessageList;
 };
 
 /**
@@ -425,14 +405,13 @@ struct SiConfiguration_s
  */
 struct DlInfoListElement_s
 {
-  uint16_t  m_rnti; ///< RNTI
-  uint8_t   m_harqProcessId; ///< HARQ process ID
-  /// HARQ status enum
+  uint16_t  m_rnti;
+  uint8_t   m_harqProcessId;
   enum HarqStatus_e
   {
     ACK, NACK, DTX
   };
-  std::vector <enum HarqStatus_e> m_harqStatus; ///< HARQ status
+  std::vector <enum HarqStatus_e> m_harqStatus;
 };
 
 /**
@@ -440,9 +419,9 @@ struct DlInfoListElement_s
  */
 struct BwPart_s
 {
-  uint8_t   m_bwPartIndex; ///< bw part index
-  uint8_t   m_sb; ///< sb
-  uint8_t   m_cqi; ///< CQI
+  uint8_t   m_bwPartIndex;
+  uint8_t   m_sb;
+  uint8_t   m_cqi;
 };
 
 /**
@@ -450,8 +429,8 @@ struct BwPart_s
  */
 struct HigherLayerSelected_s
 {
-  uint8_t   m_sbPmi; ///< sb PMI
-  std::vector <uint8_t> m_sbCqi; ///< sb CQI
+  uint8_t   m_sbPmi;
+  std::vector <uint8_t> m_sbCqi;
 };
 
 /**
@@ -459,9 +438,9 @@ struct HigherLayerSelected_s
  */
 struct UeSelected_s
 {
-  std::vector <uint8_t> m_sbList; ///< sb list
-  uint8_t   m_sbPmi; ///< sb PMI
-  std::vector <uint8_t> m_sbCqi; ///< sb CQI
+  std::vector <uint8_t> m_sbList;
+  uint8_t   m_sbPmi;
+  std::vector <uint8_t> m_sbCqi;
 };
 
 /**
@@ -469,9 +448,9 @@ struct UeSelected_s
  */
 struct SbMeasResult_s
 {
-  struct UeSelected_s           m_ueSelected; ///< UE selected
-  std::vector <struct HigherLayerSelected_s> m_higherLayerSelected; ///< higher layer selected
-  struct BwPart_s               m_bwPart; ///< bw part
+  struct UeSelected_s           m_ueSelected;
+  std::vector <struct HigherLayerSelected_s> m_higherLayerSelected;
+  struct BwPart_s               m_bwPart;
 };
 
 /**
@@ -479,17 +458,16 @@ struct SbMeasResult_s
  */
 struct CqiListElement_s
 {
-  uint16_t  m_rnti; ///< RNTI
-  uint8_t   m_ri; ///< RI
-  /// CqiType_e enumeration
+  uint16_t  m_rnti;
+  uint8_t   m_ri;
   enum CqiType_e
   {
     P10, P11, P20, P21, A12, A22, A20, A30, A31
-  } m_cqiType; ///< CQI type
-  std::vector <uint8_t> m_wbCqi; ///< wb CQI
-  uint8_t   m_wbPmi; ///< wb PMI
+  } m_cqiType;
+  std::vector <uint8_t> m_wbCqi;
+  uint8_t   m_wbPmi;
 
-  struct SbMeasResult_s m_sbMeasResult; ///< sb measure result
+  struct SbMeasResult_s m_sbMeasResult;
 };
 
 /**
@@ -497,8 +475,7 @@ struct CqiListElement_s
  */
 struct UlCqi_s
 {
-  std::vector <uint16_t> m_sinr; ///< SINR
-  /// Type_e enumeration
+  std::vector <uint16_t> m_sinr;
   enum Type_e
   {
     SRS,
@@ -506,7 +483,7 @@ struct UlCqi_s
     PUCCH_1,
     PUCCH_2,
     PRACH
-  } m_type; ///< type
+  } m_type;
 };
 
 /**
@@ -514,9 +491,9 @@ struct UlCqi_s
  */
 struct PagingInfoListElement_s
 {
-  uint8_t   m_pagingIndex; ///< paging index
-  uint16_t  m_pagingMessageSize; ///< paging message size
-  uint8_t   m_pagingSubframe; ///< paging subframe
+  uint8_t   m_pagingIndex;
+  uint16_t  m_pagingMessageSize;
+  uint8_t   m_pagingSubframe;
 };
 
 } // namespace ns3

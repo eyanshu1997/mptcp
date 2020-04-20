@@ -16,7 +16,6 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
  * Author: Nicola Baldo <nbaldo@cttc.es>
- *         Michele Polese <michele.polese@gmail.com> for the OutdoorPositionAllocator class
  */
 #include "building-position-allocator.h"
 #include <ns3/mobility-building-info.h>
@@ -30,17 +29,16 @@
 #include "ns3/log.h"
 #include "ns3/box.h"
 #include "ns3/building.h"
-#include "ns3/string.h"
-#include "ns3/pointer.h"
 #include <cmath>
 
 #include "ns3/building-list.h"
 
-namespace ns3 {
-
 NS_LOG_COMPONENT_DEFINE ("BuildingPositionAllocator");
 
-NS_OBJECT_ENSURE_REGISTERED (RandomBuildingPositionAllocator);
+namespace ns3 {
+
+NS_OBJECT_ENSURE_REGISTERED (RandomBuildingPositionAllocator)
+  ;
 
 
 RandomBuildingPositionAllocator::RandomBuildingPositionAllocator ()
@@ -53,7 +51,7 @@ RandomBuildingPositionAllocator::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::RandomBuildingPositionAllocator")
     .SetParent<PositionAllocator> ()
-    .SetGroupName ("Buildings")
+    .SetGroupName ("Mobility")
     .AddConstructor<RandomBuildingPositionAllocator> ()
     .AddAttribute ("WithReplacement",
                    "If true, the building will be randomly selected with replacement. "
@@ -107,122 +105,8 @@ RandomBuildingPositionAllocator::AssignStreams (int64_t stream)
 }
 
 
-NS_OBJECT_ENSURE_REGISTERED (OutdoorPositionAllocator);
-
-OutdoorPositionAllocator::OutdoorPositionAllocator ()
-{
-}
-
-TypeId
-OutdoorPositionAllocator::GetTypeId (void)
-{
-  static TypeId tid = TypeId ("ns3::OutdoorPositionAllocator")
-    .SetParent<PositionAllocator> ()
-    .SetGroupName ("Buildings")
-    .AddConstructor<OutdoorPositionAllocator> ()
-    .AddAttribute ("X",
-                   "A random variable which represents the x coordinate of a position in a random box.",
-                   StringValue ("ns3::UniformRandomVariable[Min=0.0|Max=1.0]"),
-                   MakePointerAccessor (&OutdoorPositionAllocator::m_x),
-                   MakePointerChecker<RandomVariableStream> ())
-    .AddAttribute ("Y",
-                   "A random variable which represents the y coordinate of a position in a random box.",
-                   StringValue ("ns3::UniformRandomVariable[Min=0.0|Max=1.0]"),
-                   MakePointerAccessor (&OutdoorPositionAllocator::m_y),
-                   MakePointerChecker<RandomVariableStream> ())
-    .AddAttribute ("Z",
-                   "A random variable which represents the z coordinate of a position in a random box.",
-                   StringValue ("ns3::UniformRandomVariable[Min=0.0|Max=1.0]"),
-                   MakePointerAccessor (&OutdoorPositionAllocator::m_z),
-                   MakePointerChecker<RandomVariableStream> ())
-    .AddAttribute ("MaxAttempts",
-                   "Maximum number of attempts for the rejection sampling before giving up.",
-                   UintegerValue (1000),
-                   MakeUintegerAccessor (&OutdoorPositionAllocator::m_maxAttempts),
-                   MakeUintegerChecker<uint32_t> ())
+NS_OBJECT_ENSURE_REGISTERED (RandomRoomPositionAllocator)
   ;
-
-  return tid;
-}
-
-void
-OutdoorPositionAllocator::SetX (Ptr<RandomVariableStream> x)
-{
-  m_x = x;
-}
-void
-OutdoorPositionAllocator::SetY (Ptr<RandomVariableStream> y)
-{
-  m_y = y;
-}
-void
-OutdoorPositionAllocator::SetZ (Ptr<RandomVariableStream> z)
-{
-  m_z = z;
-}
-
-Vector
-OutdoorPositionAllocator::GetNext () const
-{
-  NS_ABORT_MSG_IF (BuildingList::GetNBuildings () == 0, "no building found");
-
-  bool outdoor = false;
-  uint32_t attempts = 0;
-  Vector position = Vector (0,0,0);
-
-  while (!outdoor && attempts < m_maxAttempts)
-    {
-      // get a random position
-      double x = m_x->GetValue ();
-      double y = m_y->GetValue ();
-      double z = m_z->GetValue ();
-
-      position = Vector (x, y, z);
-
-      NS_LOG_INFO ("Position " << position);
-
-      bool inside = false;
-      for (BuildingList::Iterator bit = BuildingList::Begin (); bit != BuildingList::End (); ++bit)
-        {
-          if ((*bit)->IsInside (position))
-            {
-              NS_LOG_INFO ("Position " << position << " is inside the building with boundaries "
-                                       << (*bit)->GetBoundaries ().xMin << " " << (*bit)->GetBoundaries ().xMax << " "
-                                       << (*bit)->GetBoundaries ().yMin << " " << (*bit)->GetBoundaries ().yMax << " "
-                                       << (*bit)->GetBoundaries ().zMin << " " << (*bit)->GetBoundaries ().zMax);
-              inside = true;
-              break;
-            }
-        }
-
-      if (inside)
-        {
-          NS_LOG_INFO ("Inside a building, attempt " << attempts << " out of " << m_maxAttempts);
-          attempts++;
-        }
-      else
-        {
-          NS_LOG_INFO ("Outdoor position found " << position);
-          outdoor = true;
-        }
-    }
-
-  NS_ABORT_MSG_IF (attempts >= m_maxAttempts, "Too many attempts, give up");
-  NS_ABORT_MSG_IF (!outdoor, "Still indoor, give up");
-  return position;
-}
-
-int64_t
-OutdoorPositionAllocator::AssignStreams (int64_t stream)
-{
-  m_x->SetStream (stream);
-  m_y->SetStream (stream + 1);
-  m_z->SetStream (stream + 2);
-  return 3;
-}
-
-
-NS_OBJECT_ENSURE_REGISTERED (RandomRoomPositionAllocator);
 
 
 RandomRoomPositionAllocator::RandomRoomPositionAllocator ()
@@ -235,7 +119,7 @@ RandomRoomPositionAllocator::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::RandomRoomPositionAllocator")
     .SetParent<PositionAllocator> ()
-    .SetGroupName ("Buildings")
+    .SetGroupName ("Mobility")
     .AddConstructor<RandomRoomPositionAllocator> ();
   return tid;
 }
@@ -310,7 +194,8 @@ RandomRoomPositionAllocator::AssignStreams (int64_t stream)
 
 
 
-NS_OBJECT_ENSURE_REGISTERED (SameRoomPositionAllocator);
+NS_OBJECT_ENSURE_REGISTERED (SameRoomPositionAllocator)
+  ;
 
 SameRoomPositionAllocator::SameRoomPositionAllocator ()
 {
@@ -339,7 +224,7 @@ SameRoomPositionAllocator::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::SameRoomPositionAllocator")
     .SetParent<PositionAllocator> ()
-    .SetGroupName ("Buildings")
+    .SetGroupName ("Mobility")
     .AddConstructor<SameRoomPositionAllocator> ();
   return tid;
 }
@@ -400,7 +285,8 @@ SameRoomPositionAllocator::AssignStreams (int64_t stream)
   return 1;
 }
 
-NS_OBJECT_ENSURE_REGISTERED (FixedRoomPositionAllocator);
+NS_OBJECT_ENSURE_REGISTERED (FixedRoomPositionAllocator)
+  ;
 
 
 FixedRoomPositionAllocator::FixedRoomPositionAllocator (
@@ -421,7 +307,7 @@ FixedRoomPositionAllocator::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::FixedRoomPositionAllocator")
     .SetParent<PositionAllocator> ()
-    .SetGroupName ("Buildings")
+    .SetGroupName ("Mobility")
     .AddConstructor<SameRoomPositionAllocator> ();
   return tid;
 }
@@ -463,4 +349,5 @@ FixedRoomPositionAllocator::AssignStreams (int64_t stream)
   return 1;
 }
 
-}  // namespace ns3
+
+} // namespace ns3

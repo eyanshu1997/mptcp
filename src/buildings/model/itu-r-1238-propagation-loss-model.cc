@@ -28,11 +28,12 @@
 #include "itu-r-1238-propagation-loss-model.h"
 #include <ns3/mobility-building-info.h>
 
-namespace ns3 {
-
 NS_LOG_COMPONENT_DEFINE ("ItuR1238PropagationLossModel");
 
-NS_OBJECT_ENSURE_REGISTERED (ItuR1238PropagationLossModel);
+namespace ns3 {
+
+NS_OBJECT_ENSURE_REGISTERED (ItuR1238PropagationLossModel)
+  ;
 
 
 TypeId
@@ -41,7 +42,6 @@ ItuR1238PropagationLossModel::GetTypeId (void)
   static TypeId tid = TypeId ("ns3::ItuR1238PropagationLossModel")
 
     .SetParent<PropagationLossModel> ()
-    .SetGroupName ("Buildings")
 
     .AddAttribute ("Frequency",
                    "The Frequency  (default is 2.106 GHz).",

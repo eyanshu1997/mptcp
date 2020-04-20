@@ -24,11 +24,12 @@
 #include "ns3/header.h"
 #include "ipv4-header.h"
 
-namespace ns3 {
-
 NS_LOG_COMPONENT_DEFINE ("Ipv4Header");
 
-NS_OBJECT_ENSURE_REGISTERED (Ipv4Header);
+namespace ns3 {
+
+NS_OBJECT_ENSURE_REGISTERED (Ipv4Header)
+  ;
 
 Ipv4Header::Ipv4Header ()
   : m_calcChecksum (false),
@@ -90,7 +91,7 @@ Ipv4Header::SetDscp (DscpType dscp)
 {
   NS_LOG_FUNCTION (this << dscp);
   m_tos &= 0x3; // Clear out the DSCP part, retain 2 bits of ECN
-  m_tos |= (dscp << 2);
+  m_tos |= dscp;
 }
 
 void
@@ -106,7 +107,7 @@ Ipv4Header::GetDscp (void) const
 {
   NS_LOG_FUNCTION (this);
   // Extract only first 6 bits of TOS byte, i.e 0xFC
-  return DscpType ((m_tos & 0xFC) >> 2);
+  return DscpType (m_tos & 0xFC);
 }
 
 std::string 
@@ -246,8 +247,7 @@ uint16_t
 Ipv4Header::GetFragmentOffset (void) const
 {
   NS_LOG_FUNCTION (this);
-  // -fstrict-overflow sensitive, see bug 1868
-  if ( m_fragmentOffset + m_payloadSize > 65535 - 5*4 )
+  if ((m_fragmentOffset+m_payloadSize+5*4) > 65535)
     {
       NS_LOG_WARN("Fragment will exceed the maximum packet size once reassembled");
     }
@@ -320,7 +320,6 @@ Ipv4Header::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::Ipv4Header")
     .SetParent<Header> ()
-    .SetGroupName ("Internet")
     .AddConstructor<Ipv4Header> ()
   ;
   return tid;
@@ -341,8 +340,8 @@ Ipv4Header::Print (std::ostream &os) const
     {
       flags = "none";
     }
-  else if ((m_flags & MORE_FRAGMENTS) &&
-           (m_flags & DONT_FRAGMENT))
+  else if (m_flags & MORE_FRAGMENTS &&
+           m_flags & DONT_FRAGMENT)
     {
       flags = "MF|DF";
     }
@@ -424,17 +423,10 @@ Ipv4Header::Deserialize (Buffer::Iterator start)
 {
   NS_LOG_FUNCTION (this << &start);
   Buffer::Iterator i = start;
-
   uint8_t verIhl = i.ReadU8 ();
   uint8_t ihl = verIhl & 0x0f; 
   uint16_t headerSize = ihl * 4;
-
-  if ((verIhl >> 4) != 4)
-    {
-      NS_LOG_WARN ("Trying to decode a non-IPv4 header, refusing to do it.");
-      return 0;
-    }
-
+  NS_ASSERT ((verIhl >> 4) == 4);
   m_tos = i.ReadU8 ();
   uint16_t size = i.ReadNtohU16 ();
   m_payloadSize = size - headerSize;

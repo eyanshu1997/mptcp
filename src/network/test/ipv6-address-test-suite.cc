@@ -19,33 +19,27 @@
 
 using namespace ns3;
 
-/**
- * \ingroup network-test
- * \ingroup tests
- *
- * Ipv6Address unit tests.
- */
-class Ipv6AddressTestCase : public TestCase
+class Ipv6AddressTestCase1 : public TestCase
 {
 public:
-  Ipv6AddressTestCase ();
-  virtual ~Ipv6AddressTestCase ();
+  Ipv6AddressTestCase1 ();
+  virtual ~Ipv6AddressTestCase1 ();
 
 private:
   virtual void DoRun (void);
 };
 
-Ipv6AddressTestCase::Ipv6AddressTestCase ()
+Ipv6AddressTestCase1::Ipv6AddressTestCase1 ()
   : TestCase ("serialization code")
 {
 }
 
-Ipv6AddressTestCase::~Ipv6AddressTestCase ()
+Ipv6AddressTestCase1::~Ipv6AddressTestCase1 ()
 {
 }
 
 void
-Ipv6AddressTestCase::DoRun (void)
+Ipv6AddressTestCase1::DoRun (void)
 {
   Ipv6Address ip = Ipv6Address ("2001:db8::1");
   uint8_t ipBytes[16];
@@ -97,13 +91,6 @@ Ipv6AddressTestCase::DoRun (void)
 
 }
 
-/**
- * \ingroup network-test
- * \ingroup tests
- *
- * \brief Ipv6Address TestSuite
- *
- */
 class Ipv6AddressTestSuite : public TestSuite
 {
 public:
@@ -113,8 +100,8 @@ public:
 Ipv6AddressTestSuite::Ipv6AddressTestSuite ()
   : TestSuite ("ipv6-address", UNIT)
 {
-  AddTestCase (new Ipv6AddressTestCase, TestCase::QUICK);
+  AddTestCase (new Ipv6AddressTestCase1, TestCase::QUICK);
 }
 
-static Ipv6AddressTestSuite ipv6AddressTestSuite; //!< Static variable for test initialization
+static Ipv6AddressTestSuite ipv6AddressTestSuite;
 

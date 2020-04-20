@@ -20,22 +20,30 @@
  *
  */
 #include "ns3/log.h"
+#include "ns3/abort.h"
 #include "ns3/test.h"
-#include "ns3/ipcs-classifier-record.h"
-#include "ns3/ptr.h"
-#include "ns3/packet.h"
+#include "ns3/uinteger.h"
+#include "ns3/inet-socket-address.h"
+#include "ns3/point-to-point-helper.h"
+#include "ns3/internet-stack-helper.h"
+#include "ns3/ipv4-address-helper.h"
+#include "ns3/ipv4-header.h"
+#include "ns3/packet-sink-helper.h"
+#include "ns3/udp-client-server-helper.h"
+#include "ns3/udp-header.h"
+#include "ns3/simulator.h"
 #include "ns3/wimax-helper.h"
+#include "ns3/mobility-helper.h"
+#include "ns3/global-route-manager.h"
 #include "ns3/wimax-tlv.h"
+#include "ns3/ipcs-classifier-record.h"
 #include "ns3/service-flow.h"
-#include "ns3/cs-parameters.h"
+#include <iostream>
 
 using namespace ns3;
 
-/**
- * \ingroup wimax-test
- * \ingroup tests
- *
- * \brief Test the wimax tlv implementation.
+/*
+ * Test the wimax tlv implementation.
  */
 class Ns3WimaxCsParamTlvTestCase : public TestCase
 {
@@ -127,12 +135,10 @@ Ns3WimaxCsParamTlvTestCase::DoRun (void)
         }
     }
 }
+// ==============================================================================
 
-/**
- * \ingroup wimax-test
- * \ingroup tests
- *
- * \brief Test the service flow tlv implementation.
+/*
+ * Test the service flow tlv implementation.
  */
 class Ns3WimaxSfTlvTestCase : public TestCase
 {
@@ -192,12 +198,7 @@ Ns3WimaxSfTlvTestCase::DoRun (void)
   NS_TEST_ASSERT_MSG_EQ (sfRecv.GetTrafficPriority (), 1, "The sfRecv had the wrong traffic priority.");
 }
 
-/**
- * \ingroup wimax-test
- * \ingroup tests
- *
- * \brief Ns3 Wimax Tlv Test Suite
- */
+// ==============================================================================
 class Ns3WimaxTlvTestSuite : public TestSuite
 {
 public:
@@ -211,4 +212,4 @@ Ns3WimaxTlvTestSuite::Ns3WimaxTlvTestSuite ()
   AddTestCase (new Ns3WimaxSfTlvTestCase, TestCase::QUICK);
 }
 
-static Ns3WimaxTlvTestSuite ns3WimaxTlvTestSuite; ///< the test suite
+static Ns3WimaxTlvTestSuite ns3WimaxTlvTestSuite;

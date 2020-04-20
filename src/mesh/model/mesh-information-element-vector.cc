@@ -36,33 +36,6 @@
 
 namespace ns3 {
 
-NS_OBJECT_ENSURE_REGISTERED (MeshInformationElementVector);
-
-MeshInformationElementVector::MeshInformationElementVector ()
-{
-}
-
-MeshInformationElementVector::~MeshInformationElementVector ()
-{
-}
-
-
-TypeId
-MeshInformationElementVector::GetTypeId ()
-{
-  static TypeId tid = TypeId ("ns3::MeshInformationElementVector")
-    .SetParent<WifiInformationElementVector> ()
-    .SetGroupName ("Mesh")
-    .AddConstructor<MeshInformationElementVector> ();
-  return tid;
-}
-
-TypeId
-MeshInformationElementVector::GetInstanceTypeId () const
-{
-  return GetTypeId ();
-}
-
 uint32_t
 MeshInformationElementVector::DeserializeSingleIe (Buffer::Iterator start)
 {
@@ -72,31 +45,31 @@ MeshInformationElementVector::DeserializeSingleIe (Buffer::Iterator start)
   Ptr<WifiInformationElement> newElement;
   switch (id)
     {
-    case IE_MESH_CONFIGURATION:
+    case IE11S_MESH_CONFIGURATION:
       newElement = Create<dot11s::IeConfiguration> ();
       break;
-    case IE_MESH_ID:
+    case IE11S_MESH_ID:
       newElement = Create<dot11s::IeMeshId> ();
       break;
-    case IE_MESH_LINK_METRIC_REPORT:
+    case IE11S_LINK_METRIC_REPORT:
       newElement = Create<dot11s::IeLinkMetricReport> ();
       break;
-    case IE_MESH_PEERING_MANAGEMENT:
+    case IE11S_PEERING_MANAGEMENT:
       newElement = Create<dot11s::IePeerManagement> ();
       break;
-    case IE_BEACON_TIMING:
+    case IE11S_BEACON_TIMING:
       newElement = Create<dot11s::IeBeaconTiming> ();
       break;
-    case IE_RANN:
+    case IE11S_RANN:
       newElement = Create<dot11s::IeRann> ();
       break;
-    case IE_PREQ:
+    case IE11S_PREQ:
       newElement = Create<dot11s::IePreq> ();
       break;
-    case IE_PREP:
+    case IE11S_PREP:
       newElement = Create<dot11s::IePrep> ();
       break;
-    case IE_PERR:
+    case IE11S_PERR:
       newElement = Create<dot11s::IePerr> ();
       break;
     case IE11S_MESH_PEERING_PROTOCOL_VERSION:

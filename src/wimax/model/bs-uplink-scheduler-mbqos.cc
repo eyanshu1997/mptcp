@@ -29,11 +29,12 @@
 #include "bandwidth-manager.h"
 #include "connection-manager.h"
 
-namespace ns3 {
-
 NS_LOG_COMPONENT_DEFINE ("UplinkSchedulerMBQoS");
 
-NS_OBJECT_ENSURE_REGISTERED (UplinkSchedulerMBQoS);
+namespace ns3 {
+
+NS_OBJECT_ENSURE_REGISTERED (UplinkSchedulerMBQoS)
+  ;
 
 UplinkSchedulerMBQoS::UplinkSchedulerMBQoS ()
 {
@@ -57,8 +58,6 @@ UplinkSchedulerMBQoS::GetTypeId (void)
   static TypeId tid = TypeId ("ns3::UplinkSchedulerMBQoS")
 
     .SetParent<UplinkScheduler> ()
-
-    .SetGroupName("Wimax")
 
     .AddAttribute ("WindowInterval",
                    "The time to wait to reset window",
@@ -88,7 +87,7 @@ UplinkSchedulerMBQoS::GetChannelDescriptorsToUpdate (bool &updateDcd,
 {
   /* DCD and UCD shall actually be updated when channel or burst profile definitions
    change. burst profiles are updated based on number of SSs, network conditions and etc.
-   for now temporarily assuming DCD/UCD shall be updated every time */
+   for now temporarily assuming DCD/UCD shall be updated everytime */
 
   uint32_t randNr = rand ();
   if (randNr % 5 == 0 || GetBs ()->GetNrDcdSent () == 0)
@@ -225,6 +224,7 @@ UplinkSchedulerMBQoS::Schedule (void)
   uint32_t symbolsToAllocation = 0;
   uint32_t allocationSize = 0; // size in symbols
   uint32_t availableSymbols = GetBs ()->GetNrUlSymbols ();
+  uint32_t availableSymbolsAux = GetBs ()->GetNrUlSymbols ();
 
   AllocateInitialRangingInterval (symbolsToAllocation, availableSymbols);
 
@@ -312,7 +312,7 @@ UplinkSchedulerMBQoS::Schedule (void)
                         (*(ssRecord->GetServiceFlows (ServiceFlow::SF_TYPE_UGS).begin ()))->GetRecord ()->GetLastGrantTime ()
                         + MilliSeconds ((*(ssRecord->GetServiceFlows (ServiceFlow::SF_TYPE_UGS).begin ()))->GetUnsolicitedGrantInterval ());
 
-                      int64_t frame = (timestamp - Simulator::Now ()) / frame_duration;
+                      Time frame = Time ((timestamp - Simulator::Now ()) / frame_duration);
 
                       if (frame <= 1)
                         {
@@ -356,7 +356,7 @@ UplinkSchedulerMBQoS::Schedule (void)
     }
   NS_LOG_DEBUG ("At " << Simulator::Now ().GetSeconds ()<< " high queue has " << m_uplinkJobs_high.size ()<< " jobs - after sched");
 
-  uint32_t availableSymbolsAux = availableSymbols;
+  availableSymbolsAux = availableSymbols;
   uint32_t symbolsUsed = 0;
 
   symbolsUsed += CountSymbolsQueue (m_uplinkJobs_high);
@@ -481,7 +481,7 @@ UplinkSchedulerMBQoS::Schedule (void)
     }
 
   OfdmUlMapIe ulMapIeEnd;
-  ulMapIeEnd.SetCid (Cid (0));
+  ulMapIeEnd.SetCid (*(new Cid (0)));
   ulMapIeEnd.SetStartTime (symbolsToAllocation);
   ulMapIeEnd.SetUiuc (OfdmUlBurstProfile::UIUC_END_OF_MAP);
   ulMapIeEnd.SetDuration (0);
@@ -663,7 +663,7 @@ UplinkSchedulerMBQoS::CheckDeadline (uint32_t &availableSymbols)
               Time deadline = job->GetDeadline ();
               Time frame_duration = GetBs ()->GetPhy ()->GetFrameDuration ();
 
-              int64_t frame = (deadline - Simulator::Now ()) / frame_duration;
+              Time frame = Time ((deadline - Simulator::Now ()) / frame_duration);
 
               NS_LOG_DEBUG ("At " << Simulator::Now ().GetSeconds () << " reserved traffic rate: "
                                   << job->GetServiceFlow ()->GetMinReservedTrafficRate ()

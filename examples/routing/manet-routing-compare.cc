@@ -71,12 +71,12 @@
 #include "ns3/network-module.h"
 #include "ns3/internet-module.h"
 #include "ns3/mobility-module.h"
+#include "ns3/wifi-module.h"
 #include "ns3/aodv-module.h"
 #include "ns3/olsr-module.h"
 #include "ns3/dsdv-module.h"
 #include "ns3/dsr-module.h"
 #include "ns3/applications-module.h"
-#include "ns3/yans-wifi-helper.h"
 
 using namespace ns3;
 using namespace dsr;
@@ -120,15 +120,18 @@ RoutingExperiment::RoutingExperiment ()
 }
 
 static inline std::string
-PrintReceivedPacket (Ptr<Socket> socket, Ptr<Packet> packet, Address senderAddress)
+PrintReceivedPacket (Ptr<Socket> socket, Ptr<Packet> packet)
 {
+  SocketAddressTag tag;
+  bool found;
+  found = packet->PeekPacketTag (tag);
   std::ostringstream oss;
 
   oss << Simulator::Now ().GetSeconds () << " " << socket->GetNode ()->GetId ();
 
-  if (InetSocketAddress::IsMatchingType (senderAddress))
+  if (found)
     {
-      InetSocketAddress addr = InetSocketAddress::ConvertFrom (senderAddress);
+      InetSocketAddress addr = InetSocketAddress::ConvertFrom (tag.GetAddress ());
       oss << " received one packet from " << addr.GetIpv4 ();
     }
   else
@@ -142,12 +145,11 @@ void
 RoutingExperiment::ReceivePacket (Ptr<Socket> socket)
 {
   Ptr<Packet> packet;
-  Address senderAddress;
-  while ((packet = socket->RecvFrom (senderAddress)))
+  while ((packet = socket->Recv ()))
     {
       bytesTotal += packet->GetSize ();
       packetsReceived += 1;
-      NS_LOG_UNCOND (PrintReceivedPacket (socket, packet, senderAddress));
+      NS_LOG_UNCOND (PrintReceivedPacket (socket, packet));
     }
 }
 
@@ -255,8 +257,8 @@ RoutingExperiment::Run (int nSinks, double txp, std::string CSVfileName)
   wifiChannel.AddPropagationLoss ("ns3::FriisPropagationLossModel");
   wifiPhy.SetChannel (wifiChannel.Create ());
 
-  // Add a mac and disable rate control
-  WifiMacHelper wifiMac;
+  // Add a non-QoS upper mac, and disable rate control
+  NqosWifiMacHelper wifiMac = NqosWifiMacHelper::Default ();
   wifi.SetRemoteStationManager ("ns3::ConstantRateWifiManager",
                                 "DataMode",StringValue (phyMode),
                                 "ControlMode",StringValue (phyMode));
@@ -289,7 +291,6 @@ RoutingExperiment::Run (int nSinks, double txp, std::string CSVfileName)
   mobilityAdhoc.SetPositionAllocator (taPositionAlloc);
   mobilityAdhoc.Install (adhocNodes);
   streamIndex += mobilityAdhoc.AssignStreams (adhocNodes, streamIndex);
-  NS_UNUSED (streamIndex); // From this point, streamIndex is unused
 
   AodvHelper aodv;
   OlsrHelper olsr;
@@ -342,7 +343,7 @@ RoutingExperiment::Run (int nSinks, double txp, std::string CSVfileName)
   onoff1.SetAttribute ("OnTime", StringValue ("ns3::ConstantRandomVariable[Constant=1.0]"));
   onoff1.SetAttribute ("OffTime", StringValue ("ns3::ConstantRandomVariable[Constant=0.0]"));
 
-  for (int i = 0; i < nSinks; i++)
+  for (int i = 0; i <= nSinks - 1; i++)
     {
       Ptr<Socket> sink = SetupPacketReceive (adhocInterfaces.GetAddress (i), adhocNodes.Get (i));
 

@@ -20,7 +20,6 @@
 
 #include "ns3/log.h"
 #include "ns3/simulator.h"
-#include "ns3/command-line.h"
 #include "ns3/simple-device-energy-model.h"
 #include "ns3/li-ion-energy-source.h"
 #include "ns3/energy-source-container.h"
@@ -61,10 +60,7 @@ PrintCellInfo (Ptr<LiIonEnergySource> es)
 int
 main (int argc, char **argv)
 {
-  CommandLine cmd;
-  cmd.Parse (argc, argv);
-  
-    // uncomment below to see the energy consumption details
+  // uncomment below to see the energy consumption details
   // LogComponentEnable ("LiIonEnergySource", LOG_LEVEL_DEBUG);
 
   Ptr<Node> node = CreateObject<Node> ();

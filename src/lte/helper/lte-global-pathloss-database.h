@@ -32,8 +32,6 @@ namespace ns3 {
 class SpectrumPhy;
 
 /**
- * \ingroup lte
- *
  * Store the last pathloss value for each TX-RX pair. This is an
  * example of how the PathlossTrace (provided by some SpectrumChannel
  * implementations) work. 
@@ -61,7 +59,7 @@ public:
    * \param cellId the id of the eNB
    * \param imsi the id of the UE
    * 
-   * \return the pathloss value between the UE and the eNB
+   * \return the pathloss value bewteen the UE and the eNB
    */
   double GetPathloss (uint16_t cellId, uint64_t imsi);
 
@@ -72,17 +70,12 @@ public:
   void Print ();
 
 protected:
-  /**
-   * List of the last pathloss value for each UE by CellId.
-   * ( CELL ID,  ( IMSI,PATHLOSS ))
-   */
+
+  //        CELL ID            IMSI     PATHLOSS
   std::map<uint16_t, std::map<uint64_t, double> > m_pathlossMap;
 };
 
-/**
- * \ingroup lte
- * Store the last pathloss value for each TX-RX pair for downlink
- */
+
 class DownlinkLteGlobalPathlossDatabase : public LteGlobalPathlossDatabase
 {
 public:
@@ -90,10 +83,7 @@ public:
   virtual void UpdatePathloss (std::string context, Ptr<SpectrumPhy> txPhy, Ptr<SpectrumPhy> rxPhy, double lossDb);
 };
 
-/**
- * \ingroup lte
- * Store the last pathloss value for each TX-RX pair for uplink
- */
+
 class UplinkLteGlobalPathlossDatabase : public LteGlobalPathlossDatabase
 {
 public:

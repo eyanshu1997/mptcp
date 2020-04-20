@@ -21,6 +21,7 @@
  */
 
 #include "ns3/simulator.h"
+#include "ns3/drop-tail-queue.h"
 #include "ns3/node.h"
 #include "ss-net-device.h"
 #include "wimax-phy.h"
@@ -41,11 +42,12 @@
 #include "ss-link-manager.h"
 #include "bandwidth-manager.h"
 
-namespace ns3 {
-
 NS_LOG_COMPONENT_DEFINE ("SubscriberStationNetDevice");
 
-NS_OBJECT_ENSURE_REGISTERED (SubscriberStationNetDevice);
+namespace ns3 {
+
+NS_OBJECT_ENSURE_REGISTERED (SubscriberStationNetDevice)
+  ;
 
 Time SubscriberStationNetDevice::GetDefaultLostDlMapInterval ()
 {
@@ -60,7 +62,6 @@ SubscriberStationNetDevice::GetTypeId (void)
     TypeId ("ns3::SubscriberStationNetDevice")
 
     .SetParent<WimaxNetDevice> ()
-    .SetGroupName ("Wimax")
 
     .AddConstructor<SubscriberStationNetDevice> ()
 
@@ -183,27 +184,22 @@ SubscriberStationNetDevice::GetTypeId (void)
 
     .AddTraceSource ("SSTxDrop",
                      "A packet has been dropped in the MAC layer before being queued for transmission.",
-                     MakeTraceSourceAccessor (&SubscriberStationNetDevice::m_ssTxDropTrace),
-                     "ns3::Packet::TracedCallback")
+                     MakeTraceSourceAccessor (&SubscriberStationNetDevice::m_ssTxDropTrace))
 
     .AddTraceSource ("SSPromiscRx",
                      "A packet has been received by this device, has been passed up from the physical layer "
                      "and is being forwarded up the local protocol stack.  This is a promiscuous trace,",
-                     MakeTraceSourceAccessor (&SubscriberStationNetDevice::m_ssPromiscRxTrace),
-                     "ns3::Packet::TracedCallback")
+                     MakeTraceSourceAccessor (&SubscriberStationNetDevice::m_ssPromiscRxTrace))
 
     .AddTraceSource ("SSRx",
                      "A packet has been received by this device, has been passed up from the physical layer "
                      "and is being forwarded up the local protocol stack.  This is a non-promiscuous trace,",
-                     MakeTraceSourceAccessor (&SubscriberStationNetDevice::m_ssRxTrace),
-                     "ns3::Packet::TracedCallback")
+                     MakeTraceSourceAccessor (&SubscriberStationNetDevice::m_ssRxTrace))
 
     .AddTraceSource ("SSRxDrop",
                      "A packet has been dropped in the MAC layer after it has been passed up from the physical "
                      "layer.",
-                     MakeTraceSourceAccessor (&SubscriberStationNetDevice::m_ssRxDropTrace),
-                     "ns3::Packet::TracedCallback")
-    ;
+                     MakeTraceSourceAccessor (&SubscriberStationNetDevice::m_ssRxDropTrace));
   return tid;
 }
 
@@ -746,7 +742,7 @@ SubscriberStationNetDevice::DoReceive (Ptr<Packet> packet)
   uint32_t pktSize = packet->GetSize ();
   packet->RemoveHeader (gnrcMacHdr);
   FragmentationSubheader fragSubhdr;
-  bool fragmentation = false;  // it becomes true when there is a fragmentation subheader
+  bool fragmentation = false;  // it becames true when there is a fragmentation subheader
 
   if (gnrcMacHdr.GetHt () == MacHeaderType::HEADER_TYPE_GENERIC)
     {
@@ -914,7 +910,7 @@ SubscriberStationNetDevice::DoReceive (Ptr<Packet> packet)
         }
       else if (GetInitialRangingConnection () != 0 && cid == GetInitialRangingConnection ()->GetCid () && !fragmentation)
         {
-          m_traceSSRx (packet, GetMacAddress (), cid);
+          m_traceSSRx (packet, GetMacAddress (), &cid);
           packet->RemoveHeader (msgType);
           switch (msgType.GetType ())
             {
@@ -922,8 +918,8 @@ SubscriberStationNetDevice::DoReceive (Ptr<Packet> packet)
               // intended for base station, ignore
               break;
             case ManagementMessageType::MESSAGE_TYPE_RNG_RSP:
-              NS_ASSERT_MSG (GetState () >= SS_STATE_WAITING_REG_RANG_INTRVL,
-                             "SS: Error while receiving a ranging response message: SS state should be at least SS_STATE_WAITING_REG_RANG_INTRVL");
+              NS_ASSERT_MSG (SS_STATE_WAITING_RNG_RSP,
+                             "SS: Error while receiving a ranging response message: SS state should be SS_STATE_WAITING_RNG_RSP");
               packet->RemoveHeader (rngrsp);
               m_linkManager->PerformRanging (cid, rngrsp);
               break;
@@ -933,7 +929,7 @@ SubscriberStationNetDevice::DoReceive (Ptr<Packet> packet)
         }
       else if (m_basicConnection != 0 && cid == m_basicConnection->GetCid () && !fragmentation)
         {
-          m_traceSSRx (packet, GetMacAddress (), cid);
+          m_traceSSRx (packet, GetMacAddress (), &cid);
           packet->RemoveHeader (msgType);
           switch (msgType.GetType ())
             {
@@ -941,7 +937,7 @@ SubscriberStationNetDevice::DoReceive (Ptr<Packet> packet)
               // intended for base station, ignore
               break;
             case ManagementMessageType::MESSAGE_TYPE_RNG_RSP:
-              NS_ASSERT_MSG (GetState () == SS_STATE_WAITING_RNG_RSP,
+              NS_ASSERT_MSG (SS_STATE_WAITING_RNG_RSP,
                              "SS: Error while receiving a ranging response message: SS state should be SS_STATE_WAITING_RNG_RSP");
               packet->RemoveHeader (rngrsp);
               m_linkManager->PerformRanging (cid, rngrsp);
@@ -952,7 +948,7 @@ SubscriberStationNetDevice::DoReceive (Ptr<Packet> packet)
         }
       else if (m_primaryConnection != 0 && cid == m_primaryConnection->GetCid () && !fragmentation)
         {
-          m_traceSSRx (packet, GetMacAddress (), cid);
+          m_traceSSRx (packet, GetMacAddress (), &cid);
           packet->RemoveHeader (msgType);
           switch (msgType.GetType ())
             {
@@ -1042,7 +1038,7 @@ SubscriberStationNetDevice::DoReceive (Ptr<Packet> packet)
         }
       else if (cid.IsMulticast ())
         {
-          m_traceSSRx (packet, GetMacAddress (), cid);
+          m_traceSSRx (packet, GetMacAddress (), &cid);
           ForwardUp (packet, m_baseStationId, GetMacAddress ()); // source shall be BS's address or sender SS's?
         }
       else if (IsPromisc ())
@@ -1191,7 +1187,7 @@ SubscriberStationNetDevice::ProcessDcd (const Dcd &dcd)
   m_nrDcdRecvd++;
   if (dcd.GetConfigurationChangeCount () == GetCurrentDcd ().GetConfigurationChangeCount ())
     {
-      return; // nothing new in DCD so don't read
+      return; // nothing new in DCD so dont read
 
     }
   SetCurrentDcd (dcd);
@@ -1263,12 +1259,12 @@ SubscriberStationNetDevice::IsRegistered (void) const
 }
 
 Time
-SubscriberStationNetDevice::GetTimeToAllocation (Time deferTime)
+SubscriberStationNetDevice::GetTimeToAllocation (Time defferTime)
 {
   Time timeAlreadyElapsed = Simulator::Now () - m_frameStartTime;
   Time timeToUlSubframe = Seconds (m_allocationStartTime * GetPhy ()->GetPsDuration ().GetSeconds ())
     - timeAlreadyElapsed;
-  return timeToUlSubframe + deferTime;
+  return timeToUlSubframe + defferTime;
 }
 
 void

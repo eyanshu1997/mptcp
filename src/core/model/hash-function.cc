@@ -21,21 +21,16 @@
 #include "log.h"
 #include "hash-function.h"
 
-/**
- * \file
- * \ingroup hash
- * \brief ns3::Hash::Implementation::GetHash64 default implementation.
- */
-
 
 namespace ns3 {
 
-NS_LOG_COMPONENT_DEFINE ("HashFunction");
+NS_LOG_COMPONENT_DEFINE ("HashFunction")
+  ;
 
 namespace Hash {
 
 uint64_t
-Implementation::GetHash64  (const char * buffer, const std::size_t size)
+Implementation::GetHash64  (const char * buffer, const size_t size)
 {
   NS_LOG_WARN ("64-bit hash requested, only 32-bit implementation available");
   return GetHash32 (buffer, size);

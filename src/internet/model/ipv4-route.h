@@ -25,6 +25,7 @@
 
 #include "ns3/simple-ref-count.h"
 #include "ns3/ipv4-address.h"
+#include "ns3/deprecated.h"
 
 namespace ns3 {
 
@@ -33,7 +34,7 @@ class NetDevice;
 /**
  * \ingroup ipv4Routing
  *
- *\brief IPv4 route cache entry (similar to Linux struct rtable)
+ *\brief Ipv4 route cache entry (similar to Linux struct rtable)
  *
  * This is a reference counted object.  In the future, we will add other 
  * entries from struct dst_entry, struct rtable, and struct dst_ops as needed.
@@ -148,6 +149,12 @@ public:
    * \param ttl time-to-live for this route
    */
   void SetOutputTtl (uint32_t oif, uint32_t ttl);
+  /**
+   * \param oif outgoing interface
+   * \return TTL for this route
+   * \deprecated
+   */
+  uint32_t GetOutputTtl (uint32_t oif) NS_DEPRECATED;
 
   /**
    * \return map of output interface Ids and TTLs for this route

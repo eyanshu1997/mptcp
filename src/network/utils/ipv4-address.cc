@@ -23,50 +23,36 @@
 #include "ipv4-address.h"
 #include "ns3/assert.h"
 
-namespace ns3 {
-
 NS_LOG_COMPONENT_DEFINE ("Ipv4Address");
+
+namespace ns3 {
 
 #define ASCII_DOT (0x2e)
 #define ASCII_ZERO (0x30)
 #define ASCII_SLASH (0x2f)
 
-/**
- * \brief Converts a string representing an IP address into the address
- * \param address the address string
- * \returns the address
- */
 static uint32_t 
 AsciiToIpv4Host (char const *address)
 {
   NS_LOG_FUNCTION (&address);
   uint32_t host = 0;
-  uint8_t numberOfDots = 0;
-  char const *ptr = address;
-
-  NS_ASSERT_MSG (*ptr != ASCII_DOT, "Error, can not build an IPv4 address from an invalid string: " << address);
   while (true) 
     {
       uint8_t byte = 0;
-      while (*ptr != ASCII_DOT && *ptr != 0)
+      while (*address != ASCII_DOT && *address != 0) 
         {
           byte *= 10;
-          byte += *ptr - ASCII_ZERO;
-          ptr++;
+          byte += *address - ASCII_ZERO;
+          address++;
         }
       host <<= 8;
       host |= byte;
-      if (*ptr == 0)
+      if (*address == 0) 
         {
           break;
         }
-      ptr++;
-      NS_ASSERT_MSG (*ptr != ASCII_DOT, "Error, can not build an IPv4 address from an invalid string: " << address);
-      numberOfDots ++;
+      address++;
     }
-  NS_ASSERT_MSG (*(ptr-1) != ASCII_DOT, "Error, can not build an IPv4 address from an invalid string: " << address);
-  NS_ASSERT_MSG (numberOfDots == 3, "Error, can not build an IPv4 address from an invalid string: " << address);
-
   return host;
 }
 
@@ -265,20 +251,6 @@ Ipv4Address::IsSubnetDirectedBroadcast (Ipv4Mask const &mask) const
 }
 
 bool
-Ipv4Address::IsAny (void) const
-{
-  NS_LOG_FUNCTION (this);
-  return (m_address == 0x00000000U);
-}
-
-bool
-Ipv4Address::IsLocalhost (void) const
-{
-  NS_LOG_FUNCTION (this);
-  return (m_address == 0x7f000001U);
-}
-
-bool
 Ipv4Address::IsBroadcast (void) const
 {
   NS_LOG_FUNCTION (this);
@@ -445,7 +417,7 @@ bool operator != (Ipv4Mask const &a, Ipv4Mask const &b)
   return !a.IsEqual (b);
 }
 
-ATTRIBUTE_HELPER_CPP (Ipv4Address);
-ATTRIBUTE_HELPER_CPP (Ipv4Mask);
+ATTRIBUTE_HELPER_CPP (Ipv4Address); /// Macro to make help make class an ns-3 attribute
+ATTRIBUTE_HELPER_CPP (Ipv4Mask);    /// Macro to make help make class an ns-3 attribute
 
 } // namespace ns3

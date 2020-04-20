@@ -42,7 +42,13 @@ Ptr<EnergySource>
 RvBatteryModelHelper::DoInstall (Ptr<Node> node) const
 {
   NS_ASSERT (node != NULL);
-  Ptr<EnergySource> source = m_rvBatteryModel.Create<EnergySource> ();
+  // check if energy source already exists
+  Ptr<EnergySource> source = node->GetObject<EnergySource> ();
+  if (source != NULL)
+    {
+      NS_FATAL_ERROR ("Energy source already installed!");
+    }
+  source = m_rvBatteryModel.Create<EnergySource> ();
   NS_ASSERT (source != NULL);
   source->SetNode (node);
   return source;

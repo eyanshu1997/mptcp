@@ -41,9 +41,9 @@
 #include <ns3/adhoc-aloha-noack-ideal-phy-helper.h>
 
 
-using namespace ns3;
-
 NS_LOG_COMPONENT_DEFINE ("TestAdhocOfdmAloha");
+
+using namespace ns3;
 
 static bool g_verbose = false;
 static uint64_t g_rxBytes;
@@ -61,8 +61,6 @@ PhyRxEndOkTrace (std::string context, Ptr<const Packet> p)
 
 
 /**
- * \ingroup spectrum
- *
  * Store the last pathloss value for each TX-RX pair. This is an
  * example of how the PathlossTrace (provided by some SpectrumChannel
  * implementations) work. 
@@ -89,7 +87,7 @@ public:
   void Print ();
 
 private:
-  std::map<uint32_t, std::map<uint32_t, double> > m_pathlossMap; //!< Path loss map
+  std::map<uint32_t, std::map<uint32_t, double> > m_pathlossMap;
 };
 
 void

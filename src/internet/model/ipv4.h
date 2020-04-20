@@ -24,6 +24,7 @@
 #include "ns3/object.h"
 #include "ns3/socket.h"
 #include "ns3/callback.h"
+#include "ns3/ip-l4-protocol.h"
 #include "ns3/ipv4-address.h"
 #include "ipv4-route.h"
 #include "ipv4-interface-address.h"
@@ -34,19 +35,17 @@ class Node;
 class NetDevice;
 class Packet;
 class Ipv4RoutingProtocol;
-class IpL4Protocol;
-class Ipv4Header;
 
 /**
  * \ingroup internet
- * \defgroup ipv4 IPv4 classes and sub-modules
+ * \defgroup ipv4 Ipv4
  */
 /**
  * \ingroup ipv4
- * \brief Access to the IPv4 forwarding table, interfaces, and configuration
+ * \brief Access to the Ipv4 forwarding table, interfaces, and configuration
  *
  * This class defines the API to manipulate the following aspects of
- * the IPv4 implementation:
+ * the Ipv4 implementation:
  * -# set/get an Ipv4RoutingProtocol 
  * -# register a NetDevice for use by the Ipv4 layer (basically, to
  * create Ipv4-related state such as addressing and neighbor cache that 
@@ -159,46 +158,12 @@ public:
   virtual void SendWithHeader (Ptr<Packet> packet, Ipv4Header ipHeader, Ptr<Ipv4Route> route) = 0;
 
   /**
-   * \param protocol a template for the protocol to add to this L4 Demux.
-   * \returns the L4Protocol effectively added.
+   * \param protocol a pointer to the protocol to add to this L4 Demux.
    *
-   * Invoke Copy on the input template to get a copy of the input
-   * protocol which can be used on the Node on which this L4 Demux
-   * is running. The new L4Protocol is registered internally as
-   * a working L4 Protocol and returned from this method.
-   * The caller does not get ownership of the returned pointer.
+   * Adds a protocol to an internal list of L4 protocols.
+   *
    */
   virtual void Insert (Ptr<IpL4Protocol> protocol) = 0;
-
-  /**
-   * \brief Add a L4 protocol to a specific interface.
-   *
-   * This may be called multiple times for multiple interfaces for the same
-   * protocol.  To insert for all interfaces, use the separate
-   * Insert (Ptr<IpL4Protocol> protocol) method.
-   *
-   * Setting a protocol on a specific interface will overwrite the
-   * previously bound protocol.
-   *
-   * \param protocol L4 protocol.
-   * \param interfaceIndex interface index.
-   */
-  virtual void Insert (Ptr<IpL4Protocol> protocol, uint32_t interfaceIndex) = 0;
-
-  /**
-   * \param protocol protocol to remove from this demux.
-   *
-   * The input value to this method should be the value
-   * returned from the Ipv4L4Protocol::Insert method.
-   */
-  virtual void Remove (Ptr<IpL4Protocol> protocol) = 0;
-
-  /**
-   * \brief Remove a L4 protocol from a specific interface.
-   * \param protocol L4 protocol to remove.
-   * \param interfaceIndex interface index.
-   */
-  virtual void Remove (Ptr<IpL4Protocol> protocol, uint32_t interfaceIndex) = 0;
 
   /**
    * \brief Determine whether address and interface corresponding to
@@ -394,14 +359,6 @@ public:
   virtual void SetForwarding (uint32_t interface, bool val) = 0;
 
   /**
-   * \brief Choose the source address to use with destination address.
-   * \param interface interface index
-   * \param dest IPv4 destination address
-   * \return IPv4 source address to use
-   */
-  virtual Ipv4Address SourceAddressSelection (uint32_t interface, Ipv4Address dest) = 0;
-
-  /**
    * \param protocolNumber number of protocol to lookup
    *        in this L4 Demux
    * \returns a matching L4 Protocol
@@ -410,14 +367,6 @@ public:
    * to forward packets up the stack to the right protocol.
    */
   virtual Ptr<IpL4Protocol> GetProtocol (int protocolNumber) const = 0;
-
-  /**
-   * \brief Get L4 protocol by protocol number for the specified interface.
-   * \param protocolNumber protocol number
-   * \param interfaceIndex interface index, -1 means "any" interface.
-   * \return corresponding IpL4Protocol or 0 if not found
-   */
-  virtual Ptr<IpL4Protocol> GetProtocol (int protocolNumber, int32_t interfaceIndex) const = 0;
 
   /**
    * \brief Creates a raw socket

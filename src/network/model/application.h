@@ -30,6 +30,7 @@
 namespace ns3 {
 
 class Node;
+class RandomVariable;
 
 /**
  * \addtogroup applications Applications
@@ -60,10 +61,6 @@ class Node;
 class Application : public Object
 {
 public:
-  /**
-   * \brief Get the type ID.
-   * \return the object TypeId
-   */
   static TypeId GetTypeId (void);
   Application ();
   virtual ~Application ();
@@ -104,25 +101,6 @@ public:
    */
   void SetNode (Ptr<Node> node);
 
-  /**
-   * \brief Common callback signature for packet delay and address.
-   *
-   * \param delay The packet delay.
-   * \param from The source socket address associated with the packet,
-   *             indicating the packet's origin.
-   */
-  typedef void (*DelayAddressCallback) (const Time &delay,
-                                        const Address &from);
-
-  /**
-   * \brief Common signature used by callbacks to application's state
-   *        transition trace source.
-   * \param oldState The name of the previous state.
-   * \param newState The name of the current state.
-   */
-  typedef void (*StateTransitionCallback)(const std::string &oldState,
-                                          const std::string &newState);
-
 private:
   /**
    * \brief Application specific startup code
@@ -145,11 +123,11 @@ protected:
   virtual void DoDispose (void);
   virtual void DoInitialize (void);
 
-  Ptr<Node>       m_node;   //!< The node that this application is installed on
-  Time m_startTime;         //!< The simulation time that the application will start
-  Time m_stopTime;          //!< The simulation time that the application will end
-  EventId m_startEvent;     //!< The event that will fire at m_startTime to start the application
-  EventId m_stopEvent;      //!< The event that will fire at m_stopTime to end the application
+  Ptr<Node>       m_node;   /// The node that this application is installed on
+  Time m_startTime;         /// The simulation time that the appliacation will start
+  Time m_stopTime;          /// The simulation time that the appliacation will end
+  EventId m_startEvent;     /// The event that will fire at m_startTime to start the application
+  EventId m_stopEvent;      /// The event that will fire at m_stopTime to end the application
 };
 
 } // namespace ns3

@@ -25,7 +25,8 @@
 
 namespace ns3 {
 
-NS_OBJECT_ENSURE_REGISTERED (Ucd);
+NS_OBJECT_ENSURE_REGISTERED (Ucd)
+  ;
 
 UcdChannelEncodings::UcdChannelEncodings (void)
   : m_bwReqOppSize (0),
@@ -376,7 +377,6 @@ Ucd::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::Ucd")
     .SetParent<Header> ()
-    .SetGroupName("Wimax")
     .AddConstructor<Ucd> ()
   ;
   return tid;
@@ -472,7 +472,7 @@ OfdmUlMapIe::~OfdmUlMapIe (void)
 }
 
 void
-OfdmUlMapIe::SetCid (const Cid &cid)
+OfdmUlMapIe::SetCid (Cid cid)
 {
   m_cid = cid;
 }
@@ -578,7 +578,8 @@ OfdmUlMapIe::Read (Buffer::Iterator start)
 
 // ----------------------------------------------------------------------------------------------------------
 
-NS_OBJECT_ENSURE_REGISTERED (UlMap);
+NS_OBJECT_ENSURE_REGISTERED (UlMap)
+  ;
 
 UlMap::UlMap (void)
   : m_reserved (0),
@@ -638,7 +639,6 @@ UlMap::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::UlMap")
     .SetParent<Header> ()
-    .SetGroupName("Wimax")
     .AddConstructor<UlMap> ()
   ;
   return tid;

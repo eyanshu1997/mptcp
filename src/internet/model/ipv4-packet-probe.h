@@ -37,8 +37,6 @@
 namespace ns3 {
 
 /**
- * \ingroup ipv4
- *
  * This class is designed to probe an underlying ns3 TraceSource
  * exporting a packet, an IPv4 object, and an interface.  This probe
  * exports a trace source "Output" with arguments of type Ptr<const Packet>,
@@ -103,13 +101,15 @@ private:
    * \param packet the traced packet
    * \param ipv4 the IPv4 object for the traced packet
    * \param interface the IPv4 interface for the traced packet
+   *
+   * \internal
    */
   void TraceSink (Ptr<const Packet> packet, Ptr<Ipv4> ipv4, uint32_t interface);
 
   /// Traced Callback: the packet, the Ipv4 object and the interface.
-  ns3::TracedCallback<Ptr<const Packet>, Ptr<Ipv4>, uint32_t> m_output;
+  TracedCallback<Ptr<const Packet>, Ptr<Ipv4>, uint32_t> m_output;
   /// Traced Callback: the previous packet's size and the actual packet's size.
-  ns3::TracedCallback<uint32_t, uint32_t> m_outputBytes;
+  TracedCallback<uint32_t, uint32_t> m_outputBytes;
 
   /// The traced packet.
   Ptr<const Packet> m_packet;

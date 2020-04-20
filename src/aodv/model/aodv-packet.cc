@@ -15,10 +15,10 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * Based on
+ * Based on 
  *      NS-2 AODV model developed by the CMU/MONARCH group and optimized and
  *      tuned by Samir Das and Mahesh Marina, University of Cincinnati;
- *
+ * 
  *      AODV-UU implementation by Erik Nordström of Uppsala University
  *      http://core.it.uu.se/core/index.php/AODV-UU
  *
@@ -29,14 +29,16 @@
 #include "ns3/address-utils.h"
 #include "ns3/packet.h"
 
-namespace ns3 {
-namespace aodv {
+namespace ns3
+{
+namespace aodv
+{
 
-NS_OBJECT_ENSURE_REGISTERED (TypeHeader);
+NS_OBJECT_ENSURE_REGISTERED (TypeHeader)
+  ;
 
-TypeHeader::TypeHeader (MessageType t)
-  : m_type (t),
-    m_valid (true)
+TypeHeader::TypeHeader (MessageType t) :
+  m_type (t), m_valid (true)
 {
 }
 
@@ -45,7 +47,6 @@ TypeHeader::GetTypeId ()
 {
   static TypeId tid = TypeId ("ns3::aodv::TypeHeader")
     .SetParent<Header> ()
-    .SetGroupName ("Aodv")
     .AddConstructor<TypeHeader> ()
   ;
   return tid;
@@ -140,26 +141,20 @@ operator<< (std::ostream & os, TypeHeader const & h)
 // RREQ
 //-----------------------------------------------------------------------------
 RreqHeader::RreqHeader (uint8_t flags, uint8_t reserved, uint8_t hopCount, uint32_t requestID, Ipv4Address dst,
-                        uint32_t dstSeqNo, Ipv4Address origin, uint32_t originSeqNo)
-  : m_flags (flags),
-    m_reserved (reserved),
-    m_hopCount (hopCount),
-    m_requestID (requestID),
-    m_dst (dst),
-    m_dstSeqNo (dstSeqNo),
-    m_origin (origin),
-    m_originSeqNo (originSeqNo)
+                        uint32_t dstSeqNo, Ipv4Address origin, uint32_t originSeqNo) :
+  m_flags (flags), m_reserved (reserved), m_hopCount (hopCount), m_requestID (requestID), m_dst (dst),
+  m_dstSeqNo (dstSeqNo), m_origin (origin),  m_originSeqNo (originSeqNo)
 {
 }
 
-NS_OBJECT_ENSURE_REGISTERED (RreqHeader);
+NS_OBJECT_ENSURE_REGISTERED (RreqHeader)
+  ;
 
 TypeId
 RreqHeader::GetTypeId ()
 {
   static TypeId tid = TypeId ("ns3::aodv::RreqHeader")
     .SetParent<Header> ()
-    .SetGroupName ("Aodv")
     .AddConstructor<RreqHeader> ()
   ;
   return tid;
@@ -214,7 +209,7 @@ RreqHeader::Print (std::ostream &os) const
   os << "RREQ ID " << m_requestID << " destination: ipv4 " << m_dst
      << " sequence number " << m_dstSeqNo << " source: ipv4 "
      << m_origin << " sequence number " << m_originSeqNo
-     << " flags:" << " Gratuitous RREP " << (*this).GetGratuitousRrep ()
+     << " flags:" << " Gratuitous RREP " << (*this).GetGratiousRrep ()
      << " Destination only " << (*this).GetDestinationOnly ()
      << " Unknown sequence number " << (*this).GetUnknownSeqno ();
 }
@@ -227,20 +222,16 @@ operator<< (std::ostream & os, RreqHeader const & h)
 }
 
 void
-RreqHeader::SetGratuitousRrep (bool f)
+RreqHeader::SetGratiousRrep (bool f)
 {
   if (f)
-    {
-      m_flags |= (1 << 5);
-    }
+    m_flags |= (1 << 5);
   else
-    {
-      m_flags &= ~(1 << 5);
-    }
+    m_flags &= ~(1 << 5);
 }
 
 bool
-RreqHeader::GetGratuitousRrep () const
+RreqHeader::GetGratiousRrep () const
 {
   return (m_flags & (1 << 5));
 }
@@ -249,13 +240,9 @@ void
 RreqHeader::SetDestinationOnly (bool f)
 {
   if (f)
-    {
-      m_flags |= (1 << 4);
-    }
+    m_flags |= (1 << 4);
   else
-    {
-      m_flags &= ~(1 << 4);
-    }
+    m_flags &= ~(1 << 4);
 }
 
 bool
@@ -268,13 +255,9 @@ void
 RreqHeader::SetUnknownSeqno (bool f)
 {
   if (f)
-    {
-      m_flags |= (1 << 3);
-    }
+    m_flags |= (1 << 3);
   else
-    {
-      m_flags &= ~(1 << 3);
-    }
+    m_flags &= ~(1 << 3);
 }
 
 bool
@@ -286,10 +269,10 @@ RreqHeader::GetUnknownSeqno () const
 bool
 RreqHeader::operator== (RreqHeader const & o) const
 {
-  return (m_flags == o.m_flags && m_reserved == o.m_reserved
-          && m_hopCount == o.m_hopCount && m_requestID == o.m_requestID
-          && m_dst == o.m_dst && m_dstSeqNo == o.m_dstSeqNo
-          && m_origin == o.m_origin && m_originSeqNo == o.m_originSeqNo);
+  return (m_flags == o.m_flags && m_reserved == o.m_reserved &&
+          m_hopCount == o.m_hopCount && m_requestID == o.m_requestID &&
+          m_dst == o.m_dst && m_dstSeqNo == o.m_dstSeqNo &&
+          m_origin == o.m_origin && m_originSeqNo == o.m_originSeqNo);
 }
 
 //-----------------------------------------------------------------------------
@@ -297,25 +280,21 @@ RreqHeader::operator== (RreqHeader const & o) const
 //-----------------------------------------------------------------------------
 
 RrepHeader::RrepHeader (uint8_t prefixSize, uint8_t hopCount, Ipv4Address dst,
-                        uint32_t dstSeqNo, Ipv4Address origin, Time lifeTime)
-  : m_flags (0),
-    m_prefixSize (prefixSize),
-    m_hopCount (hopCount),
-    m_dst (dst),
-    m_dstSeqNo (dstSeqNo),
-    m_origin (origin)
+                        uint32_t dstSeqNo, Ipv4Address origin, Time lifeTime) :
+  m_flags (0), m_prefixSize (prefixSize), m_hopCount (hopCount),
+  m_dst (dst), m_dstSeqNo (dstSeqNo), m_origin (origin)
 {
   m_lifeTime = uint32_t (lifeTime.GetMilliSeconds ());
 }
 
-NS_OBJECT_ENSURE_REGISTERED (RrepHeader);
+NS_OBJECT_ENSURE_REGISTERED (RrepHeader)
+  ;
 
 TypeId
 RrepHeader::GetTypeId ()
 {
   static TypeId tid = TypeId ("ns3::aodv::RrepHeader")
     .SetParent<Header> ()
-    .SetGroupName ("Aodv")
     .AddConstructor<RrepHeader> ()
   ;
   return tid;
@@ -392,13 +371,9 @@ void
 RrepHeader::SetAckRequired (bool f)
 {
   if (f)
-    {
-      m_flags |= (1 << 6);
-    }
+    m_flags |= (1 << 6);
   else
-    {
-      m_flags &= ~(1 << 6);
-    }
+    m_flags &= ~(1 << 6);
 }
 
 bool
@@ -422,9 +397,9 @@ RrepHeader::GetPrefixSize () const
 bool
 RrepHeader::operator== (RrepHeader const & o) const
 {
-  return (m_flags == o.m_flags && m_prefixSize == o.m_prefixSize
-          && m_hopCount == o.m_hopCount && m_dst == o.m_dst && m_dstSeqNo == o.m_dstSeqNo
-          && m_origin == o.m_origin && m_lifeTime == o.m_lifeTime);
+  return (m_flags == o.m_flags && m_prefixSize == o.m_prefixSize &&
+          m_hopCount == o.m_hopCount && m_dst == o.m_dst && m_dstSeqNo == o.m_dstSeqNo &&
+          m_origin == o.m_origin && m_lifeTime == o.m_lifeTime);
 }
 
 void
@@ -450,19 +425,19 @@ operator<< (std::ostream & os, RrepHeader const & h)
 // RREP-ACK
 //-----------------------------------------------------------------------------
 
-RrepAckHeader::RrepAckHeader ()
-  : m_reserved (0)
+RrepAckHeader::RrepAckHeader () :
+  m_reserved (0)
 {
 }
 
-NS_OBJECT_ENSURE_REGISTERED (RrepAckHeader);
-
+NS_OBJECT_ENSURE_REGISTERED (RrepAckHeader)
+  ;
+  
 TypeId
 RrepAckHeader::GetTypeId ()
 {
   static TypeId tid = TypeId ("ns3::aodv::RrepAckHeader")
     .SetParent<Header> ()
-    .SetGroupName ("Aodv")
     .AddConstructor<RrepAckHeader> ()
   ;
   return tid;
@@ -517,20 +492,19 @@ operator<< (std::ostream & os, RrepAckHeader const & h )
 //-----------------------------------------------------------------------------
 // RERR
 //-----------------------------------------------------------------------------
-RerrHeader::RerrHeader ()
-  : m_flag (0),
-    m_reserved (0)
+RerrHeader::RerrHeader () :
+  m_flag (0), m_reserved (0)
 {
 }
 
-NS_OBJECT_ENSURE_REGISTERED (RerrHeader);
+NS_OBJECT_ENSURE_REGISTERED (RerrHeader)
+  ;
 
 TypeId
 RerrHeader::GetTypeId ()
 {
   static TypeId tid = TypeId ("ns3::aodv::RerrHeader")
     .SetParent<Header> ()
-    .SetGroupName ("Aodv")
     .AddConstructor<RerrHeader> ()
   ;
   return tid;
@@ -600,13 +574,9 @@ void
 RerrHeader::SetNoDelete (bool f )
 {
   if (f)
-    {
-      m_flag |= (1 << 0);
-    }
+    m_flag |= (1 << 0);
   else
-    {
-      m_flag &= ~(1 << 0);
-    }
+    m_flag &= ~(1 << 0);
 }
 
 bool
@@ -619,9 +589,7 @@ bool
 RerrHeader::AddUnDestination (Ipv4Address dst, uint32_t seqNo )
 {
   if (m_unreachableDstSeqNo.find (dst) != m_unreachableDstSeqNo.end ())
-    {
-      return true;
-    }
+    return true;
 
   NS_ASSERT (GetDestCount () < 255); // can't support more than 255 destinations in single RERR
   m_unreachableDstSeqNo.insert (std::make_pair (dst, seqNo));
@@ -632,9 +600,7 @@ bool
 RerrHeader::RemoveUnDestination (std::pair<Ipv4Address, uint32_t> & un )
 {
   if (m_unreachableDstSeqNo.empty ())
-    {
-      return false;
-    }
+    return false;
   std::map<Ipv4Address, uint32_t>::iterator i = m_unreachableDstSeqNo.begin ();
   un = *i;
   m_unreachableDstSeqNo.erase (i);
@@ -653,18 +619,14 @@ bool
 RerrHeader::operator== (RerrHeader const & o ) const
 {
   if (m_flag != o.m_flag || m_reserved != o.m_reserved || GetDestCount () != o.GetDestCount ())
-    {
-      return false;
-    }
+    return false;
 
   std::map<Ipv4Address, uint32_t>::const_iterator j = m_unreachableDstSeqNo.begin ();
   std::map<Ipv4Address, uint32_t>::const_iterator k = o.m_unreachableDstSeqNo.begin ();
   for (uint8_t i = 0; i < GetDestCount (); ++i)
     {
       if ((j->first != k->first) || (j->second != k->second))
-        {
-          return false;
-        }
+        return false;
 
       j++;
       k++;

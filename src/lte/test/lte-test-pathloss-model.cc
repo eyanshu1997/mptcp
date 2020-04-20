@@ -19,10 +19,15 @@
  */
 
 #include "ns3/simulator.h"
+
 #include "ns3/log.h"
+
 #include "ns3/spectrum-test.h"
+
 #include "ns3/lte-phy-tag.h"
-#include "ns3/lte-chunk-processor.h"
+#include "ns3/lte-sinr-chunk-processor.h"
+
+
 #include <ns3/hybrid-buildings-propagation-loss-model.h>
 #include <ns3/node-container.h>
 #include <ns3/mobility-helper.h>
@@ -31,21 +36,24 @@
 #include <ns3/single-model-spectrum-channel.h>
 #include "ns3/string.h"
 #include "ns3/double.h"
-#include <ns3/boolean.h>
 #include <ns3/building.h>
 #include <ns3/enum.h>
 #include <ns3/net-device-container.h>
 #include <ns3/lte-ue-net-device.h>
 #include <ns3/lte-enb-net-device.h>
 #include <ns3/lte-ue-rrc.h>
+#include <ns3/lte-helper.h>
 #include <ns3/lte-enb-phy.h>
 #include <ns3/lte-ue-phy.h>
+
+#include "lte-test-sinr-chunk-processor.h"
 #include "lte-test-ue-phy.h"
 #include "lte-test-pathloss-model.h"
 
-using namespace ns3;
-
 NS_LOG_COMPONENT_DEFINE ("LtePathlossModelTest");
+
+namespace ns3 {
+
 
 /**
  * Test 1.1 Pathloss compound test
@@ -59,9 +67,10 @@ NS_LOG_COMPONENT_DEFINE ("LtePathlossModelTest");
 
 void
 LteTestPathlossDlSchedCallback (LtePathlossModelSystemTestCase *testcase, std::string path,
-		                        DlSchedulingCallbackInfo dlInfo)
+                             uint32_t frameNo, uint32_t subframeNo, uint16_t rnti,
+                             uint8_t mcsTb1, uint16_t sizeTb1, uint8_t mcsTb2, uint16_t sizeTb2)
 {
-  testcase->DlScheduling (dlInfo);
+  testcase->DlScheduling (frameNo, subframeNo, rnti, mcsTb1, sizeTb1, mcsTb2, sizeTb2);
 }
 
 
@@ -196,8 +205,6 @@ LtePathlossModelSystemTestCase::DoRun (void)
   /**
   * Simulation Topology
   */
-  //Disable Uplink Power Control
-  Config::SetDefault ("ns3::LteUePhy::EnableUplinkPowerControl", BooleanValue (false));
 
   Ptr<LteHelper> lteHelper = CreateObject<LteHelper> ();
   //   lteHelper->EnableLogComponents ();
@@ -207,7 +214,6 @@ LtePathlossModelSystemTestCase::DoRun (void)
 
   // set frequency. This is important because it changes the behavior of the path loss model
   lteHelper->SetEnbDeviceAttribute ("DlEarfcn", UintegerValue (200));
-  lteHelper->SetEnbDeviceAttribute ("UlEarfcn", UintegerValue (18200));
   lteHelper->SetUeDeviceAttribute ("DlEarfcn", UintegerValue (200));
 
   // remove shadowing component
@@ -263,9 +269,7 @@ LtePathlossModelSystemTestCase::DoRun (void)
   // Use testing chunk processor in the PHY layer
   // It will be used to test that the SNR is as intended
   //Ptr<LtePhy> uePhy = ueDevs.Get (0)->GetObject<LteUeNetDevice> ()->GetPhy ()->GetObject<LtePhy> ();
-  Ptr<LteChunkProcessor> testSinr = Create<LteChunkProcessor> ();
-  LteSpectrumValueCatcher sinrCatcher;
-  testSinr->AddCallback (MakeCallback (&LteSpectrumValueCatcher::ReportValue, &sinrCatcher));
+  Ptr<LteTestSinrChunkProcessor> testSinr = Create<LteTestSinrChunkProcessor> (uePhy);
   uePhy->GetDownlinkSpectrumPhy ()->AddCtrlSinrChunkProcessor (testSinr);
    
 //   Config::Connect ("/NodeList/0/DeviceList/0/LteEnbMac/DlScheduling",
@@ -274,7 +278,7 @@ LtePathlossModelSystemTestCase::DoRun (void)
   Simulator::Stop (Seconds (0.035));
   Simulator::Run ();
   
-  double calculatedSinrDb = 10.0 * std::log10 (sinrCatcher.GetValue ()->operator[] (0));
+  double calculatedSinrDb = 10.0 * std::log10 (testSinr->GetSinr ()->operator[] (0));
   NS_LOG_INFO ("Distance " << m_distance << " Calculated SINR " << calculatedSinrDb << " ref " << m_snrDb);
   Simulator::Destroy ();
   NS_TEST_ASSERT_MSG_EQ_TOL (calculatedSinrDb, m_snrDb, 0.001, "Wrong SINR !");
@@ -282,7 +286,8 @@ LtePathlossModelSystemTestCase::DoRun (void)
 
 
 void
-LtePathlossModelSystemTestCase::DlScheduling (DlSchedulingCallbackInfo dlInfo)
+LtePathlossModelSystemTestCase::DlScheduling (uint32_t frameNo, uint32_t subframeNo, uint16_t rnti,
+                                         uint8_t mcsTb1, uint16_t sizeTb1, uint8_t mcsTb2, uint16_t sizeTb2) 
 {
   static bool firstTime = true;
   
@@ -296,8 +301,12 @@ LtePathlossModelSystemTestCase::DlScheduling (DlSchedulingCallbackInfo dlInfo)
   // need to allow for RRC connection establishment + SRS transmission
   if (Simulator::Now () > MilliSeconds (21))
   {
-    NS_LOG_INFO (m_snrDb << "\t" << m_mcsIndex << "\t" << (uint16_t)dlInfo.mcsTb1);
+    NS_LOG_INFO (m_snrDb << "\t" << m_mcsIndex << "\t" << (uint16_t)mcsTb1);
     
-    NS_TEST_ASSERT_MSG_EQ ((uint16_t)dlInfo.mcsTb1, m_mcsIndex, "Wrong MCS index");
+    NS_TEST_ASSERT_MSG_EQ ((uint16_t)mcsTb1, m_mcsIndex, "Wrong MCS index");
   }
 }
+                                         
+
+} // namespace ns3
+

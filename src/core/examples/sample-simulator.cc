@@ -25,29 +25,13 @@
 #include "ns3/double.h"
 #include "ns3/random-variable-stream.h"
 
-/**
- * \file
- * \ingroup core-examples
- * \ingroup simulator
- * Example program demonstrating use of various Schedule functions.
- */
-
 using namespace ns3;
 
-namespace {
-  
-/** Simple model object to illustrate event handling. */
 class MyModel
 {
 public:
-  /** Start model execution by scheduling a HandleEvent. */
   void Start (void);
 private:
-  /**
-   *  Simple event handler.
-   *
-   * \param [in] eventValue Event argument.
-   */
   void HandleEvent (double eventValue);
 };
 
@@ -66,11 +50,6 @@ MyModel::HandleEvent (double value)
             << "s started at " << value << "s" << std::endl;
 }
 
-/**
- * Simple function event handler which Starts a MyModel object.
- *
- * \param [in] model The MyModel object to start.
- */
 static void
 ExampleFunction (MyModel *model)
 {
@@ -79,9 +58,6 @@ ExampleFunction (MyModel *model)
   model->Start ();
 }
 
-/**
- * Simple function event handler; this function is called randomly.
- */
 static void
 RandomFunction (void)
 {
@@ -89,15 +65,11 @@ RandomFunction (void)
             << Simulator::Now ().GetSeconds () << "s" << std::endl;
 }
 
-/** Simple function event handler; the corresponding event is cancelled. */
 static void
 CancelledEvent (void)
 {
   std::cout << "I should never be called... " << std::endl;
 }
-
-}  // unnamed namespace
-
 
 int main (int argc, char *argv[])
 {

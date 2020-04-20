@@ -40,7 +40,7 @@ namespace ns3 {
  * This class allows subclasses of the ns3::Tag base class
  * to serialize and deserialize their data through a stream-like
  * API. This class keeps track of the "current" point in the
- * buffer and advances that "current" point every time data is 
+ * buffer and advances that "current" point everytime data is 
  * written. The in-memory format of the data written by 
  * this class is unspecified.
  *
@@ -51,24 +51,8 @@ namespace ns3 {
 class TagBuffer
 {
 public:
-
-  /**
-   * \brief Constructor
-   * \param start start position
-   * \param end end position
-   */
   TagBuffer (uint8_t *start, uint8_t *end);
-
-  /**
-   * \brief Trim some space from the end
-   * \param trim space to remove
-   */
   void TrimAtEnd (uint32_t trim);
-
-  /**
-   * \brief Copy the nternal structure of another TagBuffer
-   * \param o the TagBuffer to copy from
-   */
   void CopyFrom (TagBuffer o);
 
   /**
@@ -156,8 +140,8 @@ public:
   void Read (uint8_t *buffer, uint32_t size);
 private:
 
-  uint8_t *m_current; //!< current TagBuffer position
-  uint8_t *m_end;     //!< end TagBuffer position
+  uint8_t *m_current;
+  uint8_t *m_end;
 };
 
 } // namespace ns3

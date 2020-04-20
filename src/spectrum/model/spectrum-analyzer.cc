@@ -28,11 +28,12 @@
 
 #include "spectrum-analyzer.h"
 
-namespace ns3 {
-
 NS_LOG_COMPONENT_DEFINE ("SpectrumAnalyzer");
 
-NS_OBJECT_ENSURE_REGISTERED (SpectrumAnalyzer);
+namespace ns3 {
+
+NS_OBJECT_ENSURE_REGISTERED (SpectrumAnalyzer)
+  ;
 
 SpectrumAnalyzer::SpectrumAnalyzer ()
   : m_mobility (0),
@@ -71,27 +72,21 @@ SpectrumAnalyzer::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::SpectrumAnalyzer")
     .SetParent<SpectrumPhy> ()
-    .SetGroupName ("Spectrum")
     .AddConstructor<SpectrumAnalyzer> ()
     .AddAttribute ("Resolution",
-                   "The length of the time interval over which the "
-                   "power spectral density of incoming signals is averaged",
+                   "the lengh of the time interval over which the power spectral "
+                   "density of incoming signals is averaged",
                    TimeValue (MilliSeconds (1)),
                    MakeTimeAccessor (&SpectrumAnalyzer::m_resolution),
                    MakeTimeChecker ())
     .AddAttribute ("NoisePowerSpectralDensity",
-                   "The power spectral density of the measuring instrument "
-                   "noise, in Watt/Hz. Mostly useful to make spectrograms "
-                   "look more similar to those obtained by real devices. "
-                   "Defaults to the value for thermal noise at 300K.",
+                   "the power spectral density of the measuring instrument noise, in Watt/Hz. Mostly useful to make spectrograms look more similar to those obtained by real devices. Defaults to the value for thermal noise at 300K.",
                    DoubleValue (1.38e-23 * 300),
                    MakeDoubleAccessor (&SpectrumAnalyzer::m_noisePowerSpectralDensity),
                    MakeDoubleChecker<double> ())
     .AddTraceSource ("AveragePowerSpectralDensityReport",
-                     "Trace fired whenever a new value for the average "
-                     "Power Spectral Density is calculated",
-                     MakeTraceSourceAccessor (&SpectrumAnalyzer::m_averagePowerSpectralDensityReportTrace),
-                     "ns3::SpectrumValue::TracedCallback")
+                     "Trace fired whenever a new value for the average Power Spectral Density is calculated",
+                     MakeTraceSourceAccessor (&SpectrumAnalyzer::m_averagePowerSpectralDensityReportTrace))
   ;
   return tid;
 }
@@ -99,7 +94,7 @@ SpectrumAnalyzer::GetTypeId (void)
 
 
 Ptr<NetDevice>
-SpectrumAnalyzer::GetDevice () const
+SpectrumAnalyzer::GetDevice ()
 {
   return m_netDevice;
 }

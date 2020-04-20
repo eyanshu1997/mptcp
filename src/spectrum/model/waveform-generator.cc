@@ -28,18 +28,20 @@
 
 #include "waveform-generator.h"
 
-namespace ns3 {
-
 NS_LOG_COMPONENT_DEFINE ("WaveformGenerator");
 
-NS_OBJECT_ENSURE_REGISTERED (WaveformGenerator);
+namespace ns3 {
+
+NS_OBJECT_ENSURE_REGISTERED (WaveformGenerator)
+  ;
 
 WaveformGenerator::WaveformGenerator ()
   : m_mobility (0),
-  m_netDevice (0),
-  m_channel (0),
-  m_txPowerSpectralDensity (0),
-  m_startTime (Seconds (0))
+    m_netDevice (0),
+    m_channel (0),
+    m_txPowerSpectralDensity (0),
+    m_startTime (Seconds (0)),
+    m_active (false)
 {
 
 }
@@ -58,10 +60,6 @@ WaveformGenerator::DoDispose (void)
   m_channel = 0;
   m_netDevice = 0;
   m_mobility = 0;
-  if (m_nextWave.IsRunning ())
-    {
-      m_nextWave.Cancel ();
-    }
 }
 
 TypeId
@@ -69,7 +67,6 @@ WaveformGenerator::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::WaveformGenerator")
     .SetParent<SpectrumPhy> ()
-    .SetGroupName ("Spectrum")
     .AddConstructor<WaveformGenerator> ()
     .AddAttribute ("Period",
                    "the period (=1/frequency)",
@@ -85,12 +82,10 @@ WaveformGenerator::GetTypeId (void)
                    MakeDoubleChecker<double> ())
     .AddTraceSource ("TxStart",
                      "Trace fired when a new transmission is started",
-                     MakeTraceSourceAccessor (&WaveformGenerator::m_phyTxStartTrace),
-                     "ns3::Packet::TracedCallback")
+                     MakeTraceSourceAccessor (&WaveformGenerator::m_phyTxStartTrace))
     .AddTraceSource ("TxEnd",
-                     "Trace fired when a previously started transmission is finished",
-                     MakeTraceSourceAccessor (&WaveformGenerator::m_phyTxEndTrace),
-                     "ns3::Packet::TracedCallback")
+                     "Trace fired when a previosuly started transmission is finished",
+                     MakeTraceSourceAccessor (&WaveformGenerator::m_phyTxEndTrace))
   ;
   return tid;
 }
@@ -98,7 +93,7 @@ WaveformGenerator::GetTypeId (void)
 
 
 Ptr<NetDevice>
-WaveformGenerator::GetDevice () const
+WaveformGenerator::GetDevice ()
 {
   return m_netDevice;
 }
@@ -200,7 +195,7 @@ WaveformGenerator::GenerateWaveform ()
   NS_LOG_FUNCTION (this);
 
   Ptr<SpectrumSignalParameters> txParams = Create<SpectrumSignalParameters> ();
-  txParams->duration = Time (m_period.GetTimeStep () * m_dutyCycle);
+  txParams->duration = Time (m_period * m_dutyCycle);
   txParams->psd = m_txPowerSpectralDensity;
   txParams->txPhy = GetObject<SpectrumPhy> ();
   txParams->txAntenna = m_antenna;
@@ -209,8 +204,11 @@ WaveformGenerator::GenerateWaveform ()
   m_phyTxStartTrace (0);
   m_channel->StartTx (txParams);
 
-  NS_LOG_LOGIC ("scheduling next waveform");
-  m_nextWave = Simulator::Schedule (m_period, &WaveformGenerator::GenerateWaveform, this);
+  if (m_active)
+    {
+      NS_LOG_LOGIC ("scheduling next waveform");
+      Simulator::Schedule (m_period, &WaveformGenerator::GenerateWaveform, this);
+    }
 }
 
 
@@ -218,11 +216,12 @@ void
 WaveformGenerator::Start ()
 {
   NS_LOG_FUNCTION (this);
-  if (!m_nextWave.IsRunning ())
+  if (!m_active)
     {
       NS_LOG_LOGIC ("generator was not active, now starting");
+      m_active = true;
       m_startTime = Now ();
-      m_nextWave = Simulator::ScheduleNow (&WaveformGenerator::GenerateWaveform, this);
+      Simulator::ScheduleNow (&WaveformGenerator::GenerateWaveform, this);
     }
 }
 
@@ -231,10 +230,8 @@ void
 WaveformGenerator::Stop ()
 {
   NS_LOG_FUNCTION (this);
-  if (m_nextWave.IsRunning ())
-    {
-      m_nextWave.Cancel ();
-
-    }
+  m_active = false;
 }
+
+
 } // namespace ns3

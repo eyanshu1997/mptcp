@@ -53,9 +53,9 @@
 
 #include <string>
 
-namespace ns3 {
-
 NS_LOG_COMPONENT_DEFINE ("EmuFdNetDeviceHelper");
+
+namespace ns3 {
 
 #define EMU_MAGIC 65867
 
@@ -107,7 +107,7 @@ EmuFdNetDeviceHelper::SetFileDescriptor (Ptr<FdNetDevice> device) const
   //
   struct ifreq ifr;
   bzero (&ifr, sizeof(ifr));
-  strncpy ((char *)ifr.ifr_name, m_deviceName.c_str (), IFNAMSIZ - 1);
+  strncpy ((char *)ifr.ifr_name, m_deviceName.c_str (), IFNAMSIZ);
 
   NS_LOG_LOGIC ("Getting interface index");
   int32_t rc = ioctl (fd, SIOCGIFINDEX, &ifr);
@@ -186,7 +186,7 @@ EmuFdNetDeviceHelper::SetFileDescriptor (Ptr<FdNetDevice> device) const
     }
  
   close (mtufd);
-  device->SetMtu (ifr2.ifr_mtu);
+  device->SetMtu (ifr.ifr_mtu);
 }
 
 int
@@ -248,7 +248,7 @@ EmuFdNetDeviceHelper::CreateFileDescriptor (void) const
   // we wait for the child (the socket creator) to complete and read the
   // socket it created using the ancillary data mechanism.
   //
-  // Tom Goff reports the possibility of a deadlock when trying to acquire the
+  // Tom Goff reports the possiblility of a deadlock when trying to acquire the
   // python GIL here.  He says that this might be due to trying to access Python
   // objects after fork() without calling PyOS_AfterFork() to properly reset
   // Python state (including the GIL).  There is no code to cause the problem
@@ -280,8 +280,7 @@ EmuFdNetDeviceHelper::CreateFileDescriptor (void) const
       // If the execlp successfully completes, it never returns.  If it returns it failed or the OS is
       // broken.  In either case, we bail.
       //
-      NS_FATAL_ERROR ("EmuFdNetDeviceHelper::CreateFileDescriptor(): Back from execlp(), status = " <<
-                      status << ", errno = " << ::strerror (errno));
+      NS_FATAL_ERROR ("EmuFdNetDeviceHelper::CreateFileDescriptor(): Back from execlp(), errno = " << ::strerror (errno));
     }
   else
     {
@@ -340,7 +339,7 @@ EmuFdNetDeviceHelper::CreateFileDescriptor (void) const
       //
       // First, we're going to allocate a buffer on the stack to receive our
       // data array (that contains the socket).  Sometimes you'll see this called
-      // an "ancillary element" but the msghdr uses the control message terminology
+      // an "ancillary element" but the msghdr uses the control message termimology
       // so we call it "control."
       //
       size_t msg_size = sizeof(int);
@@ -351,7 +350,7 @@ EmuFdNetDeviceHelper::CreateFileDescriptor (void) const
       // passed to recvmsg (which we will use to receive our ancillary data).
       // This structure uses terminology corresponding to control messages, so
       // you'll see msg_control, which is the pointer to the ancillary data and
-      // controller which is the size of the ancillary data array.
+      // controllen which is the size of the ancillary data array.
       //
       // So, initialize the message header that describes the ancillary/control
       // data we expect to receive and point it to buffer.

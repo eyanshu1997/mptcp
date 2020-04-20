@@ -23,9 +23,9 @@
 #include "ns3/assert.h"
 #include "vendor-specific-action.h"
 
-namespace ns3 {
-
 NS_LOG_COMPONENT_DEFINE ("VendorSpecificAction");
+
+namespace ns3 {
 
 /*********** OrganizationIdentifier *******/
 
@@ -167,12 +167,6 @@ OrganizationIdentifier::Deserialize (Buffer::Iterator start)
   return 0;
 }
 
-/**
- * equality operator
- * \param a left side object
- * \param b right side object
- * \returns true if equal
- */
 bool operator == (const OrganizationIdentifier& a, const OrganizationIdentifier& b)
 {
   if (a.m_type != b.m_type)
@@ -194,34 +188,16 @@ bool operator == (const OrganizationIdentifier& a, const OrganizationIdentifier&
   return false;
 }
 
-/**
- * inequality operator
- * \param a left side object
- * \param b right side object
- * \returns true if not equal
- */
 bool operator != (const OrganizationIdentifier& a, const OrganizationIdentifier& b)
 {
   return !(a == b);
 }
 
-/**
- * less than operator
- * \param a left side object
- * \param b right side object
- * \returns true if a < b
- */
 bool operator < (const OrganizationIdentifier& a, const OrganizationIdentifier& b)
 {
   return memcmp (a.m_oi, b.m_oi, std::min (a.m_type, b.m_type)) < 0;
 }
 
-/**
- * output operator
- * \param os output stream
- * \param oi organization identifier
- * \returns output stream
- */
 std::ostream& operator << (std::ostream& os, const OrganizationIdentifier& oi)
 {
   for (int i = 0; i < oi.m_type; i++)
@@ -232,12 +208,6 @@ std::ostream& operator << (std::ostream& os, const OrganizationIdentifier& oi)
   return os;
 }
 
-/**
- * input operator
- * \param is input stream
- * \param oi organization identifier
- * \returns input stream
- */
 std::istream& operator >> (std::istream& is, const OrganizationIdentifier& oi)
 {
   return is;
@@ -277,7 +247,6 @@ VendorSpecificActionHeader::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::VendorSpecificActionHeader")
     .SetParent<Header> ()
-    .SetGroupName ("Wave")
     .AddConstructor<VendorSpecificActionHeader> ()
   ;
 
@@ -352,11 +321,8 @@ void
 VendorSpecificContentManager::RegisterVscCallback (OrganizationIdentifier oi, VscCallback cb)
 {
   NS_LOG_FUNCTION (this << oi << &cb);
-  if (IsVscCallbackRegistered (oi))
-    {
-      NS_LOG_WARN ("there is already a VsaCallback registered for OrganizationIdentifier " << oi);
-    }
   m_callbacks.insert (std::make_pair (oi, cb));
+  OrganizationIdentifiers.push_back (oi);
 }
 
 void
@@ -366,19 +332,6 @@ VendorSpecificContentManager::DeregisterVscCallback (OrganizationIdentifier &oi)
   m_callbacks.erase (oi);
 }
 
-bool
-VendorSpecificContentManager::IsVscCallbackRegistered (OrganizationIdentifier &oi)
-{
-  NS_LOG_FUNCTION (this << oi);
-  if (m_callbacks.find (oi) == m_callbacks.end ())
-    {
-      OrganizationIdentifiers.push_back (oi);
-      return false;
-    }
-  return true;
-}
-
-///VSC callback function
 static VscCallback null_callback = MakeNullCallback<bool, Ptr<WifiMac>, const OrganizationIdentifier &,Ptr<const Packet>,const Address &> ();
 
 VscCallback

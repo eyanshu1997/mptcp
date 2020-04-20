@@ -26,12 +26,6 @@
 #include <utility>
 #include <stdint.h>
 
-/**
- * \file
- * \ingroup scheduler
- * ns3::ListScheduler declaration.
- */
-
 namespace ns3 {
 
 class EventImpl;
@@ -46,31 +40,20 @@ class EventImpl;
 class ListScheduler : public Scheduler
 {
 public:
-  /**
-   *  Register this type.
-   *  \return The object TypeId.
-   */
   static TypeId GetTypeId (void);
 
-  /** Constructor. */
   ListScheduler ();
-  /** Destructor. */
   virtual ~ListScheduler ();
 
-  // Inherited
-  virtual void Insert (const Scheduler::Event &ev);
+  virtual void Insert (const Event &ev);
   virtual bool IsEmpty (void) const;
-  virtual Scheduler::Event PeekNext (void) const;
-  virtual Scheduler::Event RemoveNext (void);
-  virtual void Remove (const Scheduler::Event &ev);
+  virtual Event PeekNext (void) const;
+  virtual Event RemoveNext (void);
+  virtual void Remove (const Event &ev);
 
 private:
-  /** Event list type: a simple list of Events. */
-  typedef std::list<Scheduler::Event> Events;
-  /** Events iterator. */
-  typedef std::list<Scheduler::Event>::iterator EventsI;
-
-  /** The event list. */
+  typedef std::list<Event> Events;
+  typedef std::list<Event>::iterator EventsI;
   Events m_events;
 };
 

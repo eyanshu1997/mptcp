@@ -86,31 +86,23 @@ namespace ns3 {
 class OpenFlowSwitchNetDevice : public NetDevice
 {
 public:
-  /**
-   * Register this type.
-   * \return The TypeId.
-   */
   static TypeId GetTypeId (void);
 
   /**
-   * \name Descriptive Data
-   * \brief OpenFlowSwitchNetDevice Description Data
-   *
-   * These four data describe the OpenFlowSwitchNetDevice as if it were
-   * a real OpenFlow switch.
+   * \name OpenFlowSwitchNetDevice Description Data
+   * \brief These four data describe the OpenFlowSwitchNetDevice as if it were a real OpenFlow switch.
    *
    * There is a type of stats request that OpenFlow switches are supposed
    * to handle that returns the description of the OpenFlow switch. Currently
    * manufactured by "The ns-3 team", software description is "Simulated
    * OpenFlow Switch", and the other two are "N/A".
-   * @{
    */
-  /** \returns The descriptive string. */
+  //\{
   static const char * GetManufacturerDescription ();
   static const char * GetHardwareDescription ();
   static const char * GetSoftwareDescription ();
   static const char * GetSerialNumber ();
-  /**@}*/
+  //\}
 
   OpenFlowSwitchNetDevice ();
   virtual ~OpenFlowSwitchNetDevice ();
@@ -129,7 +121,7 @@ public:
    * the new switch port NetDevice becomes part of the switch and L2
    * frames start being forwarded to/from this NetDevice.
    *
-   * \note The netdevice that is being added as switch port must
+   * \attention The netdevice that is being added as switch port must
    * _not_ have an IP address.  In order to add IP connectivity to a
    * bridging node you must enable IP on the OpenFlowSwitchNetDevice itself,
    * never on its port netdevices.
@@ -221,7 +213,8 @@ public:
    */
   vport_table_t GetVPortTable ();
 
-  // From NetDevice
+  ///\name From NetDevice
+  //\{
   virtual void SetIfIndex (const uint32_t index);
   virtual uint32_t GetIfIndex (void) const;
   virtual Ptr<Channel> GetChannel (void) const;
@@ -246,11 +239,14 @@ public:
   virtual void SetPromiscReceiveCallback (NetDevice::PromiscReceiveCallback cb);
   virtual bool SupportsSendFrom () const;
   virtual Address GetMulticast (Ipv6Address addr) const;
+  //\}
 
 protected:
   virtual void DoDispose (void);
 
   /**
+   * \internal
+   * 
    * Called when a packet is received on one of the switch's ports.
    *
    * \param netdev The port the packet was received on.
@@ -263,6 +259,8 @@ protected:
   void ReceiveFromDevice (Ptr<NetDevice> netdev, Ptr<const Packet> packet, uint16_t protocol, const Address& src, const Address& dst, PacketType packetType);
 
   /**
+   * \internal
+   *
    * Takes a packet and generates an OpenFlow buffer from it, loading the packet data as well as its headers.
    *
    * \param packet The packet.
@@ -272,10 +270,12 @@ protected:
    * \param protocol The protocol defining the packet.
    * \return The OpenFlow Buffer created from the packet.
    */
-  ofpbuf * BufferFromPacket (Ptr<const Packet> packet, Address src, Address dst, int mtu, uint16_t protocol);
+  ofpbuf * BufferFromPacket (Ptr<Packet> packet, Address src, Address dst, int mtu, uint16_t protocol);
 
 private:
   /**
+   * \internal
+   *
    * Add a flow.
    *
    * \sa #ENOMEM, #ENOBUFS, #ESRCH
@@ -286,6 +286,8 @@ private:
   int AddFlow (const ofp_flow_mod *ofm);
 
   /**
+   * \internal
+   *
    * Modify a flow.
    *
    * \param ofm The flow data to modify.
@@ -294,6 +296,8 @@ private:
   int ModFlow (const ofp_flow_mod *ofm);
 
   /**
+   * \internal
+   * 
    * Send packets out all the ports except the originating one
    *
    * \param packet_uid Packet UID; used to fetch the packet and its metadata.
@@ -304,6 +308,8 @@ private:
   int OutputAll (uint32_t packet_uid, int in_port, bool flood);
 
   /**
+   * \internal
+   * 
    * Sends a copy of the Packet over the provided output port
    *
    * \param packet_uid Packet UID; used to fetch the packet and its metadata.
@@ -311,6 +317,8 @@ private:
   void OutputPacket (uint32_t packet_uid, int out_port);
 
   /**
+   * \internal
+   *
    * Seeks to send out a Packet over the provided output port. This is called generically
    * when we may or may not know the specific port we're outputting on. There are many
    * pre-set types of port options besides a Port that's hooked to our OpenFlowSwitchNetDevice.
@@ -324,6 +332,8 @@ private:
   void OutputPort (uint32_t packet_uid, int in_port, int out_port, bool ignore_no_fwd);
 
   /**
+   * \internal 
+   * 
    * Sends a copy of the Packet to the controller. If the packet can be saved
    * in an OpenFlow buffer, then only the first 'max_len' bytes of the packet
    * are sent; otherwise, all of the packet is sent.
@@ -336,6 +346,8 @@ private:
   void OutputControl (uint32_t packet_uid, int in_port, size_t max_len, int reason);
 
   /**
+   * \internal
+   * 
    * If an error message happened during the controller's request, send it to the controller.
    *
    * \param type The type of error.
@@ -346,6 +358,8 @@ private:
   void SendErrorMsg (uint16_t type, uint16_t code, const void *data, size_t len);
 
   /**
+   * \internal
+   * 
    * Send a reply about this OpenFlow switch's features to the controller.
    *
    * List of capabilities and actions to support are found in the specification
@@ -369,6 +383,8 @@ private:
   void SendFeaturesReply ();
 
   /**
+   * \internal
+   *
    * Send a reply to the controller that a specific flow has expired.
    *
    * \param flow The flow that expired.
@@ -377,6 +393,8 @@ private:
   void SendFlowExpired (sw_flow *flow, enum ofp_flow_expired_reason reason);
 
   /**
+   * \internal
+   *
    * Send a reply about a Port's status to the controller.
    *
    * \param p The port to get status from.
@@ -385,11 +403,15 @@ private:
   void SendPortStatus (ofi::Port p, uint8_t status);
 
   /**
+   * \internal
+   *
    * Send a reply about this OpenFlow switch's virtual port table features to the controller.
    */
   void SendVPortTableFeatures ();
 
   /**
+   * \internal
+   *
    * Send a message to the controller. This method is the key
    * to communicating with the controller, it does the actual
    * sending. The other Send methods call this one when they
@@ -401,6 +423,8 @@ private:
   int SendOpenflowBuffer (ofpbuf *buffer);
 
   /**
+   * \internal
+   *
    * Run the packet through the flow table. Looks up in the flow table for a match.
    * If it doesn't match, it forwards the packet to the registered controller, if the flag is set.
    *
@@ -411,6 +435,8 @@ private:
   void RunThroughFlowTable (uint32_t packet_uid, int port, bool send_to_controller = true);
 
   /**
+   * \internal
+   *
    * Run the packet through the vport table. As with AddVPort,
    * this doesn't have an understood use yet.
    *
@@ -422,6 +448,8 @@ private:
   int RunThroughVPortTable (uint32_t packet_uid, int port, uint32_t vport);
 
   /**
+   * \internal
+   *
    * Called by RunThroughFlowTable on a scheduled delay
    * to account for the flow table lookup overhead.
    *
@@ -434,6 +462,8 @@ private:
   void FlowTableLookup (sw_flow_key key, ofpbuf* buffer, uint32_t packet_uid, int port, bool send_to_controller);
 
   /**
+   * \internal
+   *
    * Update the port status field of the switch port.
    * A non-zero return value indicates some field has changed.
    *
@@ -443,6 +473,8 @@ private:
   int UpdatePortStatus (ofi::Port& p);
 
   /**
+   * \internal
+   *
    * Fill out a description of the switch port.
    *
    * \param p The port to get the description from.
@@ -451,6 +483,8 @@ private:
   void FillPortDesc (ofi::Port p, ofp_phy_port *desc);
 
   /**
+   * \internal
+   *
    * Generates an OpenFlow reply message based on the type.
    *
    * \param openflow_len Length of the reply to make.
@@ -461,16 +495,15 @@ private:
   void* MakeOpenflowReply (size_t openflow_len, uint8_t type, ofpbuf **bufferp);
 
   /**
+   * \internal
    * \name Receive Methods
    *
    * Actions to do when a specific OpenFlow message/packet is received
    *
-   * @{
-   */
-  /**
    * \param msg The OpenFlow message received.
    * \return 0 if everything's ok, otherwise an error number.
    */
+  //\{
   int ReceiveFeaturesRequest (const void *msg);
   int ReceiveGetConfigRequest (const void *msg);
   int ReceiveSetConfig (const void *msg);
@@ -482,7 +515,7 @@ private:
   int ReceiveEchoReply (const void *oh);
   int ReceiveVPortMod (const void *msg);
   int ReceiveVPortTableFeaturesRequest (const void *msg);
-  /**@}*/
+  //\}
 
   /// Callbacks
   NetDevice::ReceiveCallback m_rxCallback;

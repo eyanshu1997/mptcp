@@ -29,14 +29,7 @@
 #include <ns3/lte-ue-rrc.h>
 #include <vector>
 
-
 namespace ns3 {
-
-class LteUeNetDevice;
-
-}
-
-using namespace ns3;
 
 
 /**
@@ -53,10 +46,9 @@ public:
 
 
 
+class LteUeNetDevice;
 
 /**
- * \ingroup lte
- *
  * \brief Testing the initial cell selection procedure by UE at IDLE state in
  *        the beginning of simulation.
  */
@@ -73,15 +65,6 @@ public:
     Time checkPoint; ///< The time in simulation when the UE is verified by the test script.
     uint16_t expectedCellId1; ///< The cell ID that the UE is expected to attach to (0 means that the UE should not attach to any cell).
     uint16_t expectedCellId2; ///< An alternative cell ID that the UE is expected to attach to (0 means that this no alternative cell is expected).
-    /**
-     * \brief UE test setup function.
-     * \param relPosX relative position to the inter site distance in X
-     * \param relPosY relative position to the inter site distance in Y
-     * \param isCsgMember if true, simulation is allowed access to CSG cell
-     * \param checkPoint the time in the simulation when the UE is verified
-     * \param expectedCellId1 ///< The cell ID that the UE is expected to attach to (0 means that the UE should not attach to any cell).
-     * \param expectedCellId2 ///< An alternative cell ID that the UE is expected to attach to (0 means that this no alternative cell is expected).
-     */
     UeSetup_t (double relPosX, double relPosY, bool isCsgMember, Time checkPoint,
                uint16_t expectedCellId1, uint16_t expectedCellId2);
   };
@@ -100,7 +83,7 @@ public:
   LteCellSelectionTestCase (std::string name, bool isEpcMode, bool isIdealRrc,
                             double interSiteDistance,
                             std::vector<UeSetup_t> ueSetupList,
-                            uint64_t rngRun);
+                            int64_t rngRun);
 
   virtual ~LteCellSelectionTestCase ();
 
@@ -114,60 +97,34 @@ private:
   /**
    * \brief Verifies if the given UE is attached to either of the given two
    *        cells and in a CONNECTED_NORMALLY state.
-   * \param ueDev the UE device
-   * \param expectedCellId1 the first cell ID
-   * \param expectedCellId2 the second cell ID
    */
   void CheckPoint (Ptr<LteUeNetDevice> ueDev, uint16_t expectedCellId1,
                    uint16_t expectedCellId2);
 
-  /**
-   * \brief State transition callback function
-   * \param context the context string
-   * \param imsi the IMSI
-   * \param cellId the cell ID
-   * \param rnti the RNTI
-   * \param oldState the old state
-   * \param newState the new state
-   */
   void StateTransitionCallback (std::string context, uint64_t imsi,
                                 uint16_t cellId, uint16_t rnti,
                                 LteUeRrc::State oldState, LteUeRrc::State newState);
-  /**
-   * \brief Initial cell selection end ok callback function
-   * \param context the context string
-   * \param imsi the IMSI
-   * \param cellId the cell ID
-   */
   void InitialCellSelectionEndOkCallback (std::string context, uint64_t imsi,
                                           uint16_t cellId);
-  /**
-   * \brief Initial cell selection end error callback function
-   * \param context the context string
-   * \param imsi the IMSI
-   * \param cellId the cell ID
-   */
   void InitialCellSelectionEndErrorCallback (std::string context, uint64_t imsi,
                                              uint16_t cellId);
-  /**
-   * \brief Connection established callback function
-   * \param context the context string
-   * \param imsi the IMSI
-   * \param cellId the cell ID
-   * \param rnti the RNTI
-   */
   void ConnectionEstablishedCallback (std::string context, uint64_t imsi,
                                       uint16_t cellId, uint16_t rnti);
 
-  bool m_isEpcMode; ///< whether the LTE configuration in test is using EPC
-  bool m_isIdealRrc; ///< whether the LTE is configured to use ideal RRC
-  double m_interSiteDistance; ///< inter site distance
-  std::vector<UeSetup_t> m_ueSetupList; ///< UE setup list
-  uint64_t m_rngRun; ///< rng run
+  bool m_isEpcMode;
+  bool m_isIdealRrc;
+  double m_interSiteDistance;
+  std::vector<UeSetup_t> m_ueSetupList;
+  int64_t m_rngRun;
 
   /// The current UE RRC state.
   std::vector<LteUeRrc::State> m_lastState;
 
 }; // end of class LteCellSelectionTestCase
+
+
+
+} // end of namespace ns3
+
 
 #endif /* LTE_TEST_CELL_SELECTION_H */

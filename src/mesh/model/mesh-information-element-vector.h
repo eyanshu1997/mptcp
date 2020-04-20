@@ -23,23 +23,13 @@
 #define MESH_INFORMATION_ELEMENT_VECTOR_H
 
 #include "ns3/wifi-information-element-vector.h"
+#include "ns3/mesh-information-element.h"
 
 namespace ns3 {
-
-#define IE11S_MESH_PEERING_PROTOCOL_VERSION ((WifiInformationElementId)74) //to be removed (Protocol ID should be part of the Mesh Peering Management IE)
 
 class MeshInformationElementVector : public WifiInformationElementVector
 {
 public:
-  MeshInformationElementVector ();
-  ~MeshInformationElementVector ();
-
-  /**
-   * \brief Get the type ID.
-   * \return the object TypeId
-   */
-  static TypeId GetTypeId ();
-  TypeId GetInstanceTypeId () const;
   virtual uint32_t DeserializeSingleIe (Buffer::Iterator start);
 };
 

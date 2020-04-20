@@ -19,6 +19,7 @@
  */
 
 #include <stdint.h>
+#include <stdint.h>
 #include "ofdm-downlink-frame-prefix.h"
 #include "ns3/address-utils.h"
 
@@ -139,18 +140,6 @@ OfdmDownlinkFramePrefix::~OfdmDownlinkFramePrefix ()
 {
 }
 
-/* static */
-TypeId
-OfdmDownlinkFramePrefix::GetTypeId (void)
-{
-  static TypeId tid = TypeId ("ns3::OfdmDownlinkFramePrefix")
-    .SetParent<Header> ()
-    .SetGroupName ("Wimax")
-    // No AddConstructor because this is an abstract class.
-    ;
-  return tid;
-}
-   
 void
 OfdmDownlinkFramePrefix::SetBaseStationId (Mac48Address baseStationId)
 {

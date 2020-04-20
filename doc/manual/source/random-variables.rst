@@ -105,41 +105,6 @@ use a single RNG and streams and substreams from it.
 
 .. _seeding-and-independent-replications:
 
-Creating random variables
-*************************
-
-|ns3| supports a number of random variable objects from the base class
-:cpp:class:`RandomVariableStream`.  These objects derive from 
-:cpp:class:`ns3::Object` and are handled by smart pointers.
-
-The correct way to create these objects is to use the templated 
-`CreateObject<>` method, such as:
-
-::
-
-  Ptr<UniformRandomVariable> x = CreateObject<UniformRandomVariable> ();
-
-then you can access values by calling methods on the object such as:
-
-::
-
-  myRandomNo = x->GetInteger ();
-  
-
-If you try to instead do something like this:
-
-::
-
-  myRandomNo = UniformRandomVariable().GetInteger ();
-
-your program will encounter a segmentation fault, because the implementation
-relies on some attribute construction that occurs only when `CreateObject`
-is called.
-
-Much of the rest of this chapter now discusses the properties of the
-stream of pseudo-random numbers generated from such objects, and how to
-control the seeding of such objects.
-
 Seeding and independent replications
 ************************************
 
@@ -277,7 +242,6 @@ An example is in the propagation models for WifiNetDevice::
     { 
       static TypeId tid = TypeId ("ns3::RandomPropagationDelayModel")
         .SetParent<PropagationDelayModel> ()
-        .SetGroupName ("Propagation")
         .AddConstructor<RandomPropagationDelayModel> ()
         .AddAttribute ("Variable",
                        "The random variable which generates random delays (s).",
@@ -355,7 +319,7 @@ Publishing your results
 
 When you publish simulation results, a key piece of configuration 
 information that you should always state is how you used the
-random number generator.
+the random number generator.
 
 * what seeds you used,
 * what RNG you used if not the default,

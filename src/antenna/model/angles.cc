@@ -24,9 +24,10 @@
 #include "angles.h"
 
 
+NS_LOG_COMPONENT_DEFINE ("Angles");
+
 namespace ns3 {
 
-NS_LOG_COMPONENT_DEFINE ("Angles");
 
 double DegreesToRadians (double degrees)
 {
@@ -73,7 +74,7 @@ Angles::Angles (double p, double t)
 
 Angles::Angles (Vector v)
   : phi (std::atan2 (v.y, v.x)),
-    theta (std::acos (v.z / v.GetLength ()))
+    theta (std::acos (v.z / sqrt (v.x*v.x + v.y*v.y + v.z*v.z)))
 {
 }
 

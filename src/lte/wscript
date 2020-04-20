@@ -2,10 +2,7 @@
 
 def build(bld):
 
-    lte_module_dependencies = ['core', 'network', 'spectrum', 'stats', 'buildings', 'virtual-net-device','point-to-point','applications','internet','csma']
-    if (bld.env['ENABLE_EMU']):
-        lte_module_dependencies.append('fd-net-device')
-    module = bld.create_ns3_module('lte', lte_module_dependencies)
+    module = bld.create_ns3_module('lte', ['core', 'network', 'spectrum', 'stats', 'buildings', 'virtual-net-device','point-to-point','applications','internet','csma'])
     module.source = [
         'model/lte-common.cc',
         'model/lte-spectrum-phy.cc',
@@ -72,7 +69,7 @@ def build(bld):
         'model/lte-ue-phy-sap.cc',
         'model/lte-ue-cphy-sap.cc',
         'model/lte-interference.cc',
-        'model/lte-chunk-processor.cc',
+        'model/lte-sinr-chunk-processor.cc',
         'model/pf-ff-mac-scheduler.cc',
         'model/fdmt-ff-mac-scheduler.cc',
         'model/tdmt-ff-mac-scheduler.cc',
@@ -82,7 +79,6 @@ def build(bld):
         'model/fdtbfq-ff-mac-scheduler.cc',
         'model/tdtbfq-ff-mac-scheduler.cc',
         'model/pss-ff-mac-scheduler.cc',
-        'model/cqa-ff-mac-scheduler.cc',
         'model/epc-gtpu-header.cc',
         'model/trace-fading-loss-model.cc',
         'model/epc-enb-application.cc',
@@ -110,28 +106,6 @@ def build(bld):
         'model/no-op-handover-algorithm.cc',
         'model/lte-anr-sap.cc',
         'model/lte-anr.cc',
-        'model/lte-ffr-algorithm.cc',
-        'model/lte-ffr-sap.cc',
-        'model/lte-ffr-rrc-sap.cc',
-        'model/lte-fr-no-op-algorithm.cc',
-        'model/lte-fr-hard-algorithm.cc',
-        'model/lte-fr-strict-algorithm.cc',
-        'model/lte-fr-soft-algorithm.cc',
-        'model/lte-ffr-soft-algorithm.cc',
-        'model/lte-ffr-enhanced-algorithm.cc',
-        'model/lte-ffr-distributed-algorithm.cc',
-        'model/lte-ue-power-control.cc',
-        'model/lte-ccm-rrc-sap.cc',
-        'model/lte-ue-ccm-rrc-sap.cc', 
-        'model/lte-ccm-mac-sap.cc', 
-        'model/lte-enb-component-carrier-manager.cc',
-        'model/lte-ue-component-carrier-manager.cc',
-        'model/no-op-component-carrier-manager.cc',
-        'model/simple-ue-component-carrier-manager.cc',
-        'model/component-carrier.cc',
-        'helper/cc-helper.cc',
-        'model/component-carrier-ue.cc',
-        'model/component-carrier-enb.cc'
         ]
 
     module_test = bld.create_ns3_module_test_library('lte')
@@ -140,6 +114,7 @@ def build(bld):
         'test/lte-test-uplink-sinr.cc',
         'test/lte-test-link-adaptation.cc',
         'test/lte-test-interference.cc',
+        'test/lte-test-sinr-chunk-processor.cc',
         'test/lte-test-ue-phy.cc',
         'test/lte-test-rr-ff-mac-scheduler.cc',
         'test/lte-test-pf-ff-mac-scheduler.cc',
@@ -151,14 +126,12 @@ def build(bld):
         'test/lte-test-fdtbfq-ff-mac-scheduler.cc',
         'test/lte-test-tdtbfq-ff-mac-scheduler.cc',
         'test/lte-test-pss-ff-mac-scheduler.cc',
-        'test/lte-test-cqa-ff-mac-scheduler.cc',
         'test/lte-test-earfcn.cc',
         'test/lte-test-spectrum-value-helper.cc',
         'test/lte-test-pathloss-model.cc',
         'test/lte-test-entities.cc',
         'test/lte-simple-helper.cc',
         'test/lte-simple-net-device.cc',
-        'test/test-lte-rlc-header.cc',
         'test/lte-test-rlc-um-transmitter.cc',
         'test/lte-test-rlc-am-transmitter.cc',
         'test/lte-test-rlc-um-e2e.cc',
@@ -178,21 +151,8 @@ def build(bld):
         'test/test-asn1-encoding.cc',
         'test/lte-test-ue-measurements.cc',
         'test/lte-test-cell-selection.cc',
-        'test/lte-test-secondary-cell-selection.cc',
         'test/test-lte-handover-delay.cc',
         'test/test-lte-handover-target.cc',
-        'test/lte-test-deactivate-bearer.cc',
-        'test/lte-ffr-simple.cc',
-        'test/lte-test-downlink-power-control.cc',
-        'test/lte-test-uplink-power-control.cc',
-        'test/lte-test-frequency-reuse.cc',
-        'test/lte-test-interference-fr.cc',
-        'test/lte-test-cqi-generation.cc',
-        'test/lte-simple-spectrum-phy.cc',
-        'test/lte-test-carrier-aggregation.cc',
-        'test/lte-test-aggregation-throughput-scale.cc',
-        'test/lte-test-ipv6-routing.cc',
-        'test/lte-test-carrier-aggregation-configuration.cc'
         ]
 
     headers = bld(features='ns3header')
@@ -263,7 +223,7 @@ def build(bld):
         'model/lte-ue-phy-sap.h',
         'model/lte-ue-cphy-sap.h',
         'model/lte-interference.h',
-        'model/lte-chunk-processor.h',
+        'model/lte-sinr-chunk-processor.h',
         'model/pf-ff-mac-scheduler.h',
         'model/fdmt-ff-mac-scheduler.h',
         'model/tdmt-ff-mac-scheduler.h',
@@ -273,7 +233,6 @@ def build(bld):
         'model/fdtbfq-ff-mac-scheduler.h',
         'model/tdtbfq-ff-mac-scheduler.h',
         'model/pss-ff-mac-scheduler.h',
-        'model/cqa-ff-mac-scheduler.h',
         'model/trace-fading-loss-model.h',
         'model/epc-gtpu-header.h',
         'model/epc-enb-application.h',
@@ -301,33 +260,7 @@ def build(bld):
         'model/no-op-handover-algorithm.h',
         'model/lte-anr-sap.h',
         'model/lte-anr.h',
-        'model/lte-ffr-algorithm.h',
-        'model/lte-ffr-sap.h',
-        'model/lte-ffr-rrc-sap.h',
-        'model/lte-fr-no-op-algorithm.h',
-        'model/lte-fr-hard-algorithm.h',
-        'model/lte-fr-strict-algorithm.h',
-        'model/lte-fr-soft-algorithm.h',
-        'model/lte-ffr-soft-algorithm.h',
-        'model/lte-ffr-enhanced-algorithm.h',
-        'model/lte-ffr-distributed-algorithm.h',
-        'model/lte-ue-power-control.h',
-        'model/lte-ccm-rrc-sap.h',
-        'model/lte-ue-ccm-rrc-sap.h', 
-        'model/lte-ccm-mac-sap.h', 
-        'model/lte-enb-component-carrier-manager.h',
-        'model/lte-ue-component-carrier-manager.h',
-        'model/no-op-component-carrier-manager.h',
-        'model/simple-ue-component-carrier-manager.h',
-        'helper/cc-helper.h',
-        'model/component-carrier.h',
-        'model/component-carrier-ue.h',
-        'model/component-carrier-enb.h'
         ]
-
-    if (bld.env['ENABLE_EMU']):
-        module.source.append ('helper/emu-epc-helper.cc')
-        headers.source.append ('helper/emu-epc-helper.h')
 
     if (bld.env['ENABLE_EXAMPLES']):
       bld.recurse('examples')

@@ -44,10 +44,7 @@ class MeshPointDevice;
 class MeshL2RoutingProtocol : public Object
 {
 public:
-  /**
-   * \brief Get the type ID.
-   * \return the object TypeId
-   */
+  /// Never forget to support NS3 object model
   static TypeId GetTypeId ();
   /// virtual D-tor for subclasses
   virtual ~MeshL2RoutingProtocol ();
@@ -115,18 +112,10 @@ public:
    */
   virtual bool RemoveRoutingStuff (uint32_t fromIface, const Mac48Address source, const Mac48Address destination, Ptr<
                                      Packet> packet, uint16_t & protocolType) = 0;
-  /**
-   * Set host mesh point, analog of SetNode (...) methods for upper layer protocols.
-   *
-   * \param mp the mesh point device
-   */
+  /// Set host mesh point, analog of SetNode (...) methods for upper layer protocols.
   void
   SetMeshPoint (Ptr<MeshPointDevice> mp);
-  /**
-   * Each mesh protocol must be installed on the mesh point to work.
-   *
-   * \returns the mesh point device
-   */
+  /// Each mesh protocol must be installed on the mesh point to work.
   Ptr<MeshPointDevice>
   GetMeshPoint () const;
 protected:

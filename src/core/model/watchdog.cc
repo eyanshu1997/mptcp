@@ -20,16 +20,9 @@
 #include "watchdog.h"
 #include "log.h"
 
-
-/**
- * \file
- * \ingroup timer
- * ns3::Watchdog timer class implementation.
- */
+NS_LOG_COMPONENT_DEFINE ("Watchdog");
 
 namespace ns3 {
-
-NS_LOG_COMPONENT_DEFINE ("Watchdog");
 
 Watchdog::Watchdog ()
   : m_impl (0),

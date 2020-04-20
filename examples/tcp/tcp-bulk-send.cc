@@ -77,6 +77,7 @@ main (int argc, char *argv[])
 // Install the internet stack on the nodes
 //
   InternetStackHelper internet;
+  internet.SetTcp("ns3::MpTcpL4Protocol");
   internet.Install (nodes);
 
 //

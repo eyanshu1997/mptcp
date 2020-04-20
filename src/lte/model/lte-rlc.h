@@ -49,17 +49,11 @@ namespace ns3 {
  */
 class LteRlc : public Object // SimpleRefCount<LteRlc>
 {
-  /// allow LteRlcSpecificLteMacSapUser class friend access
   friend class LteRlcSpecificLteMacSapUser;
-  /// allow LteRlcSpecificLteRlcSapProvider<LteRlc> class friend access
   friend class LteRlcSpecificLteRlcSapProvider<LteRlc>;
 public:
   LteRlc ();
   virtual ~LteRlc ();
-  /**
-   * \brief Get the type ID.
-   * \return the object TypeId
-   */
   static TypeId GetTypeId (void);
   virtual void DoDispose ();
 
@@ -106,74 +100,27 @@ public:
   LteMacSapUser* GetLteMacSapUser ();
 
 
-  /**
-   * TracedCallback signature for NotifyTxOpportunity events.
-   *
-   * \param [in] rnti C-RNTI scheduled.
-   * \param [in] lcid The logical channel id corresponding to
-   *             the sending RLC instance.
-   * \param [in] bytes The number of bytes to transmit
-   */
-  typedef void (* NotifyTxTracedCallback)
-    (uint16_t rnti, uint8_t lcid, uint32_t bytes);
-
-  /**
-   * TracedCallback signature for
-   *
-   * \param [in] rnti C-RNTI scheduled.
-   * \param [in] lcid The logical channel id corresponding to
-   *             the sending RLC instance.
-   * \param [in] bytes The packet size.
-   * \param [in] delay Delay since sender timestamp, in ns.
-   */
-  typedef void (* ReceiveTracedCallback)
-    (uint16_t rnti, uint8_t lcid, uint32_t bytes, uint64_t delay);
 
   /// \todo MRE What is the sense to duplicate all the interfaces here???
   // NB to avoid the use of multiple inheritance
   
 protected:
   // Interface forwarded by LteRlcSapProvider
-  /**
-   * Transmit PDCP PDU
-   * 
-   * \param p packet
-   */
   virtual void DoTransmitPdcpPdu (Ptr<Packet> p) = 0;
 
-  LteRlcSapUser* m_rlcSapUser; ///< RLC SAP user
-  LteRlcSapProvider* m_rlcSapProvider; ///< RLC SAP provider
+  LteRlcSapUser* m_rlcSapUser;
+  LteRlcSapProvider* m_rlcSapProvider;
 
   // Interface forwarded by LteMacSapUser
-  /**
-   * Notify transmit opportunity
-   *
-   * \param bytes number of bytes
-   * \param layer the layer
-   * \param harqId the HARQ ID
-   * \param componentCarrierId component carrier ID
-   * \param rnti the RNTI
-   * \param lcid the LCID
-   */ 
-  virtual void DoNotifyTxOpportunity (uint32_t bytes, uint8_t layer, uint8_t harqId, uint8_t componentCarrierId, uint16_t rnti, uint8_t lcid) = 0;
-  /**
-   * Notify HARQ delivery failure
-   */ 
+  virtual void DoNotifyTxOpportunity (uint32_t bytes, uint8_t layer, uint8_t harqId) = 0;
   virtual void DoNotifyHarqDeliveryFailure () = 0;
-  /**
-   * Receive PDU function
-   *
-   * \param p the packet
-   * \param rnti the RNTI
-   * \param lcid the LCID
-   */ 
-  virtual void DoReceivePdu (Ptr<Packet> p, uint16_t rnti, uint8_t lcid) = 0;
+  virtual void DoReceivePdu (Ptr<Packet> p) = 0;
 
-  LteMacSapUser* m_macSapUser; ///< MAC SAP user
-  LteMacSapProvider* m_macSapProvider; ///< MAC SAP provider
+  LteMacSapUser* m_macSapUser;
+  LteMacSapProvider* m_macSapProvider;
 
-  uint16_t m_rnti; ///< RNTI
-  uint8_t m_lcid; ///< LCID
+  uint16_t m_rnti;
+  uint8_t m_lcid;
 
   /**
    * Used to inform of a PDU delivery to the MAC SAP provider
@@ -201,23 +148,18 @@ class LteRlcSm : public LteRlc
 public:
   LteRlcSm ();
   virtual ~LteRlcSm ();
-  /**
-   * \brief Get the type ID.
-   * \return the object TypeId
-   */
   static TypeId GetTypeId (void);
   virtual void DoInitialize ();
   virtual void DoDispose ();
 
   virtual void DoTransmitPdcpPdu (Ptr<Packet> p);
-  virtual void DoNotifyTxOpportunity (uint32_t bytes, uint8_t layer, uint8_t harqId, uint8_t componentCarrierId, uint16_t rnti, uint8_t lcid);
+  virtual void DoNotifyTxOpportunity (uint32_t bytes, uint8_t layer, uint8_t harqId);
   virtual void DoNotifyHarqDeliveryFailure ();
-  virtual void DoReceivePdu (Ptr<Packet> p, uint16_t rnti, uint8_t lcid);
+  virtual void DoReceivePdu (Ptr<Packet> p);
 
 
 
 private:
-  /// Report buffer status
   void ReportBufferStatus ();
 
 };

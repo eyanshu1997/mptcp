@@ -31,8 +31,6 @@ namespace ns3 {
 class Ipv4EndPoint;
 
 /**
- * \ingroup ipv4
- *
  * \brief Demultiplexes packets to various transport layer endpoints
  *
  * This class serves as a lookup table to match partial or full information
@@ -72,24 +70,14 @@ public:
 
   /**
    * \brief Lookup for address and port.
-   * \param boundNetDevice Bound NetDevice (if any)
    * \param addr address to test
    * \param port port to test
    * \return true if there is a match in EndPoints, false otherwise
    */
-  bool LookupLocal (Ptr<NetDevice> boundNetDevice, Ipv4Address addr, uint16_t port);
+  bool LookupLocal (Ipv4Address addr, uint16_t port);
 
   /**
    * \brief lookup for a match with all the parameters.
-   *
-   * The function will return a list of most-matching EndPoints, in this order:
-   *   -# Full match
-   *   -# All but local address
-   *   -# Only local port and local address match
-   *   -# Only local port match
-   *
-   * EndPoint with disabled Rx are skipped.
-   *
    * \param daddr destination address to test
    * \param dport destination port to test
    * \param saddr source address to test
@@ -131,33 +119,31 @@ public:
 
   /**
    * \brief Allocate a Ipv4EndPoint.
-   * \param boundNetDevice Bound NetDevice (if any)
    * \param port local port
    * \return an Ipv4EndPoint instance
    */
-  Ipv4EndPoint *Allocate (Ptr<NetDevice> boundNetDevice, uint16_t port);
+  Ipv4EndPoint *Allocate (uint16_t port);
 
   /**
    * \brief Allocate a Ipv4EndPoint.
-   * \param boundNetDevice Bound NetDevice (if any)
    * \param address local address
    * \param port local port
    * \return an Ipv4EndPoint instance
    */
-  Ipv4EndPoint *Allocate (Ptr<NetDevice> boundNetDevice, Ipv4Address address, uint16_t port);
+  Ipv4EndPoint *Allocate (Ipv4Address address, uint16_t port);
 
   /**
    * \brief Allocate a Ipv4EndPoint.
-   * \param boundNetDevice Bound NetDevice (if any)
    * \param localAddress local address
    * \param localPort local port
    * \param peerAddress peer address
    * \param peerPort peer port
    * \return an Ipv4EndPoint instance
    */
-  Ipv4EndPoint *Allocate (Ptr<NetDevice> boundNetDevice,
-                          Ipv4Address localAddress, uint16_t localPort,
-                          Ipv4Address peerAddress, uint16_t peerPort);
+  Ipv4EndPoint *Allocate (Ipv4Address localAddress, 
+                          uint16_t localPort,
+                          Ipv4Address peerAddress, 
+                          uint16_t peerPort);
 
   /**
    * \brief Remove a end point.

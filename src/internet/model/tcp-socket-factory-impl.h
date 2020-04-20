@@ -28,13 +28,17 @@ namespace ns3 {
 class TcpL4Protocol;
 
 /**
- * \ingroup socket
+ * \ingroup internet
+ * \defgroup tcp Tcp
+ *
+ * This class serves to create sockets of the TcpSocketBase type.
+ */
+
+/**
  * \ingroup tcp
  *
  * \brief socket factory implementation for native ns-3 TCP
  *
- *
- * This class serves to create sockets of the TcpSocketBase type.
  */
 class TcpSocketFactoryImpl : public TcpSocketFactory
 {

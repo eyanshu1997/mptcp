@@ -28,7 +28,6 @@ namespace ns3 {
 
 /**
  * \ingroup address
- * \ingroup ipv4
  *
  * \brief a class to store IPv4 address information on an interface
  *

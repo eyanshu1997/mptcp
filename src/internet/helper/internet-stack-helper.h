@@ -37,24 +37,6 @@ class Ipv4RoutingHelper;
 class Ipv6RoutingHelper;
 
 /**
- * \defgroup internet Internet
- *
- * This section documents the API of the ns-3 internet module. For a generic functional description, please refer to the ns-3 manual.
- */
-
-/**
- * \ingroup internet
- * \defgroup ipv4Helpers IPv4 Helper classes
- */
-
-/**
- * \ingroup internet
- * \defgroup ipv6Helpers IPv6 Helper classes
- */
-
-/**
- * \ingroup internet
- *
  * \brief aggregate IP/TCP/UDP functionality to existing Nodes.
  *
  * This helper enables pcap and ascii tracing of events in the internet stack
@@ -74,14 +56,10 @@ class Ipv6RoutingHelper;
  *  - ns3::ArpL3Protocol
  *  - ns3::Ipv4L3Protocol
  *  - ns3::Icmpv4L4Protocol
- *  - ns3::Ipv6L3Protocol
- *  - ns3::Icmpv6L4Protocol
  *  - ns3::UdpL4Protocol
- *  - ns3::TrafficControlLayer
  *  - a TCP based on the TCP factory provided
  *  - a PacketSocketFactory
- *  - Ipv4 routing (a list routing object, a global routing object, and a static routing object)
- *  - Ipv6 routing (a static routing object)
+ *  - Ipv4 routing (a list routing object and a static routing object)
  */
 class InternetStackHelper : public PcapHelperForIpv4, public PcapHelperForIpv6, 
                             public AsciiTraceHelperForIpv4, public AsciiTraceHelperForIpv6
@@ -105,14 +83,11 @@ public:
 
   /**
    * \brief Copy constructor
-   * \param o Object to copy from.
    */
-  InternetStackHelper (const InternetStackHelper &o);
+  InternetStackHelper (const InternetStackHelper &);
 
   /**
    * \brief Copy constructor
-   * \param o Object to copy from.
-   * \returns A copy of the InternetStackHelper.
    */
   InternetStackHelper &operator = (const InternetStackHelper &o);
 
@@ -239,6 +214,7 @@ public:
 private:
   /**
    * @brief Enable pcap output the indicated Ipv4 and interface pair.
+   * @internal
    *
    * @param prefix Filename prefix to use for pcap files.
    * @param ipv4 Ptr to the Ipv4 interface on which you want to enable tracing.
@@ -252,6 +228,7 @@ private:
 
   /**
    * @brief Enable ascii trace output on the indicated Ipv4 and interface pair.
+   * @internal
    *
    * @param stream An OutputStreamWrapper representing an existing file to use
    *               when writing trace data.
@@ -268,6 +245,7 @@ private:
 
   /**
    * @brief Enable pcap output the indicated Ipv6 and interface pair.
+   * @internal
    *
    * @param prefix Filename prefix to use for pcap files.
    * @param ipv6 Ptr to the Ipv6 interface on which you want to enable tracing.
@@ -281,6 +259,7 @@ private:
 
   /**
    * @brief Enable ascii trace output on the indicated Ipv6 and interface pair.
+   * @internal
    *
    * @param stream An OutputStreamWrapper representing an existing file to use
    *               when writing trace data.
@@ -301,21 +280,26 @@ private:
   void Initialize (void);
 
   /**
+   * \internal
    * \brief TCP objects factory
    */
   ObjectFactory m_tcpFactory;
 
   /**
+   * \internal
    * \brief IPv4 routing helper.
    */
   const Ipv4RoutingHelper *m_routing;
 
   /**
+   * \internal
    * \brief IPv6 routing helper.
    */
   const Ipv6RoutingHelper *m_routingv6;
 
   /**
+   * \internal
+   *
    * \brief create an object from its TypeId and aggregates it to the node
    * \param node the node
    * \param typeId the object TypeId
@@ -323,6 +307,13 @@ private:
   static void CreateAndAggregateObjectFromTypeId (Ptr<Node> node, const std::string typeId);
 
   /**
+   * \internal
+   */
+  static void Cleanup (void);
+
+  /**
+   * \internal
+   *
    * \brief checks if there is an hook to a Pcap wrapper
    * \param ipv4 pointer to the IPv4 object
    * \returns true if a hook is found
@@ -330,6 +321,8 @@ private:
   bool PcapHooked (Ptr<Ipv4> ipv4);
 
   /**
+   * \internal
+   *
    * \brief checks if there is an hook to an ascii output stream
    * \param ipv4 pointer to the IPv4 object
    * \returns true if a hook is found
@@ -337,6 +330,8 @@ private:
   bool AsciiHooked (Ptr<Ipv4> ipv4);
 
   /**
+   * \internal
+   *
    * \brief checks if there is an hook to a Pcap wrapper
    * \param ipv6 pointer to the IPv6 object
    * \returns true if a hook is found
@@ -344,6 +339,8 @@ private:
   bool PcapHooked (Ptr<Ipv6> ipv6);
 
   /**
+   * \internal
+   *
    * \brief checks if there is an hook to an ascii output stream
    * \param ipv6 pointer to the IPv6 object
    * \returns true if a hook is found
@@ -351,21 +348,29 @@ private:
   bool AsciiHooked (Ptr<Ipv6> ipv6);
 
   /**
+   * \internal
+   *
    * \brief IPv4 install state (enabled/disabled) ?
    */
   bool m_ipv4Enabled;
 
   /**
+   * \internal
+   *
    * \brief IPv6 install state (enabled/disabled) ?
    */
   bool m_ipv6Enabled;
 
   /**
+   * \internal
+   *
    * \brief IPv4 ARP Jitter state (enabled/disabled) ?
    */
   bool m_ipv4ArpJitterEnabled;
 
   /**
+   * \internal
+   *
    * \brief IPv6 IPv6 NS and RS Jitter state (enabled/disabled) ?
    */
   bool m_ipv6NsRsJitterEnabled;

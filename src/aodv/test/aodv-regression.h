@@ -23,14 +23,14 @@
 
 #include "ns3/test.h"
 #include "ns3/nstime.h"
-#include "ns3/socket.h"
 #include "ns3/node-container.h"
 
-using namespace ns3;
+namespace ns3 {
+namespace aodv {
 
 /**
  * \ingroup aodv
- *
+ * 
  * \brief AODV chain regression test
  *
  * This script creates 1-dimensional grid topology and then ping last node from the first one:
@@ -42,7 +42,7 @@ using namespace ns3;
  * We want to demonstrate in this script
  * 1) route establishing
  * 2) broken link detection both from layer 2 information and hello messages.
- *
+ * 
  * \verbatim
  Expected packets time diagram.
            1       2       3       4       5
@@ -155,7 +155,7 @@ class ChainRegressionTest : public TestCase
 public:
   /**
    * Create test case
-   *
+   * 
    * \param prefix              Unique file names prefix
    * \param size                Number of nodes in the chain
    * \param time                Simulation time
@@ -178,10 +178,6 @@ private:
   const double m_step;
   /// ARP alive timeout
   const Time m_arpAliveTimeout;
-  /// Socket
-  Ptr<Socket> m_socket;
-  /// Sequence number
-  uint16_t m_seq;
 
   /// Create test topology
   void CreateNodes ();
@@ -191,8 +187,9 @@ private:
   void CheckResults ();
   /// Go
   void DoRun ();
-  /// Send one ping
-  void SendPing ();
 };
+
+}
+}
 
 #endif /* AODV_REGRESSION_H */

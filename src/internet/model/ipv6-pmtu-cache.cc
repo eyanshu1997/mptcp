@@ -22,17 +22,17 @@
 #include "ns3/log.h"
 #include "ns3/simulator.h"
 
-namespace ns3 {
-
 NS_LOG_COMPONENT_DEFINE ("Ipv6PmtuCache");
 
-NS_OBJECT_ENSURE_REGISTERED (Ipv6PmtuCache);
+namespace ns3 {
+
+NS_OBJECT_ENSURE_REGISTERED (Ipv6PmtuCache)
+  ;
 
 TypeId Ipv6PmtuCache::GetTypeId ()
 {
   static TypeId tid = TypeId ("ns3::Ipv6PmtuCache")
     .SetParent<Object> ()
-    .SetGroupName ("Internet")
     .AddAttribute ("CacheExpiryTime",
                    "Validity time for a Path MTU entry. Default is 10 minutes, minimum is 5 minutes.",
                    TimeValue (Seconds (60 * 10)),

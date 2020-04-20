@@ -27,34 +27,19 @@ using namespace ns3;
 
 NS_LOG_COMPONENT_DEFINE ("TimeDataCalculators");
 
+
 //--------------------------------------------------------------
 //----------------------------------------------
 TimeMinMaxAvgTotalCalculator::TimeMinMaxAvgTotalCalculator()
 {
-  NS_LOG_FUNCTION (this);
-
   m_count = 0;
 }
 TimeMinMaxAvgTotalCalculator::~TimeMinMaxAvgTotalCalculator()
 {
-  NS_LOG_FUNCTION (this);
 }
-/* static */
-TypeId
-TimeMinMaxAvgTotalCalculator::GetTypeId (void)
-{
-  static TypeId tid = TypeId ("ns3::TimeMinMaxAvgTotalCalculator")
-    .SetParent<DataCalculator> ()
-    .SetGroupName ("Stats")
-    .AddConstructor<TimeMinMaxAvgTotalCalculator> ();
-  return tid;
-}
-  
 void
 TimeMinMaxAvgTotalCalculator::DoDispose (void)
 {
-  NS_LOG_FUNCTION (this);
-
   DataCalculator::DoDispose ();
   // TimeMinMaxAvgTotalCalculator::DoDispose
 }
@@ -62,8 +47,6 @@ TimeMinMaxAvgTotalCalculator::DoDispose (void)
 void
 TimeMinMaxAvgTotalCalculator::Update (const Time i)
 {
-  NS_LOG_FUNCTION (this << i);
-
   if (m_enabled) {
       if (m_count) {
           m_total += i;
@@ -87,8 +70,6 @@ TimeMinMaxAvgTotalCalculator::Update (const Time i)
 void
 TimeMinMaxAvgTotalCalculator::Output (DataOutputCallback &callback) const
 {
-  NS_LOG_FUNCTION (this << &callback);
-
   callback.OutputSingleton (m_context, m_key + "-count", m_count);
   if (m_count > 0) {
       callback.OutputSingleton (m_context, m_key + "-total", m_total);

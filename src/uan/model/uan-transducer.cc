@@ -22,14 +22,13 @@
 
 namespace ns3 {
 
-NS_OBJECT_ENSURE_REGISTERED (UanTransducer);
+NS_OBJECT_ENSURE_REGISTERED (UanTransducer)
+  ;
 
 TypeId UanTransducer::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::UanTransducer")
-    .SetParent<Object> ()
-    .SetGroupName ("Uan")
-  ;
+    .SetParent<Object> ();
   return tid;
 }
 

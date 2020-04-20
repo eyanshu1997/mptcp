@@ -3,7 +3,7 @@
  * Copyright (c) 2009 CTTC
  *
  * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
+ * it under the terms of the GNU General Public License version 2 as 
  * published by the Free Software Foundation;
  *
  * This program is distributed in the hope that it will be useful,
@@ -15,8 +15,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Include., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * Authors: Nicola Baldo <nbaldo@cttc.es>
- *          Sébastien Deronne <sebastien.deronne@gmail.com>
+ * Author: Nicola Baldo <nbaldo@cttc.es>
  */
 
 #include <iomanip>
@@ -24,13 +23,14 @@
 #include "ns3/log.h"
 #include "radiotap-header.h"
 
-namespace ns3 {
-
 NS_LOG_COMPONENT_DEFINE ("RadiotapHeader");
 
-NS_OBJECT_ENSURE_REGISTERED (RadiotapHeader);
+namespace ns3 {
 
-RadiotapHeader::RadiotapHeader ()
+NS_OBJECT_ENSURE_REGISTERED (RadiotapHeader)
+  ;
+ 
+RadiotapHeader::RadiotapHeader()
   : m_length (8),
     m_present (0),
     m_tsft (0),
@@ -39,38 +39,21 @@ RadiotapHeader::RadiotapHeader ()
     m_channelFreq (0),
     m_channelFlags (CHANNEL_FLAG_NONE),
     m_antennaSignal (0),
-    m_antennaNoise (0),
-    m_ampduStatusRef (0),
-    m_ampduStatusFlags (0),
-    m_ampduStatusCRC (0),
-    m_vhtPad (0),
-    m_vhtKnown (0),
-    m_vhtFlags (0),
-    m_vhtBandwidth (0),
-    m_vhtCoding (0),
-    m_vhtGroupId (0),
-    m_vhtPartialAid (0),
-    m_hePad (0),
-    m_heData1 (0),
-    m_heData2 (0),
-    m_heData3 (0),
-    m_heData5 (0)
+    m_antennaNoise (0)
 {
   NS_LOG_FUNCTION (this);
 }
-
+ 
 TypeId RadiotapHeader::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::RadiotapHeader")
     .SetParent<Header> ()
-    .SetGroupName ("Network")
-
     .AddConstructor<RadiotapHeader> ()
   ;
   return tid;
 }
 
-TypeId
+TypeId 
 RadiotapHeader::GetInstanceTypeId (void) const
 {
   return GetTypeId ();
@@ -94,7 +77,7 @@ RadiotapHeader::Serialize (Buffer::Iterator start) const
   start.WriteU32 (m_present); // bits describing which fields follow header
 
   //
-  // Time Synchronization Function Timer (when the first bit of the MPDU
+  // Time Synchronization Function Timer (when the first bit of the MPDU 
   // arrived at the MAC)
   //
   if (m_present & RADIOTAP_TSFT) // bit 0
@@ -123,18 +106,8 @@ RadiotapHeader::Serialize (Buffer::Iterator start) const
   //
   if (m_present & RADIOTAP_CHANNEL) // bit 3
     {
-      start.WriteU8 (0, m_channelPad);
       start.WriteU16 (m_channelFreq);
       start.WriteU16 (m_channelFlags);
-    }
-
-  //
-  // The hop set and pattern for frequency-hopping radios.  We don't need it but
-  // still need to account for it.
-  //
-  if (m_present & RADIOTAP_FHSS) // bit 4
-    {
-      start.WriteU8 (0); //not yet implemented
     }
 
   //
@@ -147,134 +120,12 @@ RadiotapHeader::Serialize (Buffer::Iterator start) const
     }
 
   //
-  // RF noise power at the antenna, decibel difference from an arbitrary, fixed
+  // RF noise power at the antenna, decibel difference from an arbitrary, fixed 
   // reference.
   //
   if (m_present & RADIOTAP_DBM_ANTNOISE) // bit 6
     {
       start.WriteU8 (m_antennaNoise);
-    }
-
-  //
-  // Quality of Barker code lock.
-  //
-  if (m_present & RADIOTAP_LOCK_QUALITY) // bit 7
-    {
-      start.WriteU16 (0); //not yet implemented
-    }
-
-  //
-  // Transmit power expressed as unitless distance from max power
-  // set at factory calibration (0 is max power).
-  //
-  if (m_present & RADIOTAP_TX_ATTENUATION) // bit 8
-    {
-      start.WriteU16 (0); //not yet implemented
-    }
-
-  //
-  // Transmit power expressed as decibel distance from max power
-  // set at factory calibration (0 is max power).
-  //
-  if (m_present & RADIOTAP_DB_TX_ATTENUATION) // bit 9
-    {
-      start.WriteU16 (0); //not yet implemented
-    }
-
-  //
-  // Transmit power expressed as dBm (decibels from a 1 milliwatt reference).
-  // This is the absolute power level measured at the antenna port.
-  //
-  if (m_present & RADIOTAP_DBM_TX_POWER) // bit 10
-    {
-      start.WriteU8 (0); //not yet implemented
-    }
-
-  //
-  // Unitless indication of the Rx/Tx antenna for this packet.
-  // The first antenna is antenna 0.
-  //
-  if (m_present & RADIOTAP_ANTENNA) // bit 11
-    {
-      start.WriteU8 (0); //not yet implemented
-    }
-
-  //
-  // RF signal power at the antenna (decibel difference from an arbitrary fixed reference).
-  //
-  if (m_present & RADIOTAP_DB_ANTSIGNAL) // bit 12
-    {
-      start.WriteU8 (0); //not yet implemented
-    }
-
-  //
-  // RF noise power at the antenna (decibel difference from an arbitrary fixed reference).
-  //
-  if (m_present & RADIOTAP_DB_ANTNOISE) // bit 13
-    {
-      start.WriteU8 (0); //not yet implemented
-    }
-
-  //
-  // Properties of received frames.
-  //
-  if (m_present & RADIOTAP_RX_FLAGS) // bit 14
-    {
-      start.WriteU16 (0); //not yet implemented
-    }
-
-  //
-  // MCS field.
-  //
-  if (m_present & RADIOTAP_MCS) // bit 19
-    {
-      start.WriteU8 (m_mcsKnown);
-      start.WriteU8 (m_mcsFlags);
-      start.WriteU8 (m_mcsRate);
-    }
-
-  //
-  // A-MPDU Status, information about the received or transmitted A-MPDU.
-  //
-  if (m_present & RADIOTAP_AMPDU_STATUS) // bit 20
-    {
-      start.WriteU8 (0, m_ampduStatusPad);
-      start.WriteU32 (m_ampduStatusRef);
-      start.WriteU16 (m_ampduStatusFlags);
-      start.WriteU8 (m_ampduStatusCRC);
-      start.WriteU8 (0);
-    }
-
-  //
-  // Information about the received or transmitted VHT frame.
-  //
-  if (m_present & RADIOTAP_VHT) // bit 21
-    {
-      start.WriteU8 (0, m_vhtPad);
-      start.WriteU16 (m_vhtKnown);
-      start.WriteU8 (m_vhtFlags);
-      start.WriteU8 (m_vhtBandwidth);
-      for (uint8_t i = 0; i < 4; i++)
-        {
-          start.WriteU8 (m_vhtMcsNss[i]);
-        }
-      start.WriteU8 (m_vhtCoding);
-      start.WriteU8 (m_vhtGroupId);
-      start.WriteU16 (m_vhtPartialAid);
-    }
-
-  //
-  // HE field.
-  //
-  if (m_present & RADIOTAP_HE) // bit 23
-    {
-      start.WriteU8 (0, m_hePad);
-      start.WriteU16 (m_heData1);
-      start.WriteU16 (m_heData2);
-      start.WriteU16 (m_heData3);
-      start.WriteU16 (0); //HE data4 field
-      start.WriteU16 (m_heData5);
-      start.WriteU16 (0); //HE data6 field
     }
 }
 
@@ -324,11 +175,9 @@ RadiotapHeader::Deserialize (Buffer::Iterator start)
   //
   if (m_present & RADIOTAP_CHANNEL) // bit 3
     {
-      m_channelPad = ((2 - bytesRead % 2) % 2);
-      start.Next (m_channelPad);
       m_channelFreq = start.ReadU16 ();
       m_channelFlags = start.ReadU16 ();
-      bytesRead += (4 + m_channelPad);
+      bytesRead += 4;
     }
 
   //
@@ -337,7 +186,6 @@ RadiotapHeader::Deserialize (Buffer::Iterator start)
   //
   if (m_present & RADIOTAP_FHSS) // bit 4
     {
-      //not yet implemented
       start.ReadU8 ();
       ++bytesRead;
     }
@@ -353,158 +201,13 @@ RadiotapHeader::Deserialize (Buffer::Iterator start)
     }
 
   //
-  // RF noise power at the antenna, decibel difference from an arbitrary, fixed
+  // RF noise power at the antenna, decibel difference from an arbitrary, fixed 
   // reference.
   //
   if (m_present & RADIOTAP_DBM_ANTNOISE) // bit 6
     {
       m_antennaNoise = start.ReadU8 ();
       ++bytesRead;
-    }
-
-  //
-  // Quality of Barker code lock.
-  //
-  if (m_present & RADIOTAP_LOCK_QUALITY) // bit 7
-    {
-      //not yet implemented
-      start.ReadU16 ();
-      bytesRead += 2;
-    }
-
-  //
-  // Transmit power expressed as unitless distance from max power
-  // set at factory calibration (0 is max power).
-  //
-  if (m_present & RADIOTAP_TX_ATTENUATION) // bit 8
-    {
-      //not yet implemented
-      start.ReadU16 ();
-      bytesRead += 2;
-    }
-
-  //
-  // Transmit power expressed as decibel distance from max power
-  // set at factory calibration (0 is max power).
-  //
-  if (m_present & RADIOTAP_DB_TX_ATTENUATION) // bit 9
-    {
-      //not yet implemented
-      start.ReadU16 ();
-      bytesRead += 2;
-    }
-
-  //
-  // Transmit power expressed as dBm (decibels from a 1 milliwatt reference).
-  // This is the absolute power level measured at the antenna port.
-  //
-  if (m_present & RADIOTAP_DBM_TX_POWER) // bit 10
-    {
-      //not yet implemented
-      start.ReadU8 ();
-      ++bytesRead;
-    }
-
-  //
-  // Unitless indication of the Rx/Tx antenna for this packet.
-  // The first antenna is antenna 0.
-  //
-  if (m_present & RADIOTAP_ANTENNA) // bit 11
-    {
-      //not yet implemented
-      start.ReadU8 ();
-      ++bytesRead;
-    }
-
-  //
-  // RF signal power at the antenna (decibel difference from an arbitrary fixed reference).
-  //
-  if (m_present & RADIOTAP_DB_ANTSIGNAL) // bit 12
-    {
-      //not yet implemented
-      start.ReadU8 ();
-      ++bytesRead;
-    }
-
-  //
-  // RF noise power at the antenna (decibel difference from an arbitrary fixed reference).
-  //
-  if (m_present & RADIOTAP_DB_ANTNOISE) // bit 13
-    {
-      //not yet implemented
-      start.ReadU8 ();
-      ++bytesRead;
-    }
-
-  //
-  // Properties of received frames.
-  //
-  if (m_present & RADIOTAP_RX_FLAGS) // bit 14
-    {
-      //not yet implemented
-      start.ReadU16 ();
-      bytesRead += 2;
-    }
-
-  //
-  // MCS field.
-  //
-  if (m_present & RADIOTAP_MCS) // bit 19
-    {
-      m_mcsKnown = start.ReadU8 ();
-      m_mcsFlags = start.ReadU8 ();
-      m_mcsRate = start.ReadU8 ();
-      bytesRead += 3;
-    }
-
-  //
-  // A-MPDU Status, information about the received or transmitted A-MPDU.
-  //
-  if (m_present & RADIOTAP_AMPDU_STATUS) // bit 20
-    {
-      m_ampduStatusPad = ((4 - bytesRead % 4) % 4);
-      start.Next (m_ampduStatusPad);
-      m_ampduStatusRef = start.ReadU32 ();
-      m_ampduStatusFlags = start.ReadU16 ();
-      m_ampduStatusCRC = start.ReadU8 ();
-      start.ReadU8 ();
-      bytesRead += (8 + m_ampduStatusPad);
-    }
-
-  //
-  // Information about the received or transmitted VHT frame.
-  //
-  if (m_present & RADIOTAP_VHT) // bit 21
-    {
-      m_vhtPad = ((2 - bytesRead % 2) % 2);
-      start.Next (m_vhtPad);
-      m_vhtKnown = start.ReadU16 ();
-      m_vhtFlags = start.ReadU8 ();
-      m_vhtBandwidth = start.ReadU8 ();
-      for (uint8_t i = 0; i < 4; i++)
-        {
-          m_vhtMcsNss[i] = start.ReadU8 ();
-        }
-      m_vhtCoding = start.ReadU8 ();
-      m_vhtGroupId = start.ReadU8 ();
-      m_vhtPartialAid = start.ReadU16 ();
-      bytesRead += (12 + m_vhtPad);
-    }
-
-  //
-  // HE field.
-  //
-  if (m_present & RADIOTAP_HE) // bit 23
-    {
-      m_hePad = ((2 - bytesRead % 2) % 2);
-      start.Next (m_hePad);
-      m_heData1 = start.ReadU16 ();
-      m_heData2 = start.ReadU16 ();
-      m_heData3 = start.ReadU16 ();
-      start.ReadU16 (); //HE data4 field
-      m_heData5 = start.ReadU16 ();
-      start.ReadU16 (); //HE data6 field
-      bytesRead += (12 + m_hePad);
     }
 
   NS_ASSERT_MSG (m_length == bytesRead, "RadiotapHeader::Deserialize(): expected and actual lengths inconsistent");
@@ -517,29 +220,11 @@ RadiotapHeader::Print (std::ostream &os) const
   NS_LOG_FUNCTION (this << &os);
   os << " tsft=" << m_tsft
      << " flags=" << std::hex << m_flags << std::dec
-     << " rate=" << +m_rate
+     << " rate=" << (uint16_t) m_rate
      << " freq=" << m_channelFreq
-     << " chflags=" << std::hex << +m_channelFlags << std::dec
-     << " signal=" << +m_antennaSignal
-     << " noise=" << +m_antennaNoise
-     << " mcsKnown=" << m_mcsKnown
-     << " mcsFlags=" << m_mcsFlags
-     << " mcsRate=" << m_mcsRate
-     << " ampduStatusFlags=" << +m_ampduStatusFlags
-     << " vhtKnown=" << m_vhtKnown
-     << " vhtFlags=" << m_vhtFlags
-     << " vhtBandwidth=" << m_vhtBandwidth
-     << " vhtMcsNss for user 1=" << m_vhtMcsNss[0]
-     << " vhtMcsNss for user 2=" << m_vhtMcsNss[1]
-     << " vhtMcsNss for user 3=" << m_vhtMcsNss[2]
-     << " vhtMcsNss for user 4=" << m_vhtMcsNss[3]
-     << " vhtCoding=" << m_vhtCoding
-     << " vhtGroupId=" << m_vhtGroupId
-     << " vhtPartialAid=" << m_vhtPartialAid
-     << " heData1=" << m_heData1
-     << " heData2=" << m_heData2
-     << " heData3=" << m_heData3
-     << " heData5=" << m_heData5;
+     << " chflags=" << std::hex << (uint32_t)m_channelFlags << std::dec
+     << " signal=" << (int16_t) m_antennaSignal
+     << " noise=" << (int16_t) m_antennaNoise;
 }
 
 void
@@ -557,10 +242,17 @@ RadiotapHeader::SetTsft (uint64_t value)
   NS_LOG_LOGIC (this << " m_length=" << m_length << " m_present=0x" << std::hex << m_present << std::dec);
 }
 
-void
+uint64_t
+RadiotapHeader::GetTsft () const
+{
+  NS_LOG_FUNCTION (this);
+  return m_tsft;
+}
+
+void 
 RadiotapHeader::SetFrameFlags (uint8_t flags)
 {
-  NS_LOG_FUNCTION (this << +flags);
+  NS_LOG_FUNCTION (this << static_cast<uint32_t> (flags));
   m_flags = flags;
 
   if (!(m_present & RADIOTAP_FLAGS))
@@ -572,10 +264,17 @@ RadiotapHeader::SetFrameFlags (uint8_t flags)
   NS_LOG_LOGIC (this << " m_length=" << m_length << " m_present=0x" << std::hex << m_present << std::dec);
 }
 
-void
+uint8_t
+RadiotapHeader::GetFrameFlags (void) const
+{
+  NS_LOG_FUNCTION (this);
+  return m_flags;
+}
+
+void 
 RadiotapHeader::SetRate (uint8_t rate)
 {
-  NS_LOG_FUNCTION (this << +rate);
+  NS_LOG_FUNCTION (this << static_cast<uint32_t> (rate));
   m_rate = rate;
 
   if (!(m_present & RADIOTAP_RATE))
@@ -587,7 +286,14 @@ RadiotapHeader::SetRate (uint8_t rate)
   NS_LOG_LOGIC (this << " m_length=" << m_length << " m_present=0x" << std::hex << m_present << std::dec);
 }
 
-void
+uint8_t
+RadiotapHeader::GetRate (void) const
+{
+  NS_LOG_FUNCTION (this);
+  return m_rate;
+}
+
+void 
 RadiotapHeader::SetChannelFrequencyAndFlags (uint16_t frequency, uint16_t flags)
 {
   NS_LOG_FUNCTION (this << frequency << flags);
@@ -596,15 +302,28 @@ RadiotapHeader::SetChannelFrequencyAndFlags (uint16_t frequency, uint16_t flags)
 
   if (!(m_present & RADIOTAP_CHANNEL))
     {
-      m_channelPad = ((2 - m_length % 2) % 2);
       m_present |= RADIOTAP_CHANNEL;
-      m_length += (4 + m_channelPad);
+      m_length += 4;
     }
 
   NS_LOG_LOGIC (this << " m_length=" << m_length << " m_present=0x" << std::hex << m_present << std::dec);
 }
 
-void
+uint16_t 
+RadiotapHeader::GetChannelFrequency (void) const
+{
+  NS_LOG_FUNCTION (this);
+  return m_channelFreq;
+}
+
+uint16_t 
+RadiotapHeader::GetChannelFlags (void) const
+{
+  NS_LOG_FUNCTION (this);
+  return m_channelFlags;
+}
+
+void 
 RadiotapHeader::SetAntennaSignalPower (double signal)
 {
   NS_LOG_FUNCTION (this << signal);
@@ -628,6 +347,13 @@ RadiotapHeader::SetAntennaSignalPower (double signal)
     }
 
   NS_LOG_LOGIC (this << " m_length=" << m_length << " m_present=0x" << std::hex << m_present << std::dec);
+}
+
+uint8_t
+RadiotapHeader::GetAntennaSignalPower (void) const
+{
+  NS_LOG_FUNCTION (this);
+  return m_antennaSignal;
 }
 
 void
@@ -656,79 +382,11 @@ RadiotapHeader::SetAntennaNoisePower (double noise)
   NS_LOG_LOGIC (this << " m_length=" << m_length << " m_present=0x" << std::hex << m_present << std::dec);
 }
 
-void
-RadiotapHeader::SetMcsFields (uint8_t known, uint8_t flags, uint8_t mcs)
+uint8_t 
+RadiotapHeader::GetAntennaNoisePower (void) const
 {
-  NS_LOG_FUNCTION (this << known << +flags << +mcs);
-  m_mcsKnown = known;
-  m_mcsFlags = flags;
-  m_mcsRate = mcs;
-  if (!(m_present & RADIOTAP_MCS))
-    {
-      m_present |= RADIOTAP_MCS;
-      m_length += 3;
-    }
-
-  NS_LOG_LOGIC (this << " m_length=" << m_length << " m_present=0x" << std::hex << m_present << std::dec);
-}
-
-void
-RadiotapHeader::SetAmpduStatus (uint32_t referenceNumber, uint16_t flags, uint8_t crc)
-{
-  NS_LOG_FUNCTION (this << referenceNumber << flags);
-  m_ampduStatusRef = referenceNumber;
-  m_ampduStatusFlags = flags;
-  m_ampduStatusCRC = crc;
-  if (!(m_present & RADIOTAP_AMPDU_STATUS))
-    {
-      m_ampduStatusPad = ((4 - m_length % 4) % 4);
-      m_present |= RADIOTAP_AMPDU_STATUS;
-      m_length += (8 + m_ampduStatusPad);
-    }
-
-  NS_LOG_LOGIC (this << " m_length=" << m_length << " m_present=0x" << std::hex << m_present << std::dec);
-}
-
-void
-RadiotapHeader::SetVhtFields (uint16_t known, uint8_t flags, uint8_t bandwidth, uint8_t mcs_nss[4], uint8_t coding, uint8_t group_id, uint16_t partial_aid)
-{
-  NS_LOG_FUNCTION (this << known << flags << +mcs_nss[0] << +mcs_nss[1] << +mcs_nss[2] << +mcs_nss[3] << +coding << +group_id << +partial_aid);
-  m_vhtKnown = known;
-  m_vhtFlags = flags;
-  m_vhtBandwidth = bandwidth;
-  for (uint8_t i = 0; i < 4; i++)
-    {
-      m_vhtMcsNss[i] = mcs_nss[i];
-    }
-  m_vhtCoding = coding;
-  m_vhtGroupId = group_id;
-  m_vhtPartialAid = partial_aid;
-  if (!(m_present & RADIOTAP_VHT))
-    {
-      m_vhtPad = ((2 - m_length % 2) % 2);
-      m_present |= RADIOTAP_VHT;
-      m_length += (12 + m_vhtPad);
-    }
-
-  NS_LOG_LOGIC (this << " m_length=" << m_length << " m_present=0x" << std::hex << m_present << std::dec);
-}
-
-void
-RadiotapHeader::SetHeFields (uint16_t data1, uint16_t data2, uint16_t data3, uint16_t data5)
-{
-  NS_LOG_FUNCTION (this << data1 << data2 << data3 << data5);
-  m_heData1 = data1;
-  m_heData2 = data2;
-  m_heData3 = data3;
-  m_heData5 = data5;
-  if (!(m_present & RADIOTAP_HE))
-    {
-      m_hePad = ((2 - m_length % 2) % 2);
-      m_present |= RADIOTAP_HE;
-      m_length += 12;
-    }
-
-  NS_LOG_LOGIC (this << " m_length=" << m_length << " m_present=0x" << std::hex << m_present << std::dec);
+  NS_LOG_FUNCTION (this);
+  return m_antennaNoise;
 }
 
 } // namespace ns3

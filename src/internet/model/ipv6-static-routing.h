@@ -42,7 +42,12 @@ class Ipv6RoutingTableEntry;
 class Ipv6MulticastRoutingTableEntry;
 
 /**
- * \ingroup ipv6Routing
+ * \ingroup internet
+ * \defgroup ipv6StaticRouting Ipv6StaticRouting
+ */
+/**
+ * \ingroup ipv6StaticRouting
+ * \class Ipv6StaticRouting
  *
  * \brief Static routing protocol for IP version 6 stacks.
  *
@@ -237,7 +242,13 @@ public:
   virtual void NotifyAddRoute (Ipv6Address dst, Ipv6Prefix mask, Ipv6Address nextHop, uint32_t interface, Ipv6Address prefixToUse = Ipv6Address::GetZero ());
   virtual void NotifyRemoveRoute (Ipv6Address dst, Ipv6Prefix mask, Ipv6Address nextHop, uint32_t interface, Ipv6Address prefixToUse = Ipv6Address::GetZero ());
   virtual void SetIpv6 (Ptr<Ipv6> ipv6);
-  virtual void PrintRoutingTable (Ptr<OutputStreamWrapper> stream, Time::Unit unit = Time::S) const;
+
+  /**
+   * \brief Print the Routing Table entries
+   *
+   * \param stream the ostream the Routing table is printed to
+   */
+  virtual void PrintRoutingTable (Ptr<OutputStreamWrapper> stream) const;
 
 protected:
   /**
@@ -280,6 +291,14 @@ private:
    * \return Ipv6MulticastRoute to route the packet to reach dest address
    */
   Ptr<Ipv6MulticastRoute> LookupStatic (Ipv6Address origin, Ipv6Address group, uint32_t ifIndex);
+
+  /**
+   * \brief Choose the source address to use with destination address.
+   * \param interface interface index
+   * \param dest IPv6 destination address
+   * \return IPv6 source address to use
+   */
+  Ipv6Address SourceAddressSelection (uint32_t interface, Ipv6Address dest);
 
   /**
    * \brief the forwarding table for network.

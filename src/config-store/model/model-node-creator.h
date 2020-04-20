@@ -28,17 +28,8 @@ enum
   COL_NODE = 0, COL_LAST
 };
 
-/**
- * \ingroup configstore
- * \brief A class used in the implementation of the GtkConfigStore
- */
 struct ModelNode
 {
-/**
- * \enum node type
- * \brief node type structure
- *
- */
   enum
   {
     // store object + attribute name
@@ -51,14 +42,13 @@ struct ModelNode
     NODE_VECTOR_ITEM,
     // store object
     NODE_OBJECT
-  } type; ///< node type
-  std::string name; ///< node name
-  Ptr<Object> object; ///< the object
-  uint32_t index; ///< index
+  } type;
+  std::string name;
+  Ptr<Object> object;
+  uint32_t index;
 };
 /**
  * \ingroup configstore
- * \brief ModelCreator class
  *
  */
 class ModelCreator : public AttributeIterator
@@ -66,10 +56,6 @@ class ModelCreator : public AttributeIterator
 public:
   ModelCreator ();
 
-  /**
-   * Allocate attribute tree
-   * \param treestore GtkTreeStore *
-   */
   void Build (GtkTreeStore *treestore);
 private:
   virtual void DoVisitAttribute (Ptr<Object> object, std::string name);
@@ -83,15 +69,10 @@ private:
   virtual void DoStartVisitArrayItem (const ObjectPtrContainerValue &vector,
                                       uint32_t index, Ptr<Object> item);
   virtual void DoEndVisitArrayItem (void);
-  /**
-   * Add item to attribute tree
-   * \param node The model node
-   */
   void Add (ModelNode *node);
-  /// Remove current tree item
   void Remove (void);
 
-  GtkTreeStore *m_treestore; ///< attribute tree
-  std::vector<GtkTreeIter *> m_iters; ///< attribute tree item
+  GtkTreeStore *m_treestore;
+  std::vector<GtkTreeIter *> m_iters;
 };
 }

@@ -16,82 +16,114 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#include "ns3/abort.h"
-#include "ns3/enum.h"
-#include "ns3/uinteger.h"
+#include "ns3/log.h"
 #include "ns3/trace-source-accessor.h"
 #include "queue.h"
 
-namespace ns3 {
-
 NS_LOG_COMPONENT_DEFINE ("Queue");
 
-NS_OBJECT_ENSURE_REGISTERED (QueueBase);
-NS_OBJECT_TEMPLATE_CLASS_DEFINE (Queue,Packet);
+namespace ns3 {
 
-TypeId
-QueueBase::GetTypeId (void)
+NS_OBJECT_ENSURE_REGISTERED (Queue)
+  ;
+
+TypeId 
+Queue::GetTypeId (void)
 {
-  static TypeId tid = TypeId ("ns3::QueueBase")
+  static TypeId tid = TypeId ("ns3::Queue")
     .SetParent<Object> ()
-    .SetGroupName ("Network")
-    .AddAttribute ("MaxSize",
-                   "The max queue size",
-                   QueueSizeValue (QueueSize ("100p")),
-                   MakeQueueSizeAccessor (&QueueBase::SetMaxSize,
-                                          &QueueBase::GetMaxSize),
-                   MakeQueueSizeChecker ())
-    .AddTraceSource ("PacketsInQueue",
-                     "Number of packets currently stored in the queue",
-                     MakeTraceSourceAccessor (&QueueBase::m_nPackets),
-                     "ns3::TracedValueCallback::Uint32")
-    .AddTraceSource ("BytesInQueue",
-                     "Number of bytes currently stored in the queue",
-                     MakeTraceSourceAccessor (&QueueBase::m_nBytes),
-                     "ns3::TracedValueCallback::Uint32")
+    .AddTraceSource ("Enqueue", "Enqueue a packet in the queue.",
+                     MakeTraceSourceAccessor (&Queue::m_traceEnqueue))
+    .AddTraceSource ("Dequeue", "Dequeue a packet from the queue.",
+                     MakeTraceSourceAccessor (&Queue::m_traceDequeue))
+    .AddTraceSource ("Drop", "Drop a packet stored in the queue.",
+                     MakeTraceSourceAccessor (&Queue::m_traceDrop))
   ;
   return tid;
 }
 
-QueueBase::QueueBase () :
+Queue::Queue() : 
   m_nBytes (0),
   m_nTotalReceivedBytes (0),
   m_nPackets (0),
   m_nTotalReceivedPackets (0),
   m_nTotalDroppedBytes (0),
-  m_nTotalDroppedBytesBeforeEnqueue (0),
-  m_nTotalDroppedBytesAfterDequeue (0),
-  m_nTotalDroppedPackets (0),
-  m_nTotalDroppedPacketsBeforeEnqueue (0),
-  m_nTotalDroppedPacketsAfterDequeue (0)
+  m_nTotalDroppedPackets (0)
 {
   NS_LOG_FUNCTION (this);
 }
 
-QueueBase::~QueueBase ()
+Queue::~Queue()
 {
   NS_LOG_FUNCTION (this);
+}
+
+
+bool 
+Queue::Enqueue (Ptr<Packet> p)
+{
+  NS_LOG_FUNCTION (this << p);
+
+  //
+  // If DoEnqueue fails, Queue::Drop is called by the subclass
+  //
+  bool retval = DoEnqueue (p);
+  if (retval)
+    {
+      NS_LOG_LOGIC ("m_traceEnqueue (p)");
+      m_traceEnqueue (p);
+
+      uint32_t size = p->GetSize ();
+      m_nBytes += size;
+      m_nTotalReceivedBytes += size;
+
+      m_nPackets++;
+      m_nTotalReceivedPackets++;
+    }
+  return retval;
+}
+
+Ptr<Packet>
+Queue::Dequeue (void)
+{
+  NS_LOG_FUNCTION (this);
+
+  Ptr<Packet> packet = DoDequeue ();
+
+  if (packet != 0)
+    {
+      NS_ASSERT (m_nBytes >= packet->GetSize ());
+      NS_ASSERT (m_nPackets > 0);
+
+      m_nBytes -= packet->GetSize ();
+      m_nPackets--;
+
+      NS_LOG_LOGIC ("m_traceDequeue (packet)");
+      m_traceDequeue (packet);
+    }
+  return packet;
 }
 
 void
-QueueBase::AppendItemTypeIfNotPresent (std::string& typeId, const std::string& itemType)
+Queue::DequeueAll (void)
 {
-  if (typeId.back () != '>')
+  NS_LOG_FUNCTION (this);
+  while (!IsEmpty ())
     {
-      typeId.append ("<" + itemType + ">");
+      Dequeue ();
     }
 }
 
-bool
-QueueBase::IsEmpty (void) const
+Ptr<const Packet>
+Queue::Peek (void) const
 {
   NS_LOG_FUNCTION (this);
-  NS_LOG_LOGIC ("returns " << (m_nPackets.Get () == 0));
-  return m_nPackets.Get () == 0;
+  return DoPeek ();
 }
 
-uint32_t
-QueueBase::GetNPackets (void) const
+
+uint32_t 
+Queue::GetNPackets (void) const
 {
   NS_LOG_FUNCTION (this);
   NS_LOG_LOGIC ("returns " << m_nPackets);
@@ -99,31 +131,23 @@ QueueBase::GetNPackets (void) const
 }
 
 uint32_t
-QueueBase::GetNBytes (void) const
+Queue::GetNBytes (void) const
 {
   NS_LOG_FUNCTION (this);
   NS_LOG_LOGIC (" returns " << m_nBytes);
   return m_nBytes;
 }
 
-QueueSize
-QueueBase::GetCurrentSize (void) const
+bool
+Queue::IsEmpty (void) const
 {
   NS_LOG_FUNCTION (this);
-
-  if (m_maxSize.GetUnit () == QueueSizeUnit::PACKETS)
-    {
-      return QueueSize (QueueSizeUnit::PACKETS, m_nPackets);
-    }
-  if (m_maxSize.GetUnit () == QueueSizeUnit::BYTES)
-    {
-      return QueueSize (QueueSizeUnit::BYTES, m_nBytes);
-    }
-  NS_ABORT_MSG ("Unknown queue size unit");
+  NS_LOG_LOGIC ("returns " << (m_nPackets == 0));
+  return m_nPackets == 0;
 }
 
 uint32_t
-QueueBase::GetTotalReceivedBytes (void) const
+Queue::GetTotalReceivedBytes (void) const
 {
   NS_LOG_FUNCTION (this);
   NS_LOG_LOGIC ("returns " << m_nTotalReceivedBytes);
@@ -131,7 +155,7 @@ QueueBase::GetTotalReceivedBytes (void) const
 }
 
 uint32_t
-QueueBase::GetTotalReceivedPackets (void) const
+Queue::GetTotalReceivedPackets (void) const
 {
   NS_LOG_FUNCTION (this);
   NS_LOG_LOGIC ("returns " << m_nTotalReceivedPackets);
@@ -139,7 +163,7 @@ QueueBase::GetTotalReceivedPackets (void) const
 }
 
 uint32_t
-QueueBase:: GetTotalDroppedBytes (void) const
+Queue:: GetTotalDroppedBytes (void) const
 {
   NS_LOG_FUNCTION (this);
   NS_LOG_LOGIC ("returns " << m_nTotalDroppedBytes);
@@ -147,81 +171,33 @@ QueueBase:: GetTotalDroppedBytes (void) const
 }
 
 uint32_t
-QueueBase:: GetTotalDroppedBytesBeforeEnqueue (void) const
-{
-  NS_LOG_FUNCTION (this);
-  NS_LOG_LOGIC ("returns " << m_nTotalDroppedBytesBeforeEnqueue);
-  return m_nTotalDroppedBytesBeforeEnqueue;
-}
-
-uint32_t
-QueueBase:: GetTotalDroppedBytesAfterDequeue (void) const
-{
-  NS_LOG_FUNCTION (this);
-  NS_LOG_LOGIC ("returns " << m_nTotalDroppedBytesAfterDequeue);
-  return m_nTotalDroppedBytesAfterDequeue;
-}
-
-uint32_t
-QueueBase::GetTotalDroppedPackets (void) const
+Queue::GetTotalDroppedPackets (void) const
 {
   NS_LOG_FUNCTION (this);
   NS_LOG_LOGIC ("returns " << m_nTotalDroppedPackets);
   return m_nTotalDroppedPackets;
 }
 
-uint32_t
-QueueBase::GetTotalDroppedPacketsBeforeEnqueue (void) const
-{
-  NS_LOG_FUNCTION (this);
-  NS_LOG_LOGIC ("returns " << m_nTotalDroppedPacketsBeforeEnqueue);
-  return m_nTotalDroppedPacketsBeforeEnqueue;
-}
-
-uint32_t
-QueueBase::GetTotalDroppedPacketsAfterDequeue (void) const
-{
-  NS_LOG_FUNCTION (this);
-  NS_LOG_LOGIC ("returns " << m_nTotalDroppedPacketsAfterDequeue);
-  return m_nTotalDroppedPacketsAfterDequeue;
-}
-
-void
-QueueBase::ResetStatistics (void)
+void 
+Queue::ResetStatistics (void)
 {
   NS_LOG_FUNCTION (this);
   m_nTotalReceivedBytes = 0;
   m_nTotalReceivedPackets = 0;
   m_nTotalDroppedBytes = 0;
-  m_nTotalDroppedBytesBeforeEnqueue = 0;
-  m_nTotalDroppedBytesAfterDequeue = 0;
   m_nTotalDroppedPackets = 0;
-  m_nTotalDroppedPacketsBeforeEnqueue = 0;
-  m_nTotalDroppedPacketsAfterDequeue = 0;
 }
 
 void
-QueueBase::SetMaxSize (QueueSize size)
+Queue::Drop (Ptr<Packet> p)
 {
-  NS_LOG_FUNCTION (this << size);
+  NS_LOG_FUNCTION (this << p);
 
-  // do nothing if the size is null
-  if (!size.GetValue ())
-    {
-      return;
-    }
+  m_nTotalDroppedPackets++;
+  m_nTotalDroppedBytes += p->GetSize ();
 
-  m_maxSize = size;
-
-  NS_ABORT_MSG_IF (size < GetCurrentSize (),
-                   "The new maximum queue size cannot be less than the current size");
-}
-
-QueueSize
-QueueBase::GetMaxSize (void) const
-{
-  NS_LOG_FUNCTION (this);
-  return m_maxSize;
+  NS_LOG_LOGIC ("m_traceDrop (p)");
+  m_traceDrop (p);
 }
 
 } // namespace ns3

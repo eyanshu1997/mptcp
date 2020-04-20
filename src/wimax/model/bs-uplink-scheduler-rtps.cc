@@ -33,11 +33,11 @@
 #include "bs-link-manager.h"
 #include "bandwidth-manager.h"
 
-namespace ns3 {
-
 NS_LOG_COMPONENT_DEFINE ("UplinkSchedulerRtps");
-  
-NS_OBJECT_ENSURE_REGISTERED (UplinkSchedulerRtps);
+
+namespace ns3 {
+NS_OBJECT_ENSURE_REGISTERED ( UplinkSchedulerRtps)
+  ;
   
 
 UplinkSchedulerRtps::UplinkSchedulerRtps ()
@@ -71,11 +71,7 @@ UplinkSchedulerRtps::~UplinkSchedulerRtps (void)
 TypeId
 UplinkSchedulerRtps::GetTypeId (void)
 {
-  static TypeId tid = TypeId ("ns3::UplinkSchedulerRtps")
-    .SetParent<UplinkScheduler> ()
-    .SetGroupName("Wimax")
-    .AddConstructor<UplinkSchedulerRtps> ()
-    ;
+  static TypeId tid = TypeId ("ns3::UplinkSchedulerRtps").SetParent<UplinkScheduler> ();
   return tid;
 }
 
@@ -90,7 +86,7 @@ UplinkSchedulerRtps::GetChannelDescriptorsToUpdate (bool &updateDcd, bool &updat
 {
   /*DCD and UCD shall actually be updated when channel or burst profile definitions
    change. burst profiles are updated based on number of SSs, network conditions and etc.
-   for now temporarily assuming DCD/UCD shall be updated every time */
+   for now temporarily assuming DCD/UCD shall be updated everytime */
 
   uint32_t randNr = rand ();
   if (randNr % 5 == 0 || GetBs ()->GetNrDcdSent () == 0)

@@ -22,9 +22,9 @@
 #include <map>
 #include <utility>
 
-namespace ns3 {
-
 NS_LOG_COMPONENT_DEFINE ("UanTxMode");
+
+namespace ns3 {
 
 UanTxMode::UanTxMode ()
 {
@@ -258,7 +258,7 @@ UanModesList::operator[] (uint32_t i) const
 uint32_t
 UanModesList::GetNModes (void) const
 {
-  return static_cast<uint32_t> (m_modes.size ());
+  return m_modes.size ();
 }
 
 std::ostream &
@@ -300,6 +300,7 @@ operator >> (std::istream &is, UanModesList &ml)
   return is;
 }
 
-ATTRIBUTE_HELPER_CPP (UanModesList);
+ATTRIBUTE_HELPER_CPP (UanModesList)
+  ;
 
 } // namespace ns3

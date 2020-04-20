@@ -25,9 +25,10 @@
 #include <fstream>
 
 
+NS_LOG_COMPONENT_DEFINE ("AttributeIterator");
+
 namespace ns3 {
 
-NS_LOG_COMPONENT_DEFINE ("AttributeIterator");
 
 AttributeIterator::AttributeIterator ()
 {
@@ -235,14 +236,11 @@ AttributeIterator::DoIterate (Ptr<Object> object)
                   uint32_t j = (*it).first;
                   NS_LOG_DEBUG ("ObjectPtrContainer attribute item " << j);
                   Ptr<Object> tmp = (*it).second;
-                  if (tmp)
-                    {
-                      StartVisitArrayItem (vector, j, tmp);
-                      m_examined.push_back (object);
-                      DoIterate (tmp);
-                      m_examined.pop_back ();
-                      EndVisitArrayItem ();
-                    }
+                  StartVisitArrayItem (vector, j, tmp);
+                  m_examined.push_back (object);
+                  DoIterate (tmp);
+                  m_examined.pop_back ();
+                  EndVisitArrayItem ();
                 }
               EndVisitArrayAttribute ();
               continue;

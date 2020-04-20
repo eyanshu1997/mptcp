@@ -32,7 +32,6 @@
 namespace ns3 {
 
 /**
- * \ingroup fd-net-device
  * \brief build a set of FdNetDevice objects attached to a physical network
  * interface
  *
@@ -63,13 +62,8 @@ public:
   void SetDeviceName (std::string deviceName);
 
 protected:
-
-  /**
-   * This method creates an ns3::FdNetDevice attached to a physical network
-   * interface
-   *
-   * \param node The node to install the device in
-   * \returns A container holding the added net device.
+  /*
+   * \internal
    */
   Ptr<NetDevice> InstallPriv (Ptr<Node> node) const;
 
@@ -81,13 +75,14 @@ protected:
   /**
    * Call out to a separate process running as suid root in order to get a raw
    * socket.  We do this to avoid having the entire simulation running as root.
-   * \return the rawSocket number
    */
   virtual int CreateFileDescriptor (void) const;
 
   /**
-   * The unix/linux name of the underlying device (e.g., eth0)
-   */
+  * \internal
+  *
+  * The unix/linux name of the underlying device (e.g., eth0)
+  */
   std::string m_deviceName;
 };
 

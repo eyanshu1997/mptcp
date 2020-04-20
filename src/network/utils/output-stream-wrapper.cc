@@ -22,9 +22,9 @@
 #include "ns3/abort.h"
 #include <fstream>
 
-namespace ns3 {
-
 NS_LOG_COMPONENT_DEFINE ("OutputStreamWrapper");
+
+namespace ns3 {
 
 OutputStreamWrapper::OutputStreamWrapper (std::string filename, std::ios::openmode filemode)
   : m_destroyable (true)
@@ -43,7 +43,7 @@ OutputStreamWrapper::OutputStreamWrapper (std::ostream* os)
 {
   NS_LOG_FUNCTION (this << os);
   FatalImpl::RegisterStream (m_ostream);
-  NS_ABORT_MSG_UNLESS (m_ostream->good (), "Output stream is not valid for writing.");
+  NS_ABORT_MSG_UNLESS (m_ostream->good (), "Output stream is not vaild for writing.");
 }
 
 OutputStreamWrapper::~OutputStreamWrapper ()

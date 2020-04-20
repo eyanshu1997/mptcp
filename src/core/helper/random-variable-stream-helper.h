@@ -21,13 +21,6 @@
 
 #include <string>
 
-/**
- * \file
- * \ingroup core-helpers
- * \ingroup randomvariable
- * ns3::RandomVariableStreamHelper declaration.
- */
-
 namespace ns3 {
 
 /**
@@ -40,7 +33,7 @@ public:
    * This helper method can be used to configure the stream number for
    * one or more RNG streams.  The path passed in should correspond to
    * an attribute path in the configuration system.  It may contain wildcards
-   * and may ultimately match zero, one, or more than one object.
+   * and may ultimately match zero, one, or more than one objects.
    *
    * The objects to match are of type PointerValue where the underlying
    * type is of type Ptr<RandomVariableStream>.  

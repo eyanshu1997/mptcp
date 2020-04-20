@@ -26,24 +26,19 @@
 #include "assert.h"
 #include "log.h"
 
-/**
- * \file
- * \ingroup scheduler
- * ns3::CalendarScheduler class implementation.
- */
-
 namespace ns3 {
 
-NS_LOG_COMPONENT_DEFINE ("CalendarScheduler");
+NS_LOG_COMPONENT_DEFINE ("CalendarScheduler")
+  ;
 
-NS_OBJECT_ENSURE_REGISTERED (CalendarScheduler);
+NS_OBJECT_ENSURE_REGISTERED (CalendarScheduler)
+  ;
 
 TypeId
 CalendarScheduler::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::CalendarScheduler")
     .SetParent<Scheduler> ()
-    .SetGroupName ("Core")
     .AddConstructor<CalendarScheduler> ()
   ;
   return tid;
@@ -140,8 +135,8 @@ CalendarScheduler::PeekNext (void) const
   uint64_t bucketTop = m_bucketTop;
   Scheduler::Event minEvent;
   minEvent.impl = 0;
-  minEvent.key.m_ts = UINT64_MAX;
-  minEvent.key.m_uid = UINT32_MAX;
+  minEvent.key.m_ts = ~0;
+  minEvent.key.m_uid = ~0;
   minEvent.key.m_context = 0;
   do
     {
@@ -274,7 +269,7 @@ CalendarScheduler::ResizeDown (void)
     }
 }
 
-uint64_t
+uint32_t
 CalendarScheduler::CalculateNewWidth (void)
 {
   NS_LOG_FUNCTION (this);
@@ -354,7 +349,7 @@ CalendarScheduler::CalculateNewWidth (void)
   return totalSeparation;
 }
 void
-CalendarScheduler::DoResize (uint32_t newSize, uint64_t newWidth)
+CalendarScheduler::DoResize (uint32_t newSize, uint32_t newWidth)
 {
   NS_LOG_FUNCTION (this << newSize << newWidth);
 
@@ -378,7 +373,7 @@ CalendarScheduler::Resize (uint32_t newSize)
   NS_LOG_FUNCTION (this << newSize);
 
   // PrintInfo ();
-  uint64_t newWidth = CalculateNewWidth ();
+  uint32_t newWidth = CalculateNewWidth ();
   DoResize (newSize, newWidth);
 }
 

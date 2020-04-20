@@ -24,23 +24,22 @@
 #include "simple-device-energy-model.h"
 #include "ns3/log.h"
 
-namespace ns3 {
-
 NS_LOG_COMPONENT_DEFINE ("SimpleDeviceEnergyModel");
 
-NS_OBJECT_ENSURE_REGISTERED (SimpleDeviceEnergyModel);
+namespace ns3 {
+
+NS_OBJECT_ENSURE_REGISTERED (SimpleDeviceEnergyModel)
+  ;
 
 TypeId
 SimpleDeviceEnergyModel::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::SimpleDeviceEnergyModel")
     .SetParent<DeviceEnergyModel> ()
-    .SetGroupName ("Energy")
     .AddConstructor<SimpleDeviceEnergyModel> ()
     .AddTraceSource ("TotalEnergyConsumption",
                      "Total energy consumption of the radio device.",
-                     MakeTraceSourceAccessor (&SimpleDeviceEnergyModel::m_totalEnergyConsumption),
-                     "ns3::TracedValueCallback::Double")
+                     MakeTraceSourceAccessor (&SimpleDeviceEnergyModel::m_totalEnergyConsumption))
   ;
   return tid;
 }
@@ -85,15 +84,7 @@ double
 SimpleDeviceEnergyModel::GetTotalEnergyConsumption (void) const
 {
   NS_LOG_FUNCTION (this);
-  Time duration = Simulator::Now () - m_lastUpdateTime;
-
-  double energyToDecrease = 0.0;
-  double supplyVoltage = m_source->GetSupplyVoltage ();
-  energyToDecrease = duration.GetSeconds () * m_actualCurrentA * supplyVoltage;
-
-  m_source->UpdateEnergySource ();
-
-  return m_totalEnergyConsumption + energyToDecrease;
+  return m_totalEnergyConsumption;
 }
 
 void

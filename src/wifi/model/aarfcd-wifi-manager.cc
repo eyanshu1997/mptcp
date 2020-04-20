@@ -18,17 +18,21 @@
  * Author: Federico Maguolo <maguolof@dei.unipd.it>
  */
 
-#include "ns3/log.h"
-#include "ns3/packet.h"
 #include "aarfcd-wifi-manager.h"
-#include "wifi-tx-vector.h"
+#include "ns3/assert.h"
+#include "ns3/log.h"
+#include "ns3/simulator.h"
+#include "ns3/boolean.h"
+#include "ns3/double.h"
+#include "ns3/uinteger.h"
+#include <algorithm>
 
 #define Min(a,b) ((a < b) ? a : b)
 #define Max(a,b) ((a > b) ? a : b)
 
-namespace ns3 {
+NS_LOG_COMPONENT_DEFINE ("Aarfcd");
 
-NS_LOG_COMPONENT_DEFINE ("AarfcdWifiManager");
+namespace ns3 {
 
 /**
  * \brief hold per-remote-station state for AARF-CD Wifi manager.
@@ -38,29 +42,31 @@ NS_LOG_COMPONENT_DEFINE ("AarfcdWifiManager");
  */
 struct AarfcdWifiRemoteStation : public WifiRemoteStation
 {
-  uint32_t m_timer; ///< timer
-  uint32_t m_success; ///< success
-  uint32_t m_failed; ///< failed
-  bool m_recovery; ///< recovery
-  bool m_justModifyRate; ///< just modify rate
-  uint32_t m_retry; ///< retry
-  uint32_t m_successThreshold; ///< success threshold
-  uint32_t m_timerTimeout; ///< timer timeout
-  uint8_t m_rate; ///< rate
-  bool m_rtsOn; ///< RTS on
-  uint32_t m_rtsWnd; ///< RTS window
-  uint32_t m_rtsCounter; ///< RTS counter
-  bool m_haveASuccess; ///< have a success
+  uint32_t m_timer;
+  uint32_t m_success;
+  uint32_t m_failed;
+  bool m_recovery;
+  bool m_justModifyRate;
+  uint32_t m_retry;
+
+  uint32_t m_successThreshold;
+  uint32_t m_timerTimeout;
+
+  uint32_t m_rate;
+  bool m_rtsOn;
+  uint32_t m_rtsWnd;
+  uint32_t m_rtsCounter;
+  bool m_haveASuccess;
 };
 
-NS_OBJECT_ENSURE_REGISTERED (AarfcdWifiManager);
+NS_OBJECT_ENSURE_REGISTERED (AarfcdWifiManager)
+  ;
 
 TypeId
 AarfcdWifiManager::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::AarfcdWifiManager")
     .SetParent<WifiRemoteStationManager> ()
-    .SetGroupName ("Wifi")
     .AddConstructor<AarfcdWifiManager> ()
     .AddAttribute ("SuccessK", "Multiplication factor for the success threshold in the AARF algorithm.",
                    DoubleValue (2.0),
@@ -106,33 +112,25 @@ AarfcdWifiManager::GetTypeId (void)
                    BooleanValue (true),
                    MakeBooleanAccessor (&AarfcdWifiManager::m_turnOnRtsAfterRateIncrease),
                    MakeBooleanChecker ())
-    .AddTraceSource ("Rate",
-                     "Traced value for rate changes (b/s)",
-                     MakeTraceSourceAccessor (&AarfcdWifiManager::m_currentRate),
-                     "ns3::TracedValueCallback::Uint64")
   ;
   return tid;
 }
-
 AarfcdWifiManager::AarfcdWifiManager ()
-  : WifiRemoteStationManager (),
-    m_currentRate (0)
+  : WifiRemoteStationManager ()
 {
   NS_LOG_FUNCTION (this);
 }
-
 AarfcdWifiManager::~AarfcdWifiManager ()
 {
   NS_LOG_FUNCTION (this);
 }
-
 WifiRemoteStation *
 AarfcdWifiManager::DoCreateStation (void) const
 {
   NS_LOG_FUNCTION (this);
   AarfcdWifiRemoteStation *station = new AarfcdWifiRemoteStation ();
 
-  //aarf fields below
+  // aarf fields below
   station->m_successThreshold = m_minSuccessThreshold;
   station->m_timerTimeout = m_minTimerThreshold;
   station->m_rate = 0;
@@ -142,7 +140,7 @@ AarfcdWifiManager::DoCreateStation (void) const
   station->m_retry = 0;
   station->m_timer = 0;
 
-  //aarf-cd specific fields below
+  // aarf-cd specific fields below
   station->m_rtsOn = false;
   station->m_rtsWnd = m_minRtsWnd;
   station->m_rtsCounter = 0;
@@ -192,7 +190,7 @@ AarfcdWifiManager::DoReportDataFailed (WifiRemoteStation *st)
       station->m_rtsCounter = station->m_rtsWnd;
       if (station->m_retry == 1)
         {
-          //need recovery fallback
+          // need recovery fallback
           if (m_turnOffRtsAfterRateDecrease)
             {
               TurnOffRts (station);
@@ -216,7 +214,7 @@ AarfcdWifiManager::DoReportDataFailed (WifiRemoteStation *st)
       station->m_rtsCounter = station->m_rtsWnd;
       if (((station->m_retry - 1) % 2) == 1)
         {
-          //need normal fallback
+          // need normal fallback
           if (m_turnOffRtsAfterRateDecrease)
             {
               TurnOffRts (station);
@@ -236,14 +234,12 @@ AarfcdWifiManager::DoReportDataFailed (WifiRemoteStation *st)
     }
   CheckRts (station);
 }
-
 void
 AarfcdWifiManager::DoReportRxOk (WifiRemoteStation *station,
                                  double rxSnr, WifiMode txMode)
 {
   NS_LOG_FUNCTION (this << station << rxSnr << txMode);
 }
-
 void
 AarfcdWifiManager::DoReportRtsOk (WifiRemoteStation *st,
                                   double ctsSnr, WifiMode ctsMode, double rtsSnr)
@@ -253,7 +249,6 @@ AarfcdWifiManager::DoReportRtsOk (WifiRemoteStation *st,
   NS_LOG_DEBUG ("station=" << station << " rts ok");
   station->m_rtsCounter--;
 }
-
 void
 AarfcdWifiManager::DoReportDataOk (WifiRemoteStation *st,
                                    double ackSnr, WifiMode ackMode, double dataSnr)
@@ -287,13 +282,11 @@ AarfcdWifiManager::DoReportDataOk (WifiRemoteStation *st,
     }
   CheckRts (station);
 }
-
 void
 AarfcdWifiManager::DoReportFinalRtsFailed (WifiRemoteStation *station)
 {
   NS_LOG_FUNCTION (this << station);
 }
-
 void
 AarfcdWifiManager::DoReportFinalDataFailed (WifiRemoteStation *station)
 {
@@ -301,25 +294,12 @@ AarfcdWifiManager::DoReportFinalDataFailed (WifiRemoteStation *station)
 }
 
 WifiTxVector
-AarfcdWifiManager::DoGetDataTxVector (WifiRemoteStation *st)
+AarfcdWifiManager::DoGetDataTxVector (WifiRemoteStation *st, uint32_t size)
 {
-  NS_LOG_FUNCTION (this << st);
+  NS_LOG_FUNCTION (this << st << size);
   AarfcdWifiRemoteStation *station = (AarfcdWifiRemoteStation *) st;
-  uint16_t channelWidth = GetChannelWidth (station);
-  if (channelWidth > 20 && channelWidth != 22)
-    {
-      //avoid to use legacy rate adaptation algorithms for IEEE 802.11n/ac
-      channelWidth = 20;
-    }
-  WifiMode mode = GetSupported (station, station->m_rate);
-  if (m_currentRate != mode.GetDataRate (channelWidth))
-    {
-      NS_LOG_DEBUG ("New datarate: " << mode.GetDataRate (channelWidth));
-      m_currentRate = mode.GetDataRate (channelWidth);
-    }
-  return WifiTxVector (mode, GetDefaultTxPowerLevel (), GetPreambleForTransmission (mode, GetAddress (station)), 800, 1, 1, 0, channelWidth, GetAggregation (station), false);
+  return WifiTxVector (GetSupported (station, station->m_rate), GetDefaultTxPowerLevel (), GetLongRetryCount (station), GetShortGuardInterval (station), Min (GetNumberOfReceiveAntennas (station),GetNumberOfTransmitAntennas()), GetNumberOfTransmitAntennas (station), GetStbc (station));
 }
-
 WifiTxVector
 AarfcdWifiManager::DoGetRtsTxVector (WifiRemoteStation *st)
 {
@@ -327,24 +307,7 @@ AarfcdWifiManager::DoGetRtsTxVector (WifiRemoteStation *st)
   /// \todo we could/should implement the Aarf algorithm for
   /// RTS only by picking a single rate within the BasicRateSet.
   AarfcdWifiRemoteStation *station = (AarfcdWifiRemoteStation *) st;
-  uint16_t channelWidth = GetChannelWidth (station);
-  if (channelWidth > 20 && channelWidth != 22)
-    {
-      //avoid to use legacy rate adaptation algorithms for IEEE 802.11n/ac
-      channelWidth = 20;
-    }
-  WifiTxVector rtsTxVector;
-  WifiMode mode;
-  if (GetUseNonErpProtection () == false)
-    {
-      mode = GetSupported (station, 0);
-    }
-  else
-    {
-      mode = GetNonErpSupported (station, 0);
-    }
-  rtsTxVector = WifiTxVector (mode, GetDefaultTxPowerLevel (), GetPreambleForTransmission (mode, GetAddress (station)), 800, 1, 1, 0, channelWidth, GetAggregation (station), false);
-  return rtsTxVector;
+  return WifiTxVector (GetSupported (station, 0), GetDefaultTxPowerLevel (), GetShortRetryCount (station), GetShortGuardInterval (station), Min (GetNumberOfReceiveAntennas (station),GetNumberOfTransmitAntennas()), GetNumberOfTransmitAntennas (station), GetStbc (station));
 }
 
 bool
@@ -361,6 +324,7 @@ AarfcdWifiManager::DoNeedRts (WifiRemoteStation *st,
 bool
 AarfcdWifiManager::IsLowLatency (void) const
 {
+  NS_LOG_FUNCTION (this);
   return true;
 }
 
@@ -412,34 +376,5 @@ AarfcdWifiManager::ResetRtsWnd (AarfcdWifiRemoteStation *station)
   station->m_rtsWnd = m_minRtsWnd;
 }
 
-void
-AarfcdWifiManager::SetHtSupported (bool enable)
-{
-  //HT is not supported by this algorithm.
-  if (enable)
-    {
-      NS_FATAL_ERROR ("WifiRemoteStationManager selected does not support HT rates");
-    }
-}
 
-void
-AarfcdWifiManager::SetVhtSupported (bool enable)
-{
-  //VHT is not supported by this algorithm.
-  if (enable)
-    {
-      NS_FATAL_ERROR ("WifiRemoteStationManager selected does not support VHT rates");
-    }
-}
-
-void
-AarfcdWifiManager::SetHeSupported (bool enable)
-{
-  //HE is not supported by this algorithm.
-  if (enable)
-    {
-      NS_FATAL_ERROR ("WifiRemoteStationManager selected does not support HE rates");
-    }
-}
-
-} //namespace ns3
+} // namespace ns3

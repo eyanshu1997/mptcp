@@ -39,18 +39,17 @@
 #include "ss-scheduler.h"
 #include "ns3/buffer.h"
 #include "service-flow-record.h"
+NS_LOG_COMPONENT_DEFINE ("ServiceFlowManager");
 
 namespace ns3 {
 
-NS_LOG_COMPONENT_DEFINE ("ServiceFlowManager");
-
-NS_OBJECT_ENSURE_REGISTERED (ServiceFlowManager);
+NS_OBJECT_ENSURE_REGISTERED (ServiceFlowManager)
+  ;
 
 TypeId ServiceFlowManager::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::ServiceFlowManager")
-    .SetParent<Object> ()
-    .SetGroupName("Wimax");
+    .SetParent<Object> ();
   return tid;
 }
 

@@ -45,36 +45,18 @@ public:
    *
    * \return the carrier frequency in Hz
    */
-  static double GetCarrierFrequency (uint32_t earfcn);
+  static double GetCarrierFrequency (uint16_t earfcn);
 
   /**
-   * Converts downlink EARFCN to corresponding LTE frequency band number.
-   *
-   * \param earfcn the EARFCN
-   *
-   * \return the downlink carrier band
-   */
-  static uint16_t GetDownlinkCarrierBand (uint32_t nDl);
-
-  /**
-   * Converts uplink EARFCN to corresponding LTE frequency band number.
-   *
-   * \param earfcn the EARFCN
-   *
-   * \return the uplink carrier band
-   */
-  static uint16_t GetUplinkCarrierBand (uint32_t nDl);
-
-  /**
-   * Calculates the downlink carrier frequency from the E-UTRA Absolute
+   * Calculates the dowlink carrier frequency from the E-UTRA Absolute
    * Radio Frequency Channel Number (EARFCN) using the formula in 3GPP TS
    * 36.101 section 5.7.3 "Carrier frequency and EARFCN".
    *
    * \param earfcn the EARFCN
    *
-   * \return the downlink carrier frequency in Hz
+   * \return the dowlink carrier frequency in Hz
    */
-  static double GetDownlinkCarrierFrequency (uint32_t earfcn);
+  static double GetDownlinkCarrierFrequency (uint16_t earfcn);
 
   /**
    * Calculates the uplink carrier frequency from the E-UTRA Absolute
@@ -85,7 +67,7 @@ public:
    *
    * \return the uplink carrier frequency in Hz
    */
-  static double GetUplinkCarrierFrequency (uint32_t earfcn);
+  static double GetUplinkCarrierFrequency (uint16_t earfcn);
 
   /**
    *
@@ -109,7 +91,7 @@ public:
    * configuration. If such SpectrumModel does not exist, it is
    * created.
    */
-  static Ptr<SpectrumModel> GetSpectrumModel (uint32_t earfcn, uint8_t bandwidth);
+  static Ptr<SpectrumModel> GetSpectrumModel (uint16_t earfcn, uint8_t bandwidth);
 
 
   /**
@@ -125,32 +107,11 @@ public:
    *
    * \return a pointer to a newly allocated SpectrumValue representing the TX Power Spectral Density in W/Hz for each Resource Block
    */
-  static Ptr<SpectrumValue> CreateTxPowerSpectralDensity (uint32_t earfcn,
+  static Ptr<SpectrumValue> CreateTxPowerSpectralDensity (uint16_t earfcn,
                                                           uint8_t bandwidth,
                                                           double powerTx,
                                                           std::vector <int> activeRbs);
 
-  /**
-   * create a spectrum value representing the power spectral
-   * density of a signal to be transmitted. See 3GPP TS 36.101 for
-   * a definition of most of the parameters described here.
-   *
-   * \param earfcn the carrier frequency (EARFCN) of the transmission
-   * \param bandwidth the Transmission Bandwidth Configuration in
-   * number of resource blocks
-   * \param powerTx the total power in dBm over the whole bandwidth
-   * \param powerTxMap the map of power in dBm for each RB,
-   * if map contain power for RB, powerTx is not used for this RB,
-   * otherwise powerTx is set for this RB
-   * \param activeRbs the list of Active Resource Blocks (PRBs)
-   *
-   * \return a pointer to a newly allocated SpectrumValue representing the TX Power Spectral Density in W/Hz for each Resource Block
-   */
-  static Ptr<SpectrumValue> CreateTxPowerSpectralDensity (uint32_t earfcn,
-                                                          uint8_t bandwidth,
-                                                          double powerTx,
-                                                          std::map<int, double> powerTxMap,
-                                                          std::vector <int> activeRbs);
 
   /**
    * create a SpectrumValue that models the power spectral density of AWGN
@@ -163,7 +124,7 @@ public:
    *
    * \return a pointer to a newly allocated SpectrumValue representing the noise Power Spectral Density in W/Hz for each Resource Block
    */
-  static Ptr<SpectrumValue> CreateNoisePowerSpectralDensity (uint32_t earfcn, uint8_t bandwidth, double noiseFigure);
+  static Ptr<SpectrumValue> CreateNoisePowerSpectralDensity (uint16_t earfcn, uint8_t bandwidth, double noiseFigure);
 
   /**
    *  create a SpectrumValue that models the power spectral density of AWGN

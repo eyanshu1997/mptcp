@@ -219,6 +219,9 @@ Gnuplot2dDataset::Data2d::PrintExpression (std::ostream &os,
     os << " title \"" << m_title << "\"";
 
   switch (m_style) {
+  case MKS:
+    os << " ";
+    break;
     case LINES:
       os << " with lines";
       break;
@@ -851,11 +854,21 @@ Gnuplot::SetDataFileDatasetIndex (unsigned int index)
 }
 
 // ------------------------------------------------------------------------- //
+//GnuplotCollection::GnuplotCollection()
+//{
+//}
 
 GnuplotCollection::GnuplotCollection (const std::string& outputFilename)
   : m_outputFilename (outputFilename),
     m_terminal ( Gnuplot::DetectTerminal (outputFilename) )
 {
+}
+
+void
+GnuplotCollection::SetOutFile(const std::string& outputFilename)
+{
+  m_outputFilename = outputFilename;
+  m_terminal = Gnuplot::DetectTerminal (outputFilename);
 }
 
 void

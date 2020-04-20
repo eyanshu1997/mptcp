@@ -26,11 +26,11 @@
 #include "ns3/log.h"
 #include "wimax-tlv.h"
 
+NS_LOG_COMPONENT_DEFINE ("MACMESSAGES");
 namespace ns3 {
 
-NS_LOG_COMPONENT_DEFINE ("MACMESSAGES");
-
-NS_OBJECT_ENSURE_REGISTERED (ManagementMessageType);
+NS_OBJECT_ENSURE_REGISTERED (ManagementMessageType)
+  ;
 
 ManagementMessageType::ManagementMessageType (void)
   : m_type (~0)
@@ -68,11 +68,7 @@ TypeId
 ManagementMessageType::GetTypeId (void)
 {
   static TypeId tid =
-    TypeId ("ns3::ManagementMessageType")
-    .SetParent<Header> ()
-    .SetGroupName("Wimax")
-    .AddConstructor<ManagementMessageType> ()
-    ;
+    TypeId ("ns3::ManagementMessageType").SetParent<Header> ().AddConstructor<ManagementMessageType> ();
   return tid;
 }
 
@@ -109,9 +105,10 @@ ManagementMessageType::Deserialize (Buffer::Iterator start)
   return i.GetDistanceFrom (start);
 }
 
-// ---------------------------------------------------------------------
+// ----------------------------------------------------------------------------------------------------------
 
-NS_OBJECT_ENSURE_REGISTERED (RngReq);
+NS_OBJECT_ENSURE_REGISTERED (RngReq)
+  ;
 
 RngReq::RngReq (void)
   : m_reserved (0),
@@ -170,11 +167,7 @@ RngReq::GetName (void) const
 TypeId
 RngReq::GetTypeId (void)
 {
-  static TypeId tid = TypeId ("ns3::RngReq")
-    .SetParent<Header> ()
-    .SetGroupName("Wimax")
-    .AddConstructor<RngReq> ()
-    ;
+  static TypeId tid = TypeId ("ns3::RngReq").SetParent<Header> ().AddConstructor<RngReq> ();
   return tid;
 }
 
@@ -227,9 +220,10 @@ RngReq::Deserialize (Buffer::Iterator start)
   return i.GetDistanceFrom (start);
 }
 
-// ---------------------------------------------------------------------
+// ----------------------------------------------------------------------------------------------------------
 
-NS_OBJECT_ENSURE_REGISTERED (RngRsp);
+NS_OBJECT_ENSURE_REGISTERED (RngRsp)
+  ;
 
 RngRsp::RngRsp (void)
   : m_reserved (0),
@@ -431,11 +425,7 @@ RngRsp::GetName (void) const
 TypeId
 RngRsp::GetTypeId (void)
 {
-  static TypeId tid = TypeId ("ns3::RngRsp")
-    .SetParent<Header> ()
-    .SetGroupName("Wimax")
-    .AddConstructor<RngRsp> ()
-    ;
+  static TypeId tid = TypeId ("ns3::RngRsp").SetParent<Header> ().AddConstructor<RngRsp> ();
   return tid;
 }
 
@@ -508,9 +498,10 @@ RngRsp::Deserialize (Buffer::Iterator start)
   return i.GetDistanceFrom (start);
 }
 
-// ---------------------------------------------------------------------
+// ----------------------------------------------------------------------------------------------------------------------
 
-NS_OBJECT_ENSURE_REGISTERED (DsaReq);
+NS_OBJECT_ENSURE_REGISTERED (DsaReq)
+  ;
 
 DsaReq::DsaReq (void)
   : m_transactionId (0),
@@ -576,11 +567,7 @@ DsaReq::GetName (void) const
 TypeId
 DsaReq::GetTypeId (void)
 {
-  static TypeId tid = TypeId ("ns3::DsaReq")
-    .SetParent<Header> ()
-    .SetGroupName("Wimax")
-    .AddConstructor<DsaReq> ()
-    ;
+  static TypeId tid = TypeId ("ns3::DsaReq").SetParent<Header> ().AddConstructor<DsaReq> ();
   return tid;
 }
 
@@ -595,6 +582,16 @@ DsaReq::Print (std::ostream &os) const
 {
   os << " transaction id = " << (uint32_t) m_transactionId << ", m_sfid = " << m_sfid << ", cid = " << m_cid;
 }
+
+/*
+ *  0             7             15            23
+ * +-------------+-------------+-------------+
+ * |Mngt msg type|       Transaction ID      |
+ * +-------------+-------------+-------------+
+ * |            Service Flow TLV             |
+ * +~~~~~~~~~~~~~+~~~~~~~~~~~~~+~~~~~~~~~~~~~+
+ *
+ */
 
 uint32_t
 DsaReq::GetSerializedSize (void) const
@@ -636,9 +633,10 @@ DsaReq::SetServiceFlow (ServiceFlow sf)
   m_serviceFlow = sf;
 }
 
-// ---------------------------------------------------------------------
+// ----------------------------------------------------------------------------------------------------------------------
 
-NS_OBJECT_ENSURE_REGISTERED (DsaRsp);
+NS_OBJECT_ENSURE_REGISTERED (DsaRsp)
+  ;
 
 DsaRsp::DsaRsp (void)
   : m_transactionId (0),
@@ -721,11 +719,7 @@ DsaRsp::GetName (void) const
 TypeId
 DsaRsp::GetTypeId (void)
 {
-  static TypeId tid = TypeId ("ns3::DsaRsp")
-    .SetParent<Header> ()
-    .SetGroupName("Wimax")
-    .AddConstructor<DsaRsp> ()
-    ;
+  static TypeId tid = TypeId ("ns3::DsaRsp").SetParent<Header> ().AddConstructor<DsaRsp> ();
   return tid;
 }
 
@@ -748,7 +742,15 @@ DsaRsp::GetSerializedSize (void) const
   return 2 + 1 + m_serviceFlow.ToTlv ().GetSerializedSize ();
 }
 
-
+/*
+ *  0             7             15            23
+ * +-------------+-------------+-------------+
+ * |Mngt msg type|       Transaction ID      |
+ * +-------------+-------------+-------------+
+ * | Conf Code   | Service Flow TLV          |
+ * +~~~~~~~~~~~~~+~~~~~~~~~~~~~+~~~~~~~~~~~~~+
+ *
+ */
 void
 DsaRsp::Serialize (Buffer::Iterator start) const
 {
@@ -772,9 +774,10 @@ DsaRsp::Deserialize (Buffer::Iterator start)
   return size + 3;
 }
 
-// ---------------------------------------------------------------------
+// ----------------------------------------------------------------------------------------------------------
 
-NS_OBJECT_ENSURE_REGISTERED (DsaAck);
+NS_OBJECT_ENSURE_REGISTERED (DsaAck)
+  ;
 
 DsaAck::DsaAck (void)
   : m_transactionId (0),
@@ -819,11 +822,7 @@ DsaAck::GetName (void) const
 TypeId
 DsaAck::GetTypeId (void)
 {
-  static TypeId tid = TypeId ("ns3::DsaAck")
-    .SetParent<Header> ()
-    .SetGroupName("Wimax")
-    .AddConstructor<DsaAck> ()
-    ;
+  static TypeId tid = TypeId ("ns3::DsaAck").SetParent<Header> ().AddConstructor<DsaAck> ();
   return tid;
 }
 

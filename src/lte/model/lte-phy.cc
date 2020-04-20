@@ -28,11 +28,13 @@
 #include "lte-phy.h"
 #include "lte-net-device.h"
 
-namespace ns3 {
-
 NS_LOG_COMPONENT_DEFINE ("LtePhy");
 
-NS_OBJECT_ENSURE_REGISTERED (LtePhy);
+namespace ns3 {
+
+
+NS_OBJECT_ENSURE_REGISTERED (LtePhy)
+  ;
 
 
 LtePhy::LtePhy ()
@@ -49,8 +51,7 @@ LtePhy::LtePhy (Ptr<LteSpectrumPhy> dlPhy, Ptr<LteSpectrumPhy> ulPhy)
     m_dlBandwidth (0),
     m_rbgSize (0),
     m_macChTtiDelay (0),
-    m_cellId (0),
-    m_componentCarrierId(0)
+    m_cellId (0)
 {
   NS_LOG_FUNCTION (this);
 }
@@ -61,7 +62,6 @@ LtePhy::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::LtePhy")
     .SetParent<Object> ()
-    .SetGroupName("Lte")
   ;
   return tid;
 }
@@ -95,7 +95,7 @@ LtePhy::SetDevice (Ptr<LteNetDevice> d)
 
 
 Ptr<LteNetDevice>
-LtePhy::GetDevice () const
+LtePhy::GetDevice ()
 {
   NS_LOG_FUNCTION (this);
   return m_netDevice;
@@ -250,18 +250,5 @@ LtePhy::DoSetCellId (uint16_t cellId)
   m_uplinkSpectrumPhy->SetCellId (cellId);
 }
 
-void
-LtePhy::SetComponentCarrierId (uint8_t index)
-{
-  m_componentCarrierId = index;
-  m_downlinkSpectrumPhy->SetComponentCarrierId (index);
-  m_uplinkSpectrumPhy->SetComponentCarrierId (index);
-}
-
-uint8_t
-LtePhy::GetComponentCarrierId ()
-{
-  return m_componentCarrierId;
-}
 
 } // namespace ns3

@@ -28,7 +28,6 @@
 #include "ns3/address.h"
 #include "ns3/nstime.h"
 #include "ns3/ptr.h"
-#include "ns3/mac8-address.h"
 
 namespace ns3 {
 
@@ -36,8 +35,7 @@ class UanPhy;
 class UanChannel;
 class UanNetDevice;
 class UanTransducer;
-class UanTxMode;
-class Mac8Address;
+class UanAddress;
 
 
 
@@ -49,8 +47,6 @@ class Mac8Address;
 class UanMac : public Object
 {
 public:
-  /** Default constructor */
-  UanMac ();
   /**
    * Register this type.
    * \return The TypeId.
@@ -62,24 +58,24 @@ public:
    *
    * \return MAC Address.
    */
-  virtual Address GetAddress (void);
+  virtual Address GetAddress (void) = 0;
 
   /**
    * Set the address.
    *
-   * \param addr Mac8Address for this MAC.
+   * \param addr UanAddress for this MAC.
    */
-  virtual void SetAddress (Mac8Address addr);
+  virtual void SetAddress (UanAddress addr) = 0;
 
   /**
    * Enqueue packet to be transmitted.
    *
    * \param pkt Packet to be transmitted.
    * \param dest Destination address.
-   * \param protocolNumber The type of the packet.
+   * \param protocolNumber Protocol number.  Usage varies by MAC.
    * \return True if packet was successfully enqueued.
    */
-  virtual bool Enqueue (Ptr<Packet> pkt, uint16_t protocolNumber, const Address &dest) = 0;
+  virtual bool Enqueue (Ptr<Packet> pkt, const Address &dest, uint16_t protocolNumber) = 0;
   /**
    * Set the callback to forward packets up to higher layers.
    * 
@@ -87,7 +83,7 @@ public:
    * \pname{packet} The packet.
    * \pname{address} The source address.
    */
-  virtual void SetForwardUpCb (Callback<void, Ptr<Packet>, uint16_t, const Mac8Address&> cb) = 0;
+  virtual void SetForwardUpCb (Callback<void, Ptr<Packet>, const UanAddress&> cb) = 0;
 
   /**
    * Attach PHY layer to this MAC.
@@ -104,7 +100,7 @@ public:
    *
    * \return The broadcast address.
    */
-  virtual Address GetBroadcast (void) const;
+  virtual Address GetBroadcast (void) const = 0;
 
   /** Clears all pointer references. */
   virtual void Clear (void) = 0;
@@ -118,24 +114,6 @@ public:
   * \return The number of stream indices assigned by this model.
   */
   virtual int64_t AssignStreams (int64_t stream) = 0;
-
-  /**
-   *  TracedCallback signature for packet reception/enqueue/dequeue events.
-   *
-   * \param [in] packet The Packet.
-   * \param [in] mode The UanTxMode.
-   */
-  typedef void (* PacketModeTracedCallback)
-    (Ptr<const Packet> packet, UanTxMode mode);
-
-  uint32_t GetTxModeIndex ();
-  void SetTxModeIndex (uint32_t txModeIndex);
-
-private:
-  /** Modulation type */
-  uint32_t m_txModeIndex;
-  /** The MAC address. */
-  Mac8Address m_address;
 
 };  // class UanMac
 

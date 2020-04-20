@@ -1,4 +1,3 @@
-/* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
  * Copyright (c) 2009 University of Washington
  *
@@ -16,21 +15,39 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
+#include <iostream>
+#include <fstream>
+#include <vector>
+#include <string>
+
 #include "ns3/log.h"
+#include "ns3/callback.h"
+#include "ns3/abort.h"
 #include "ns3/test.h"
+#include "ns3/pcap-file.h"
 #include "ns3/config.h"
 #include "ns3/string.h"
+#include "ns3/uinteger.h"
 #include "ns3/double.h"
-#include "ns3/boolean.h"
+#include "ns3/data-rate.h"
+#include "ns3/inet-socket-address.h"
 #include "ns3/internet-stack-helper.h"
 #include "ns3/ipv4-address-helper.h"
+#include "ns3/tcp-socket-factory.h"
 #include "ns3/yans-wifi-helper.h"
+#include "ns3/propagation-loss-model.h"
+#include "ns3/propagation-delay-model.h"
 #include "ns3/yans-wifi-channel.h"
+#include "ns3/yans-wifi-phy.h"
+#include "ns3/wifi-net-device.h"
 #include "ns3/mobility-helper.h"
-
-using namespace ns3;
+#include "ns3/constant-position-mobility-model.h"
+#include "ns3/nqos-wifi-mac-helper.h"
+#include "ns3/simulator.h"
 
 NS_LOG_COMPONENT_DEFINE ("WifiInterferenceTestSuite");
+
+using namespace ns3;
 
 class WifiInterferenceTestCase : public TestCase
 {
@@ -143,33 +160,21 @@ WifiInterferenceTestCase::WifiSimpleInterference (std::string phyMode,double Prs
   wifiPhy.Set ("CcaMode1Threshold", DoubleValue (0.0) );
 
   // ns-3 supports RadioTap and Prism tracing extensions for 802.11b
-  wifiPhy.SetPcapDataLinkType (WifiPhyHelper::DLT_IEEE802_11_RADIO); 
+  wifiPhy.SetPcapDataLinkType (YansWifiPhyHelper::DLT_IEEE802_11_RADIO); 
 
   YansWifiChannelHelper wifiChannel;
   wifiChannel.SetPropagationDelay ("ns3::ConstantSpeedPropagationDelayModel");
   wifiChannel.AddPropagationLoss ("ns3::LogDistancePropagationLossModel");
   wifiPhy.SetChannel (wifiChannel.Create ());
 
-  // Add a mac and disable rate control
-  WifiMacHelper wifiMac;
+  // Add a non-QoS upper mac, and disable rate control
+  NqosWifiMacHelper wifiMac = NqosWifiMacHelper::Default ();
   wifi.SetRemoteStationManager ("ns3::ConstantRateWifiManager",
                                 "DataMode",StringValue (phyMode),
                                 "ControlMode",StringValue (phyMode));
-
-  // Set it to adhoc mode (and enable QOS for HT/VHT stations)
-  if (wifiStandard == WIFI_PHY_STANDARD_80211n_2_4GHZ
-      || wifiStandard == WIFI_PHY_STANDARD_80211n_5GHZ
-      || wifiStandard == WIFI_PHY_STANDARD_80211ac)
-    {
-      wifiMac.SetType ("ns3::AdhocWifiMac",
-                       "QosSupported", BooleanValue (true));
-    }
-  else
-    {
-      wifiMac.SetType ("ns3::AdhocWifiMac");
-    }
+  // Set it to adhoc mode
+  wifiMac.SetType ("ns3::AdhocWifiMac");
   NetDeviceContainer devices = wifi.Install (wifiPhy, wifiMac, c.Get (0));
-
   // This will disable these sending devices from detecting a signal 
   // so that they do not backoff
   wifiPhy.Set ("EnergyDetectionThreshold", DoubleValue (0.0) );
@@ -268,7 +273,7 @@ WifiInterferenceTestCase::DoRun (void)
   NS_TEST_ASSERT_MSG_EQ (PERDiff1, PERDiff2, 
                          "The PER difference due to 1 microsecond difference in arrival shouldn't depend on absolute arrival");
   //Now rerun for 11n
-  wifiStandard = WIFI_PHY_STANDARD_80211n_2_4GHZ;
+  wifiStandard=WIFI_PHY_STANDARD_80211n_2_4GHZ;
   // Compute the packet error rate (PER) when delta=0 microseconds.  This
   // means that the interferer arrives at exactly the same time as the
   // intended packet

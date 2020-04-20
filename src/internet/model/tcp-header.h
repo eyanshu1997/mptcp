@@ -23,15 +23,17 @@
 
 #include <stdint.h>
 #include "ns3/header.h"
-#include "ns3/tcp-option.h"
 #include "ns3/buffer.h"
 #include "ns3/tcp-socket-factory.h"
 #include "ns3/ipv4-address.h"
 #include "ns3/ipv6-address.h"
 #include "ns3/sequence-number.h"
+#include "tcp-options.h"
 
-namespace ns3 {
+using namespace std;
 
+namespace ns3
+{
 /**
  * \ingroup tcp
  * \brief Header for the Transmission Control Protocol
@@ -44,187 +46,117 @@ namespace ns3 {
 class TcpHeader : public Header
 {
 public:
-  TcpHeader ();
-  virtual ~TcpHeader ();
+  TcpHeader();
+  TcpHeader(const TcpHeader &res);
+  //TcpHeader Copy();
 
-  typedef std::list< Ptr<const TcpOption> > TcpOptionList; //!< List of TcpOption
+  virtual
+  ~TcpHeader();
 
-  /**
-   * \brief Print a TCP header into an output stream
-   *
-   * \param os output stream
-   * \param tc TCP header to print
-   * \return The ostream passed as first argument
-   */
-  friend std::ostream& operator<< (std::ostream& os, TcpHeader const & tc);
-
-  /**
-   * \brief Converts an integer into a human readable list of Tcp flags
-   *
-   * \param flags Bitfield of TCP flags to convert to a readable string
-   * \param delimiter String to insert between flags
-   *
-   * FIN=0x1, SYN=0x2, RST=0x4, PSH=0x8, ACK=0x10, URG=0x20, ECE=0x40, CWR=0x80
-   * TcpHeader::FlagsToString (0x1) should return the following string;
-   *     "FIN"
-   *
-   * TcpHeader::FlagsToString (0xff) should return the following string;
-   *     "FIN|SYN|RST|PSH|ACK|URG|ECE|CWR";
-   *
-   * \return the generated string
-   **/
-  static std::string FlagsToString (uint8_t flags, const std::string& delimiter = "|");
-
+  // MultiPath related options-----------------
+  bool AddOptMPC(TcpOption_t optName, uint32_t TxToken); // MultiPath TCP related methods
+  bool AddOptJOIN(TcpOption_t optName, uint32_t RxToken, uint8_t addrID);   // Join Connection Option
+  bool AddOptADDR(TcpOption_t optName, uint8_t addrID, Ipv4Address addr);// Add address Option
+  bool AddOptDSN(TcpOption_t optName, uint64_t dSeqNum, uint16_t dLevelLength, uint32_t sfSeqNum); // Data Sequence Mapping Option
+  void SetOptionsLength(uint8_t length);
+  void SetPaddingLength(uint8_t length);
+  uint8_t GetOptionsLength() const;
+  uint8_t GetPaddingLength() const;
+  uint8_t TcpOptionToUint(TcpOption_t opt) const;
+  TcpOption_t UintToTcpOption(uint8_t kind) const;
+  vector<TcpOptions*> GetOptions(void) const;
+  void SetOptions(vector<TcpOptions*> opt);
+  //--------------------------------------------
   /**
    * \brief Enable checksum calculation for TCP
    *
-   * \todo currently has no effect
+   * \to do currently has no effect
    */
-  void EnableChecksums (void);
-
+  void
+  EnableChecksums(void);
 //Setters
-
-/**
- * \brief Set the source port
- * \param port The source port for this TcpHeader
- */
-  void SetSourcePort (uint16_t port);
-
   /**
-   * \brief Set the destination port
+   * \param port The source port for this TcpHeader
+   */
+  void
+  SetSourcePort(uint16_t port);
+  /**
    * \param port the destination port for this TcpHeader
    */
-  void SetDestinationPort (uint16_t port);
-
+  void
+  SetDestinationPort(uint16_t port);
   /**
-   * \brief Set the sequence Number
    * \param sequenceNumber the sequence number for this TcpHeader
    */
-  void SetSequenceNumber (SequenceNumber32 sequenceNumber);
-
+  void
+  SetSequenceNumber(SequenceNumber32 sequenceNumber);
   /**
-   * \brief Set the ACK number
    * \param ackNumber the ACK number for this TcpHeader
    */
-  void SetAckNumber (SequenceNumber32 ackNumber);
-
+  void
+  SetAckNumber(SequenceNumber32 ackNumber);
   /**
-   * \brief Set flags of the header
+   * \param length the length of this TcpHeader
+   */
+  void
+  SetLength(uint8_t length);
+  /**
    * \param flags the flags for this TcpHeader
    */
-  void SetFlags (uint8_t flags);
-
+  void
+  SetFlags(uint8_t flags);
   /**
-   * \brief Set the window size
    * \param windowSize the window size for this TcpHeader
    */
-  void SetWindowSize (uint16_t windowSize);
-
+  void
+  SetWindowSize(uint16_t windowSize);
   /**
-   * \brief Set the urgent pointer
    * \param urgentPointer the urgent pointer for this TcpHeader
    */
-  void SetUrgentPointer (uint16_t urgentPointer);
+  void
+  SetUrgentPointer(uint16_t urgentPointer);
 
 //Getters
-
   /**
-   * \brief Get the source port
    * \return The source port for this TcpHeader
    */
-  uint16_t GetSourcePort () const;
-
+  uint16_t
+  GetSourcePort() const;
   /**
-   * \brief Get the destination port
    * \return the destination port for this TcpHeader
    */
-  uint16_t GetDestinationPort () const;
-
+  uint16_t
+  GetDestinationPort() const;
   /**
-   * \brief Get the sequence number
    * \return the sequence number for this TcpHeader
    */
-  SequenceNumber32 GetSequenceNumber () const;
-
+  SequenceNumber32
+  GetSequenceNumber() const;
   /**
-   * \brief Get the ACK number
    * \return the ACK number for this TcpHeader
    */
-  SequenceNumber32 GetAckNumber () const;
-
+  SequenceNumber32
+  GetAckNumber() const;
   /**
-   * \brief Get the length in words
-   *
-   * A word is 4 bytes; without Tcp Options, header is 5 words (20 bytes).
-   * With options, it can reach up to 15 words (60 bytes).
-   *
    * \return the length of this TcpHeader
    */
-  uint8_t GetLength () const;
-
+  uint8_t
+  GetLength() const;
   /**
-   * \brief Get the flags
    * \return the flags for this TcpHeader
    */
-  uint8_t GetFlags () const;
-
+  uint8_t
+  GetFlags() const;
   /**
-   * \brief Get the window size
    * \return the window size for this TcpHeader
    */
-  uint16_t GetWindowSize () const;
-
+  uint16_t
+  GetWindowSize() const;
   /**
-   * \brief Get the urgent pointer
    * \return the urgent pointer for this TcpHeader
    */
-  uint16_t GetUrgentPointer () const;
-
-  /**
-   * \brief Get the option specified
-   * \param kind the option to retrieve
-   * \return Whether the header contains a specific kind of option, or 0
-   */
-  Ptr<const TcpOption> GetOption (uint8_t kind) const;
-
-  /**
-   * \brief Copy all options in a list
-   * \note The list should be empty
-   * \param options Return a copy of the options
-   */
-  void GetOptions (TcpHeader::TcpOptionList& options) const;
-
-  /**
-   * \brief Get the list of option in this header
-   * \return a const reference to the option list
-   */
-  const TcpOptionList& GetOptionList (void) const;
-
-  /**
-   * \brief Get the total length of appended options
-   * \return the total length of options appended to this TcpHeader
-   */
-  uint8_t GetOptionLength () const;
-
-  /**
-   * \brief Get maximum option length
-   * \return the maximum option length
-   */
-  uint8_t GetMaxOptionLength () const;
-
-  /**
-   * \brief Check if the header has the option specified
-   * \param kind Option to check for
-   * \return true if the header has the option, false otherwise
-   */
-  bool HasOption (uint8_t kind) const;
-
-  /**
-   * \brief Append an option to the TCP header
-   * \param option The option to append
-   * \return true if option has been appended, false otherwise
-   */
-  bool AppendOption (Ptr<const TcpOption> option);
+  uint16_t
+  GetUrgentPointer() const;
 
   /**
    * \brief Initialize the TCP checksum.
@@ -240,9 +172,8 @@ public:
    *        IP packet.
    *
    */
-  void InitializeChecksum (const Ipv4Address &source,
-                           const Ipv4Address &destination,
-                           uint8_t protocol);
+  void
+  InitializeChecksum(Ipv4Address source, Ipv4Address destination, uint8_t protocol);
 
   /**
    * \brief Initialize the TCP checksum.
@@ -258,9 +189,8 @@ public:
    *        IP packet.
    *
    */
-  void InitializeChecksum (const Ipv6Address &source,
-                           const Ipv6Address &destination,
-                           uint8_t protocol);
+  void
+  InitializeChecksum(Ipv6Address source, Ipv6Address destination, uint8_t protocol);
 
   /**
    * \brief Initialize the TCP checksum.
@@ -276,50 +206,40 @@ public:
    *        IP packet.
    *
    */
-  void InitializeChecksum (const Address &source,
-                           const Address &destination,
-                           uint8_t protocol);
+  void
+  InitializeChecksum(Address source, Address destination, uint8_t protocol);
 
   /**
    * \brief TCP flag field values
    */
   typedef enum
   {
-    NONE = 0,   //!< No flags
-    FIN  = 1,   //!< FIN
-    SYN  = 2,   //!< SYN
-    RST  = 4,   //!< Reset
-    PSH  = 8,   //!< Push
-    ACK  = 16,  //!< Ack
-    URG  = 32,  //!< Urgent
-    ECE  = 64,  //!< ECE
-    CWR  = 128  //!< CWR
+    NONE = 0, FIN = 1, SYN = 2, RST = 4, PSH = 8, ACK = 16, URG = 32, ECE = 64, CWR = 128
   } Flags_t;
 
   /**
    * \brief Get the type ID.
    * \return the object TypeId
    */
-  static TypeId GetTypeId (void);
-  virtual TypeId GetInstanceTypeId (void) const;
-  virtual void Print (std::ostream &os) const;
-  virtual uint32_t GetSerializedSize (void) const;
-  virtual void Serialize (Buffer::Iterator start) const;
-  virtual uint32_t Deserialize (Buffer::Iterator start);
+  static TypeId
+  GetTypeId(void);
+  virtual TypeId
+  GetInstanceTypeId(void) const;
+  virtual void
+  Print(std::ostream &os) const;
+  virtual uint32_t
+  GetSerializedSize(void) const;
+  virtual void
+  Serialize(Buffer::Iterator start) const;
+  virtual uint32_t
+  Deserialize(Buffer::Iterator start);
 
   /**
    * \brief Is the TCP checksum correct ?
    * \returns true if the checksum is correct, false otherwise.
    */
-  bool IsChecksumOk (void) const;
-
-  /**
-   * Comparison operator
-   * \param lhs left operand
-   * \param rhs right operand
-   * \return true if the operands are equal
-   */
-  friend bool operator== (const TcpHeader &lhs, const TcpHeader &rhs);
+  bool
+  IsChecksumOk(void) const;
 
 private:
   /**
@@ -327,23 +247,13 @@ private:
    * \param size packet size
    * \returns the checksum
    */
-  uint16_t CalculateHeaderChecksum (uint16_t size) const;
-
-  /**
-   * \brief Calculates the header length (in words)
-   *
-   * Given the standard size of the header, the method checks for options
-   * and calculates the real length (in words).
-   *
-   * \return header length in 4-byte words
-   */
-  uint8_t CalculateHeaderLength () const;
-
+  uint16_t
+  CalculateHeaderChecksum(uint16_t size) const;
   uint16_t m_sourcePort;        //!< Source port
   uint16_t m_destinationPort;   //!< Destination port
   SequenceNumber32 m_sequenceNumber;  //!< Sequence number
   SequenceNumber32 m_ackNumber;       //!< ACK number
-  uint8_t m_length;             //!< Length (really a uint4_t) in words.
+  uint8_t m_length;             //!< Length (really a uint4_t)
   uint8_t m_flags;              //!< Flags (really a uint6_t)
   uint16_t m_windowSize;        //!< Window size
   uint16_t m_urgentPointer;     //!< Urgent pointer
@@ -355,36 +265,13 @@ private:
   bool m_calcChecksum;    //!< Flag to calculate checksum
   bool m_goodChecksum;    //!< Flag to indicate that checksum is correct
 
-  static const uint8_t m_maxOptionsLen = 40;         //!< Maximum options length
-  TcpOptionList m_options;     //!< TcpOption present in the header
-  uint8_t m_optionsLen;        //!< Tcp options length.
+  // MPTCP related variables------------
+  vector<TcpOptions*> m_option;
+  uint8_t oLen;
+  uint8_t pLen;
+  bool original;
+  //------------------------------------
 };
-
-/**
- * \brief Helper function to find an MPTCP option
- *
- * \param ret save found option in ret, otherwise
- * \return true if matching option type found. If false, ret should be considered invalid
-*/
-template<class T>
-bool
-GetTcpOption (const TcpHeader& header, Ptr<const T>& ret)
-{
-  TcpHeader::TcpOptionList l;
-  header.GetOptions (l);
-  for (TcpHeader::TcpOptionList::const_iterator it = l.begin (); it != l.end (); ++it)
-    {
-//      std::cout << "comparing " << ((*it)->GetInstanceTypeId ().GetName())
-//                    << " with " << T::GetTypeId().GetName()
-                    ;
-      if ( (*it)->GetInstanceTypeId () == T::GetTypeId())
-        {
-              ret = DynamicCast<const T> ( *it );
-              return (ret != 0);
-        }
-    }
-  return false;
-}
 
 } // namespace ns3
 

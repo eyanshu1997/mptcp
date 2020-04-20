@@ -26,7 +26,6 @@
 #include "ns3/ipv4-interface-address.h"
 #include "ipv4.h"
 #include "ns3/output-stream-wrapper.h"
-#include "ns3/nstime.h"
 
 namespace ns3 {
 
@@ -35,14 +34,9 @@ class Ipv4Route;
 class NetDevice;
 
 /**
- * \ingroup internet
- * \defgroup ipv4Routing IPv4 Routing Protocols.
- *
- * The classes in this group implement different routing protocols
- * for IPv4. Other modules could implement further protocols
- * (e.g., AODV, OLSR, etc.).
+ * \ingroup internet 
+ * \defgroup ipv4Routing Ipv4RoutingProtocol 
  */
-
 /**
  * \ingroup ipv4Routing
  * \brief Abstract base class for IPv4 routing protocols. 
@@ -166,11 +160,9 @@ public:
   /**
    * \brief Print the Routing Table entries
    *
-   * \param stream The ostream the Routing table is printed to
-   * \param unit The time unit to be used in the report
+   * \param stream the ostream the Routing table is printed to
    */
-  virtual void PrintRoutingTable (Ptr<OutputStreamWrapper> stream, Time::Unit unit = Time::S) const = 0;
-
+  virtual void PrintRoutingTable (Ptr<OutputStreamWrapper> stream) const = 0;
 };
 
 } // namespace ns3

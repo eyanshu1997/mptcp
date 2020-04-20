@@ -31,16 +31,12 @@
 #include "aloha-noack-net-device.h"
 #include "ns3/llc-snap-header.h"
 
-namespace ns3 {
-
 NS_LOG_COMPONENT_DEFINE ("AlohaNoackNetDevice");
 
-/**
- * \brief Output stream operator
- * \param os output stream
- * \param state the state to print
- * \return an output stream
- */
+
+namespace ns3 {
+
+
 std::ostream& operator<< (std::ostream& os, AlohaNoackNetDevice::State state)
 {
   switch (state)
@@ -59,14 +55,14 @@ std::ostream& operator<< (std::ostream& os, AlohaNoackNetDevice::State state)
 }
 
 
-NS_OBJECT_ENSURE_REGISTERED (AlohaNoackNetDevice);
+NS_OBJECT_ENSURE_REGISTERED (AlohaNoackNetDevice)
+  ;
 
 TypeId
 AlohaNoackNetDevice::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::AlohaNoackNetDevice")
     .SetParent<NetDevice> ()
-    .SetGroupName ("Spectrum")
     .AddConstructor<AlohaNoackNetDevice> ()
     .AddAttribute ("Address",
                    "The MAC address of this device.",
@@ -77,7 +73,7 @@ AlohaNoackNetDevice::GetTypeId (void)
                    "packets being transmitted get queued here",
                    PointerValue (),
                    MakePointerAccessor (&AlohaNoackNetDevice::m_queue),
-                   MakePointerChecker<Queue<Packet> > ())
+                   MakePointerChecker<Queue> ())
     .AddAttribute ("Mtu", "The Maximum Transmission Unit",
                    UintegerValue (1500),
                    MakeUintegerAccessor (&AlohaNoackNetDevice::SetMtu,
@@ -89,29 +85,19 @@ AlohaNoackNetDevice::GetTypeId (void)
                                         &AlohaNoackNetDevice::SetPhy),
                    MakePointerChecker<Object> ())
     .AddTraceSource ("MacTx",
-                     "Trace source indicating a packet has arrived "
-                     "for transmission by this device",
-                     MakeTraceSourceAccessor (&AlohaNoackNetDevice::m_macTxTrace),
-                     "ns3::Packet::TracedCallback")
+                     "Trace source indicating a packet has arrived for transmission by this device",
+                     MakeTraceSourceAccessor (&AlohaNoackNetDevice::m_macTxTrace))
     .AddTraceSource ("MacTxDrop",
-                     "Trace source indicating a packet has been dropped "
-                     "by the device before transmission",
-                     MakeTraceSourceAccessor (&AlohaNoackNetDevice::m_macTxDropTrace),
-                     "ns3::Packet::TracedCallback")
+                     "Trace source indicating a packet has been dropped by the device before transmission",
+                     MakeTraceSourceAccessor (&AlohaNoackNetDevice::m_macTxDropTrace))
     .AddTraceSource ("MacPromiscRx",
-                     "A packet has been received by this device, has been "
-                     "passed up from the physical layer "
-                     "and is being forwarded up the local protocol stack.  "
-                     "This is a promiscuous trace,",
-                     MakeTraceSourceAccessor (&AlohaNoackNetDevice::m_macPromiscRxTrace),
-                     "ns3::Packet::TracedCallback")
+                     "A packet has been received by this device, has been passed up from the physical layer "
+                     "and is being forwarded up the local protocol stack.  This is a promiscuous trace,",
+                     MakeTraceSourceAccessor (&AlohaNoackNetDevice::m_macPromiscRxTrace))
     .AddTraceSource ("MacRx",
-                     "A packet has been received by this device, "
-                     "has been passed up from the physical layer "
-                     "and is being forwarded up the local protocol stack.  "
-                     "This is a non-promiscuous trace,",
-                     MakeTraceSourceAccessor (&AlohaNoackNetDevice::m_macRxTrace),
-                     "ns3::Packet::TracedCallback")
+                     "A packet has been received by this device, has been passed up from the physical layer "
+                     "and is being forwarded up the local protocol stack.  This is a non-promiscuous trace,",
+                     MakeTraceSourceAccessor (&AlohaNoackNetDevice::m_macRxTrace))
   ;
   return tid;
 }
@@ -173,7 +159,7 @@ AlohaNoackNetDevice::GetMtu (void) const
 
 
 void
-AlohaNoackNetDevice::SetQueue (Ptr<Queue<Packet> > q)
+AlohaNoackNetDevice::SetQueue (Ptr<Queue> q)
 {
   NS_LOG_FUNCTION (q);
   m_queue = q;
@@ -434,9 +420,8 @@ AlohaNoackNetDevice::NotifyTransmissionEnd (Ptr<const Packet>)
   NS_ASSERT (m_queue);
   if (m_queue->IsEmpty () == false)
     {
-      Ptr<Packet> p = m_queue->Dequeue ();
-      NS_ASSERT (p);
-      m_currentPkt = p;
+      m_currentPkt = m_queue->Dequeue ();
+      NS_ASSERT (m_currentPkt);
       NS_LOG_LOGIC ("scheduling transmission now");
       Simulator::ScheduleNow (&AlohaNoackNetDevice::StartTransmission, this);
     }

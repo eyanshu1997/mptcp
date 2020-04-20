@@ -160,7 +160,7 @@ void CreateFormattedFile ()
 }
 
 
-}  // unnamed namespace
+} // anonymous namespace
 
 
 int main (int argc, char *argv[])

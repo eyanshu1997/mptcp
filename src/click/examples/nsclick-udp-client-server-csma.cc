@@ -49,12 +49,6 @@ int
 main (int argc, char *argv[])
 {
 #ifdef NS3_CLICK
-  std::string clickConfigFolder = "src/click/examples";
-
-  CommandLine cmd;
-  cmd.AddValue ("clickConfigFolder", "Base folder for click configuration files", clickConfigFolder);
-  cmd.Parse (argc, argv);
-
 //
 // Enable logging for UdpClient and
 //
@@ -81,7 +75,7 @@ main (int argc, char *argv[])
 // Install Click on the nodes
 //
   ClickInternetStackHelper clickinternet;
-  clickinternet.SetClickFile (n, clickConfigFolder + "/nsclick-lan-single-interface.click");
+  clickinternet.SetClickFile (n, "src/click/examples/nsclick-lan-single-interface.click");
   clickinternet.SetRoutingTableElement (n, "rt");
   clickinternet.Install (n);
 

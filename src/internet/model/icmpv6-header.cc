@@ -26,18 +26,18 @@
 
 #include "icmpv6-header.h"
 
+NS_LOG_COMPONENT_DEFINE ("Icmpv6Header");
+
 namespace ns3
 {
 
-NS_LOG_COMPONENT_DEFINE ("Icmpv6Header");
-
-NS_OBJECT_ENSURE_REGISTERED (Icmpv6Header);
+NS_OBJECT_ENSURE_REGISTERED (Icmpv6Header)
+  ;
 
 TypeId Icmpv6Header::GetTypeId ()
 {
   static TypeId tid = TypeId ("ns3::Icmpv6Header")
     .SetParent<Header> ()
-    .SetGroupName ("Internet")
     .AddConstructor<Icmpv6Header> ()
   ;
   return tid;
@@ -173,7 +173,8 @@ void Icmpv6Header::CalculatePseudoHeaderChecksum (Ipv6Address src, Ipv6Address d
   m_checksum = ~(it.CalculateIpChecksum (40));
 }
 
-NS_OBJECT_ENSURE_REGISTERED (Icmpv6NS);
+NS_OBJECT_ENSURE_REGISTERED (Icmpv6NS)
+  ;
 
 Icmpv6NS::Icmpv6NS ()
 {
@@ -188,7 +189,6 @@ TypeId Icmpv6NS::GetTypeId ()
 {
   static TypeId tid = TypeId ("ns3::Icmpv6NS")
     .SetParent<Icmpv6Header> ()
-    .SetGroupName ("Internet")
     .AddConstructor<Icmpv6NS> ()
   ;
   return tid;
@@ -247,7 +247,7 @@ void Icmpv6NS::SetIpv6Target (Ipv6Address target)
 void Icmpv6NS::Print (std::ostream& os) const
 {
   NS_LOG_FUNCTION (this << &os);
-  os << "( type = " << (uint32_t)GetType () << " (NS) code = " << (uint32_t)GetCode () << " target = " << m_target << " checksum = " << (uint32_t)GetChecksum ()  << ")";
+  os << "( type = " << (uint32_t)GetType () << " (NS) code = " << (uint32_t)GetCode () << " checksum = " << (uint32_t)GetChecksum ()  << ")";
 }
 
 uint32_t Icmpv6NS::GetSerializedSize () const
@@ -296,13 +296,13 @@ uint32_t Icmpv6NS::Deserialize (Buffer::Iterator start)
   return GetSerializedSize ();
 }
 
-NS_OBJECT_ENSURE_REGISTERED (Icmpv6NA);
+NS_OBJECT_ENSURE_REGISTERED (Icmpv6NA)
+  ;
 
 TypeId Icmpv6NA::GetTypeId ()
 {
   static TypeId tid = TypeId ("ns3::Icmpv6NA")
     .SetParent<Icmpv6Header> ()
-    .SetGroupName ("Internet")
     .AddConstructor<Icmpv6NA> ()
   ;
   return tid;
@@ -480,13 +480,13 @@ uint32_t Icmpv6NA::Deserialize (Buffer::Iterator start)
   return GetSerializedSize ();
 }
 
-NS_OBJECT_ENSURE_REGISTERED (Icmpv6RA);
+NS_OBJECT_ENSURE_REGISTERED (Icmpv6RA)
+  ;
 
 TypeId Icmpv6RA::GetTypeId ()
 {
   static TypeId tid = TypeId ("ns3::Icmpv6RA")
     .SetParent<Icmpv6Header> ()
-    .SetGroupName ("Internet")
     .AddConstructor<Icmpv6RA> ()
   ;
   return tid;
@@ -700,13 +700,13 @@ uint32_t Icmpv6RA::Deserialize (Buffer::Iterator start)
   return GetSerializedSize ();
 }
 
-NS_OBJECT_ENSURE_REGISTERED (Icmpv6RS);
+NS_OBJECT_ENSURE_REGISTERED (Icmpv6RS)
+  ;
 
 TypeId Icmpv6RS::GetTypeId ()
 {
   static TypeId tid = TypeId ("ns3::Icmpv6RS")
     .SetParent<Icmpv6Header> ()
-    .SetGroupName ("Internet")
     .AddConstructor<Icmpv6RS> ()
   ;
   return tid;
@@ -791,13 +791,13 @@ uint32_t Icmpv6RS::Deserialize (Buffer::Iterator start)
   return GetSerializedSize ();
 }
 
-NS_OBJECT_ENSURE_REGISTERED (Icmpv6Redirection);
+NS_OBJECT_ENSURE_REGISTERED (Icmpv6Redirection)
+  ;
 
 TypeId Icmpv6Redirection::GetTypeId ()
 {
   static TypeId tid = TypeId ("ns3::Icmpv6Redirection")
     .SetParent<Icmpv6Header> ()
-    .SetGroupName ("Internet")
     .AddConstructor<Icmpv6Redirection> ()
   ;
   return tid;
@@ -922,13 +922,13 @@ uint32_t Icmpv6Redirection::Deserialize (Buffer::Iterator start)
   return GetSerializedSize ();
 }
 
-NS_OBJECT_ENSURE_REGISTERED (Icmpv6Echo);
+NS_OBJECT_ENSURE_REGISTERED (Icmpv6Echo)
+  ;
 
 TypeId Icmpv6Echo::GetTypeId ()
 {
   static TypeId tid = TypeId ("ns3::Icmpv6Echo")
     .SetParent<Icmpv6Header> ()
-    .SetGroupName ("Internet")
     .AddConstructor<Icmpv6Echo> ()
   ;
   return tid;
@@ -1040,13 +1040,13 @@ uint32_t Icmpv6Echo::Deserialize (Buffer::Iterator start)
   return GetSerializedSize ();
 }
 
-NS_OBJECT_ENSURE_REGISTERED (Icmpv6DestinationUnreachable);
+NS_OBJECT_ENSURE_REGISTERED (Icmpv6DestinationUnreachable)
+  ;
 
 TypeId Icmpv6DestinationUnreachable::GetTypeId ()
 {
   static TypeId tid = TypeId ("ns3::Icmpv6DestinationUnreachable")
     .SetParent<Icmpv6Header> ()
-    .SetGroupName ("Internet")
     .AddConstructor<Icmpv6DestinationUnreachable> ()
   ;
   return tid;
@@ -1123,7 +1123,7 @@ void Icmpv6DestinationUnreachable::Serialize (Buffer::Iterator start) const
 uint32_t Icmpv6DestinationUnreachable::Deserialize (Buffer::Iterator start)
 {
   NS_LOG_FUNCTION (this << &start);
-  uint16_t length = start.GetRemainingSize () - 8;
+  uint16_t length = start.GetSize () - 8;
   uint8_t* data = new uint8_t[length];
   Buffer::Iterator i = start;
 
@@ -1138,13 +1138,13 @@ uint32_t Icmpv6DestinationUnreachable::Deserialize (Buffer::Iterator start)
   return GetSerializedSize ();
 }
 
-NS_OBJECT_ENSURE_REGISTERED (Icmpv6TooBig);
+NS_OBJECT_ENSURE_REGISTERED (Icmpv6TooBig)
+  ;
 
 TypeId Icmpv6TooBig::GetTypeId ()
 {
   static TypeId tid = TypeId ("ns3::Icmpv6TooBig")
     .SetParent<Icmpv6Header> ()
-    .SetGroupName ("Internet")
     .AddConstructor<Icmpv6TooBig> ()
   ;
   return tid;
@@ -1234,7 +1234,7 @@ void Icmpv6TooBig::Serialize (Buffer::Iterator start) const
 uint32_t Icmpv6TooBig::Deserialize (Buffer::Iterator start) 
 {
   NS_LOG_FUNCTION (this << &start);
-  uint16_t length = start.GetRemainingSize () - 8;
+  uint16_t length = start.GetSize () - 8;
   uint8_t* data = new uint8_t[length];
   Buffer::Iterator i = start;
 
@@ -1249,13 +1249,13 @@ uint32_t Icmpv6TooBig::Deserialize (Buffer::Iterator start)
   return GetSerializedSize ();
 }
 
-NS_OBJECT_ENSURE_REGISTERED (Icmpv6TimeExceeded);
+NS_OBJECT_ENSURE_REGISTERED (Icmpv6TimeExceeded)
+  ;
 
 TypeId Icmpv6TimeExceeded::GetTypeId ()
 {
   static TypeId tid = TypeId ("ns3::Icmpv6TimeExceeded")
     .SetParent<Icmpv6Header> ()
-    .SetGroupName ("Internet")
     .AddConstructor<Icmpv6TimeExceeded> ()
   ;
   return tid;
@@ -1334,7 +1334,7 @@ uint32_t Icmpv6TimeExceeded::Deserialize (Buffer::Iterator start)
 {
   NS_LOG_FUNCTION (this << &start);
   
-  uint16_t length = start.GetRemainingSize () - 8;
+  uint16_t length = start.GetSize () - 8;
   uint8_t* data = new uint8_t[length];
   Buffer::Iterator i = start;
 
@@ -1349,13 +1349,13 @@ uint32_t Icmpv6TimeExceeded::Deserialize (Buffer::Iterator start)
   return GetSerializedSize ();
 }
 
-NS_OBJECT_ENSURE_REGISTERED (Icmpv6ParameterError);
+NS_OBJECT_ENSURE_REGISTERED (Icmpv6ParameterError)
+  ;
 
 TypeId Icmpv6ParameterError::GetTypeId ()
 {
   static TypeId tid = TypeId ("ns3::Icmpv6ParameterError")
     .SetParent<Icmpv6Header> ()
-    .SetGroupName ("Internet")
     .AddConstructor<Icmpv6ParameterError> ()
   ;
   return tid;
@@ -1445,7 +1445,7 @@ void Icmpv6ParameterError::Serialize (Buffer::Iterator start) const
 uint32_t Icmpv6ParameterError::Deserialize (Buffer::Iterator start) 
 {
   NS_LOG_FUNCTION (this << &start);
-  uint16_t length = start.GetRemainingSize () - 8;
+  uint16_t length = start.GetSize () - 8;
   uint8_t* data = new uint8_t[length];
   Buffer::Iterator i = start;
 
@@ -1460,13 +1460,13 @@ uint32_t Icmpv6ParameterError::Deserialize (Buffer::Iterator start)
   return GetSerializedSize ();
 }
 
-NS_OBJECT_ENSURE_REGISTERED (Icmpv6OptionHeader);
+NS_OBJECT_ENSURE_REGISTERED (Icmpv6OptionHeader)
+  ;
 
 TypeId Icmpv6OptionHeader::GetTypeId ()
 {
   static TypeId tid = TypeId ("ns3::Icmpv6OptionHeader")
     .SetParent<Header> ()
-    .SetGroupName ("Internet")
     .AddConstructor<Icmpv6OptionHeader> ()
   ;
   return tid;
@@ -1539,13 +1539,13 @@ void Icmpv6OptionHeader::Serialize (Buffer::Iterator start) const
   NS_LOG_FUNCTION (this << &start);
 }
 
-NS_OBJECT_ENSURE_REGISTERED (Icmpv6OptionMtu);
+NS_OBJECT_ENSURE_REGISTERED (Icmpv6OptionMtu)
+  ;
 
 TypeId Icmpv6OptionMtu::GetTypeId ()
 {
   static TypeId tid = TypeId ("ns3::Icmpv6OptionMtu")
     .SetParent<Icmpv6OptionHeader> ()
-    .SetGroupName ("Internet")
     .AddConstructor<Icmpv6OptionMtu> ()
   ;
   return tid;
@@ -1636,13 +1636,13 @@ uint32_t Icmpv6OptionMtu::Deserialize (Buffer::Iterator start)
   return GetSerializedSize ();
 }
 
-NS_OBJECT_ENSURE_REGISTERED (Icmpv6OptionPrefixInformation);
+NS_OBJECT_ENSURE_REGISTERED (Icmpv6OptionPrefixInformation)
+  ;
 
 TypeId Icmpv6OptionPrefixInformation::GetTypeId ()
 {
   static TypeId tid = TypeId ("ns3::Icmpv6OptionPrefixInformation")
     .SetParent<Icmpv6OptionHeader> ()
-    .SetGroupName ("Internet")
     .AddConstructor<Icmpv6OptionPrefixInformation> ()
   ;
   return tid;
@@ -1810,13 +1810,13 @@ uint32_t Icmpv6OptionPrefixInformation::Deserialize (Buffer::Iterator start)
   return GetSerializedSize ();
 }
 
-NS_OBJECT_ENSURE_REGISTERED (Icmpv6OptionLinkLayerAddress);
+NS_OBJECT_ENSURE_REGISTERED (Icmpv6OptionLinkLayerAddress)
+  ;
 
 TypeId Icmpv6OptionLinkLayerAddress::GetTypeId ()
 {
   static TypeId tid = TypeId ("ns3::Icmpv6OptionLinkLayerAddress")
     .SetParent<Icmpv6OptionHeader> ()
-    .SetGroupName ("Internet")
     .AddConstructor<Icmpv6OptionLinkLayerAddress> ()
   ;
   return tid;
@@ -1910,22 +1910,21 @@ uint32_t Icmpv6OptionLinkLayerAddress::Deserialize (Buffer::Iterator start)
 
   SetType (i.ReadU8 ());
   SetLength (i.ReadU8 ());
-  // -fstrict-overflow sensitive, see bug 1868
-  NS_ASSERT (GetLength () * 8 <= 32 + 2);
+  NS_ASSERT (GetLength () * 8 - 2 <= 32);
   i.Read (mac, (GetLength () * 8) - 2);
 
-  m_addr.CopyFrom (mac, (GetLength () * 8) - 2);
+  m_addr.CopyFrom (mac, (GetLength () * 8)-2);
 
   return GetSerializedSize ();
 }
 
-NS_OBJECT_ENSURE_REGISTERED (Icmpv6OptionRedirected);
+NS_OBJECT_ENSURE_REGISTERED (Icmpv6OptionRedirected)
+  ;
 
 TypeId Icmpv6OptionRedirected::GetTypeId ()
 {
   static TypeId tid = TypeId ("ns3::Icmpv6OptionRedirected")
     .SetParent<Icmpv6OptionHeader> ()
-    .SetGroupName ("Internet")
     .AddConstructor<Icmpv6OptionRedirected> ()
   ;
   return tid;

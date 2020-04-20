@@ -47,42 +47,17 @@ public:
   LtePdcpHeader ();
   ~LtePdcpHeader ();
 
-  /**
-   * \brief Set DC bit
-   *
-   * \param dcBit DC bit to set
-   */
   void SetDcBit (uint8_t dcBit);
-  /**
-   * \brief Set sequence number
-   *
-   * \param sequenceNumber sequence number
-   */
   void SetSequenceNumber (uint16_t sequenceNumber);
 
-  /**
-   * \brief Get DC bit
-   *
-   * \returns DC bit
-   */
   uint8_t GetDcBit () const;
-  /**
-   * \brief Get sequence number
-   *
-   * \returns sequence number
-   */
   uint16_t GetSequenceNumber () const;
 
-  /// DcBit_t typedef
-  enum {
+  typedef enum {
     CONTROL_PDU   = 0,
     DATA_PDU      = 1
-  } DcBit_t; ///< DcBit_t typedef 
+  } DcBit_t;
 
-  /**
-   * \brief Get the type ID.
-   * \return the object TypeId
-   */
   static TypeId GetTypeId (void);
   virtual TypeId GetInstanceTypeId (void) const;
   virtual void Print (std::ostream &os) const;
@@ -91,8 +66,8 @@ public:
   virtual uint32_t Deserialize (Buffer::Iterator start);
 
 private:
-  uint8_t m_dcBit; ///< the DC bit
-  uint16_t m_sequenceNumber; ///< the sequence number
+  uint8_t m_dcBit;
+  uint16_t m_sequenceNumber;
 
 };
 

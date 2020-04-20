@@ -21,32 +21,27 @@
  */
 #include "nstime.h"
 #include "abort.h"
+#include "global-value.h"
+#include "enum.h"
+#include "string.h"
+#include "object.h"
+#include "config.h"
 #include "system-mutex.h"
 #include "log.h"
 #include <cmath>
 #include <iomanip>  // showpos
 #include <sstream>
 
-/**
- * \file
- * \ingroup time
- * ns3::Time, ns3::TimeWithUnit 
- * and ns3::TimeValue attribute value implementations.
- */
+NS_LOG_COMPONENT_DEFINE ("Time");
 
 namespace ns3 {
-
-NS_LOG_COMPONENT_DEFINE_MASK ("Time", ns3::LOG_PREFIX_TIME);
 
 // The set of marked times
 // static
 Time::MarkedTimes * Time::g_markingTimes = 0;
 
 /**
- * \internal
  * Get mutex for critical sections around modification of Time::g_markingTimes
- *
- * \returns The static mutex to control access to Time::g_markingTimes.
  *
  * \relates Time
  */
@@ -96,7 +91,7 @@ bool Time::StaticInit ()
 Time::Time (const std::string& s)
 {
   NS_LOG_FUNCTION (this << &s);
-  std::string::size_type n = s.find_first_not_of ("+-0123456789.eE");
+  std::string::size_type n = s.find_first_not_of ("+-0123456789.");
   if (n != std::string::npos)
     { // Found non-numeric
       std::istringstream iss;
@@ -384,55 +379,66 @@ Time::GetResolution (void)
 }
 
 
-TimeWithUnit
-Time::As (const enum Unit unit) const
-{
-  return TimeWithUnit (*this, unit);
-}
- 
-
-std::ostream &
-operator << (std::ostream & os, const Time & time)
-{
-  os << time.As (Time::GetResolution ());
-  return os;
-}
-
-
-std::ostream &
-operator << (std::ostream & os, const TimeWithUnit & timeU)
+std::ostream&
+operator<< (std::ostream& os, const Time & time)
 {
   std::string unit;
-
-  switch (timeU.m_unit)
+  Time::Unit res = Time::GetResolution ();
+  switch (res)
     {
-    case Time::Y:    unit = "y";    break;
-    case Time::D:    unit = "d";    break;
-    case Time::H:    unit = "h";    break;
-    case Time::MIN:  unit = "min";  break;
-    case Time::S:    unit = "s";    break;
-    case Time::MS:   unit = "ms";   break;
-    case Time::US:   unit = "us";   break;
-    case Time::NS:   unit = "ns";   break;
-    case Time::PS:   unit = "ps";   break;
-    case Time::FS:   unit = "fs";   break;
-
+    case Time::S:
+      unit = "s";
+      break;
+    case Time::MS:
+      unit = "ms";
+      break;
+    case Time::US:
+      unit = "us";
+      break;
+    case Time::NS:
+      unit = "ns";
+      break;
+    case Time::PS:
+      unit = "ps";
+      break;
+    case Time::FS:
+      unit = "fs";
+      break;
+    case Time::MIN:
+      unit = "min";
+      break;
+    case Time::H:
+      unit = "h";
+      break;
+    case Time::D:
+      unit = "d";
+      break;
+    case Time::Y:
+      unit = "y";
+      break;
     case Time::LAST:
-    default:
       NS_ABORT_MSG ("can't be reached");
       unit = "unreachable";
       break;
     }
+  int64_t v = time.ToInteger (res);
 
-  int64x64_t v = timeU.m_time.To (timeU.m_unit);
-  os << v << unit;
-  
+  std::ios_base::fmtflags ff = os.flags ();
+  { // See bug 1737:  gcc libstc++ 4.2 bug
+    if (v == 0)
+      {
+        os << '+';
+      }
+    else
+      {
+        os << std::showpos;
+      }
+  }
+  os << v << ".0" << unit;
+  os.flags (ff);  // Restore stream flags
   return os;
 }
-
-
-std::istream &
-operator >> (std::istream & is, Time & time)
+std::istream& operator>> (std::istream& is, Time & time)
 {
   std::string value;
   is >> value;

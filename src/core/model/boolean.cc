@@ -21,15 +21,9 @@
 #include "fatal-error.h"
 #include "log.h"
 
-/**
- * \file
- * \ingroup attribute_Boolean
- * ns3::BooleanValue attribute value implementaation.
- */
+NS_LOG_COMPONENT_DEFINE ("Boolean");
 
 namespace ns3 {
-
-NS_LOG_COMPONENT_DEFINE ("Boolean");
 
 BooleanValue::BooleanValue ()
   : m_value (false)

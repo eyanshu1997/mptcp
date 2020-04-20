@@ -27,24 +27,22 @@
 #include "ns3/log.h"
 #include "ns3/simulator.h"
 
-namespace ns3 {
-
 NS_LOG_COMPONENT_DEFINE ("TimeSeriesAdaptor");
 
-NS_OBJECT_ENSURE_REGISTERED (TimeSeriesAdaptor);
+namespace ns3 {
+
+NS_OBJECT_ENSURE_REGISTERED (TimeSeriesAdaptor)
+  ;
 
 TypeId
 TimeSeriesAdaptor::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::TimeSeriesAdaptor")
     .SetParent<DataCollectionObject> ()
-    .SetGroupName ("Stats")
     .AddConstructor<TimeSeriesAdaptor> ()
     .AddTraceSource ( "Output",
-                      "The current simulation time versus "
-                      "the current value converted to a double",
-                      MakeTraceSourceAccessor (&TimeSeriesAdaptor::m_output),
-                      "ns3::TimeSeriesAdaptor::OutputTracedCallback")
+                      "The current simulation time versus the current value converted to a double",
+                      MakeTraceSourceAccessor (&TimeSeriesAdaptor::m_output))
   ;
   return tid;
 }

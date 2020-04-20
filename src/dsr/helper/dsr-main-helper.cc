@@ -40,9 +40,9 @@
 #include "ns3/ptr.h"
 #include "ns3/node.h"
 
-namespace ns3 {
-
 NS_LOG_COMPONENT_DEFINE ("DsrMainHelper");
+
+namespace ns3 {
 
 DsrMainHelper::DsrMainHelper ()
   : m_dsrHelper (0)

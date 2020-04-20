@@ -26,16 +26,17 @@
 namespace ns3
 {
 
-NS_LOG_COMPONENT_DEFINE ("Ipv6ExtensionHeader");
+NS_LOG_COMPONENT_DEFINE ("Ipv6ExtensionHeader")
+  ;
 
-NS_OBJECT_ENSURE_REGISTERED (Ipv6ExtensionHeader);
+NS_OBJECT_ENSURE_REGISTERED (Ipv6ExtensionHeader)
+  ;
 
 TypeId Ipv6ExtensionHeader::GetTypeId ()
 {
   static TypeId tid = TypeId ("ns3::Ipv6ExtensionHeader")
     .AddConstructor<Ipv6ExtensionHeader> ()
     .SetParent<Header> ()
-    .SetGroupName ("Internet")
   ;
   return tid;
 }
@@ -46,8 +47,8 @@ TypeId Ipv6ExtensionHeader::GetInstanceTypeId () const
 }
 
 Ipv6ExtensionHeader::Ipv6ExtensionHeader ()
-  : m_length (0),
-    m_nextHeader (0),
+  : m_nextHeader (0),
+    m_length (0),
     m_data (0)
 {
 }
@@ -68,10 +69,6 @@ uint8_t Ipv6ExtensionHeader::GetNextHeader () const
 
 void Ipv6ExtensionHeader::SetLength (uint16_t length)
 {
-  NS_ASSERT_MSG (!(length & 0x7), "Invalid Ipv6ExtensionHeader Length, must be a multiple of 8 bytes.");
-  NS_ASSERT_MSG (length > 0, "Invalid Ipv6ExtensionHeader Length, must be greater than 0.");
-  NS_ASSERT_MSG (length < 2048, "Invalid Ipv6ExtensionHeader Length, must be a lower than 2048.");
-
   m_length = (length >> 3) - 1;
 }
 
@@ -204,14 +201,14 @@ Buffer OptionField::GetOptionBuffer ()
 }
 
 
-NS_OBJECT_ENSURE_REGISTERED (Ipv6ExtensionHopByHopHeader);
+NS_OBJECT_ENSURE_REGISTERED (Ipv6ExtensionHopByHopHeader)
+  ;
 
 TypeId Ipv6ExtensionHopByHopHeader::GetTypeId ()
 {
   static TypeId tid = TypeId ("ns3::Ipv6ExtensionHopByHopHeader")
     .AddConstructor<Ipv6ExtensionHopByHopHeader> ()
     .SetParent<Ipv6ExtensionHeader> ()
-    .SetGroupName ("Internet")
   ;
   return tid;
 }
@@ -254,20 +251,20 @@ uint32_t Ipv6ExtensionHopByHopHeader::Deserialize (Buffer::Iterator start)
   Buffer::Iterator i = start;
 
   SetNextHeader (i.ReadU8 ());
-  m_length = i.ReadU8 ();
+  SetLength ((i.ReadU8 () + 1) << 3);
   OptionField::Deserialize (i, GetLength () - 2);
 
   return GetSerializedSize ();
 }
 
-NS_OBJECT_ENSURE_REGISTERED (Ipv6ExtensionDestinationHeader);
+NS_OBJECT_ENSURE_REGISTERED (Ipv6ExtensionDestinationHeader)
+  ;
 
 TypeId Ipv6ExtensionDestinationHeader::GetTypeId ()
 {
   static TypeId tid = TypeId ("ns3::Ipv6ExtensionDestinationHeader")
     .AddConstructor<Ipv6ExtensionDestinationHeader> ()
     .SetParent<Ipv6ExtensionHeader> ()
-    .SetGroupName ("Internet")
   ;
   return tid;
 }
@@ -310,20 +307,20 @@ uint32_t Ipv6ExtensionDestinationHeader::Deserialize (Buffer::Iterator start)
   Buffer::Iterator i = start;
 
   SetNextHeader (i.ReadU8 ());
-  m_length = i.ReadU8 ();
+  SetLength ((i.ReadU8 () + 1) << 3);
   OptionField::Deserialize (i, GetLength () - 2);
 
   return GetSerializedSize ();
 }
 
-NS_OBJECT_ENSURE_REGISTERED (Ipv6ExtensionFragmentHeader);
+NS_OBJECT_ENSURE_REGISTERED (Ipv6ExtensionFragmentHeader)
+  ;
 
 TypeId Ipv6ExtensionFragmentHeader::GetTypeId ()
 {
   static TypeId tid = TypeId ("ns3::Ipv6ExtensionFragmentHeader")
     .AddConstructor<Ipv6ExtensionFragmentHeader> ()
     .SetParent<Ipv6ExtensionHeader> ()
-    .SetGroupName ("Internet")
   ;
   return tid;
 }
@@ -337,7 +334,7 @@ Ipv6ExtensionFragmentHeader::Ipv6ExtensionFragmentHeader ()
   : m_offset (0),
     m_identification (0)
 {
-  m_length = 0;
+  SetLength (0);
 }
 
 Ipv6ExtensionFragmentHeader::~Ipv6ExtensionFragmentHeader ()
@@ -392,7 +389,6 @@ void Ipv6ExtensionFragmentHeader::Serialize (Buffer::Iterator start) const
   Buffer::Iterator i = start;
 
   i.WriteU8 (GetNextHeader ());
-  // Fragment header does not carry an extension length
   i.WriteU8 (0);
   i.WriteHtonU16 (m_offset);
   i.WriteHtonU32 (m_identification);
@@ -403,22 +399,22 @@ uint32_t Ipv6ExtensionFragmentHeader::Deserialize (Buffer::Iterator start)
   Buffer::Iterator i = start;
 
   SetNextHeader (i.ReadU8 ());
-  // Fragment header does not carry an extension length
-  i.ReadU8 ();
+  i.ReadU8();
+  SetLength (0);
   m_offset = i.ReadNtohU16 ();
   m_identification = i.ReadNtohU32 ();
 
   return GetSerializedSize ();
 }
 
-NS_OBJECT_ENSURE_REGISTERED (Ipv6ExtensionRoutingHeader);
+NS_OBJECT_ENSURE_REGISTERED (Ipv6ExtensionRoutingHeader)
+  ;
 
 TypeId Ipv6ExtensionRoutingHeader::GetTypeId ()
 {
   static TypeId tid = TypeId ("ns3::Ipv6ExtensionRoutingHeader")
     .AddConstructor<Ipv6ExtensionRoutingHeader> ()
     .SetParent<Ipv6ExtensionHeader> ()
-    .SetGroupName ("Internet")
   ;
   return tid;
 }
@@ -474,7 +470,7 @@ void Ipv6ExtensionRoutingHeader::Serialize (Buffer::Iterator start) const
   Buffer::Iterator i = start;
 
   i.WriteU8 (GetNextHeader ());
-  i.WriteU8 (m_length);
+  i.WriteU8 ((GetLength () >> 3) - 1);
   i.WriteU8 (m_typeRouting);
   i.WriteU8 (m_segmentsLeft);
 }
@@ -484,21 +480,21 @@ uint32_t Ipv6ExtensionRoutingHeader::Deserialize (Buffer::Iterator start)
   Buffer::Iterator i = start;
 
   SetNextHeader (i.ReadU8 ());
-  m_length = i.ReadU8 ();
+  SetLength ((i.ReadU8 () + 1) << 3);
   m_typeRouting = i.ReadU8 ();
   m_segmentsLeft = i.ReadU8 ();
 
   return GetSerializedSize ();
 }
 
-NS_OBJECT_ENSURE_REGISTERED (Ipv6ExtensionLooseRoutingHeader);
+NS_OBJECT_ENSURE_REGISTERED (Ipv6ExtensionLooseRoutingHeader)
+  ;
 
 TypeId Ipv6ExtensionLooseRoutingHeader::GetTypeId ()
 {
   static TypeId tid = TypeId ("ns3::Ipv6ExtensionLooseRoutingHeader")
     .AddConstructor<Ipv6ExtensionLooseRoutingHeader> ()
     .SetParent<Ipv6ExtensionRoutingHeader> ()
-    .SetGroupName ("Internet")
   ;
   return tid;
 }
@@ -566,10 +562,8 @@ void Ipv6ExtensionLooseRoutingHeader::Serialize (Buffer::Iterator start) const
   Buffer::Iterator i = start;
   uint8_t buff[16];
 
-  uint8_t addressNum = m_routersAddress.size ();
-
   i.WriteU8 (GetNextHeader ());
-  i.WriteU8 (addressNum*2);
+  i.WriteU8 ((GetLength () >> 3) - 1);
   i.WriteU8 (GetTypeRouting ());
   i.WriteU8 (GetSegmentsLeft ());
   i.WriteU32 (0);
@@ -587,30 +581,28 @@ uint32_t Ipv6ExtensionLooseRoutingHeader::Deserialize (Buffer::Iterator start)
   uint8_t buff[16];
 
   SetNextHeader (i.ReadU8 ());
-  m_length = i.ReadU8 ();
+  SetLength ((i.ReadU8 () + 1) << 3);
   SetTypeRouting (i.ReadU8 ());
   SetSegmentsLeft (i.ReadU8 ());
   i.ReadU32 ();
 
-  uint8_t addressNum = m_length / 2;
-  SetNumberAddress (addressNum);
-  for (uint8_t index = 0; index < addressNum; index++)
+  for (std::vector<Ipv6Address>::iterator it = m_routersAddress.begin (); it != m_routersAddress.end (); it++)
     {
       i.Read (buff, 16);
-      SetRouterAddress (index, Ipv6Address (buff));
+      it->Set (buff);
     }
 
   return GetSerializedSize ();
 }
 
-NS_OBJECT_ENSURE_REGISTERED (Ipv6ExtensionESPHeader);
+NS_OBJECT_ENSURE_REGISTERED (Ipv6ExtensionESPHeader)
+  ;
 
 TypeId Ipv6ExtensionESPHeader::GetTypeId ()
 {
   static TypeId tid = TypeId ("ns3::Ipv6ExtensionESPHeader")
     .AddConstructor<Ipv6ExtensionESPHeader> ()
     .SetParent<Ipv6ExtensionHeader> ()
-    .SetGroupName ("Internet")
   ;
   return tid;
 }
@@ -650,14 +642,14 @@ uint32_t Ipv6ExtensionESPHeader::Deserialize (Buffer::Iterator start)
   return 0;
 }
 
-NS_OBJECT_ENSURE_REGISTERED (Ipv6ExtensionAHHeader);
+NS_OBJECT_ENSURE_REGISTERED (Ipv6ExtensionAHHeader)
+  ;
 
 TypeId Ipv6ExtensionAHHeader::GetTypeId ()
 {
   static TypeId tid = TypeId ("ns3::Ipv6ExtensionAHHeader")
     .AddConstructor<Ipv6ExtensionAHHeader> ()
     .SetParent<Ipv6ExtensionHeader> ()
-    .SetGroupName ("Internet")
   ;
   return tid;
 }

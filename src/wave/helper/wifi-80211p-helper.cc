@@ -26,7 +26,6 @@
 #include <typeinfo>
 #include "wave-mac-helper.h"
 #include "wifi-80211p-helper.h"
-#include "ns3/unused.h"
 
 namespace ns3 {
 
@@ -45,8 +44,7 @@ Wifi80211pHelper::Default (void)
   helper.SetStandard (WIFI_PHY_STANDARD_80211_10MHZ);
   helper.SetRemoteStationManager ("ns3::ConstantRateWifiManager",
                                   "DataMode", StringValue ("OfdmRate6MbpsBW10MHz"),
-                                  "ControlMode",StringValue ("OfdmRate6MbpsBW10MHz"),
-                                  "NonUnicastMode", StringValue ("OfdmRate6MbpsBW10MHz"));
+                                  "ControlMode",StringValue ("OfdmRate6MbpsBW10MHz"));
   return helper;
 }
 
@@ -76,19 +74,43 @@ Wifi80211pHelper::EnableLogComponents (void)
 NetDeviceContainer
 Wifi80211pHelper::Install (const WifiPhyHelper &phyHelper, const WifiMacHelper &macHelper, NodeContainer c) const
 {
-  QosWaveMacHelper const * qosMac = dynamic_cast <QosWaveMacHelper const *> (&macHelper);
-  if (qosMac == 0)
+  bool isWaveMacHelper = false;
+  try
     {
-      NqosWaveMacHelper const * nqosMac = dynamic_cast <NqosWaveMacHelper const *> (&macHelper);
-      if (nqosMac == 0)
+      const QosWaveMacHelper& qosMac = dynamic_cast<const QosWaveMacHelper&> (macHelper);
+      isWaveMacHelper = true;
+      // below check will never fail, just used for survive from
+      // gcc warn "-Wunused-but-set-variable"
+      if (&qosMac == 0)
         {
-          NS_FATAL_ERROR ("the macHelper should be either QosWaveMacHelper or NqosWaveMacHelper"
-                          ", or should be the subclass of QosWaveMacHelper or NqosWaveMacHelper");
+          NS_FATAL_ERROR ("it could never get here");
         }
-      NS_UNUSED (nqosMac);
+    }
+  catch (const std::bad_cast &)
+    {
+
     }
 
-  NS_UNUSED (qosMac);
+  try
+    {
+      const NqosWaveMacHelper& nqosMac = dynamic_cast<const NqosWaveMacHelper&> (macHelper);
+      isWaveMacHelper = true;
+      if (&nqosMac == 0)
+        {
+          NS_FATAL_ERROR ("it could never get here");
+        }
+    }
+  catch (const std::bad_cast &)
+    {
+
+    }
+
+  if (!isWaveMacHelper)
+    {
+      NS_FATAL_ERROR ("the macHelper should be either QosWaveMacHelper or NqosWaveMacHelper"
+                      ", or should be the subclass of QosWaveMacHelper or NqosWaveMacHelper");
+    }
+
   return WifiHelper::Install (phyHelper, macHelper, c);
 }
 

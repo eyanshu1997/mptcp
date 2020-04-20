@@ -25,7 +25,6 @@ MpiReceiver::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::MpiReceiver")
     .SetParent<Object> ()
-    .SetGroupName ("Mpi")
     .AddConstructor <MpiReceiver> ();
   return tid;
 }

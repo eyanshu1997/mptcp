@@ -21,20 +21,16 @@
 #include "ns3/log.h"
 #include "microwave-oven-spectrum-value-helper.h"
 
-namespace ns3 {
-
 NS_LOG_COMPONENT_DEFINE ("MicrowaveOvenSpectrumValue");
 
-/// Spectrum model for the 5MHz model (model #2)
-static Ptr<SpectrumModel> g_MicrowaveOvenSpectrumModel5Mhz;
-/// Spectrum model for the 6MHz model (model #1)
-static Ptr<SpectrumModel> g_MicrowaveOvenSpectrumModel6Mhz;
+namespace ns3 {
 
-/**
- * \ingroup spectrum
- * Init a static class containing the MWO #2 model (5Mhz)
- */
-static class MicrowaveOvenSpectrumModel5MhzInitializer
+
+Ptr<SpectrumModel> g_MicrowaveOvenSpectrumModel5Mhz;
+Ptr<SpectrumModel> g_MicrowaveOvenSpectrumModel6Mhz;
+
+
+class MicrowaveOvenSpectrumModel5MhzInitializer
 {
 public:
   MicrowaveOvenSpectrumModel5MhzInitializer ()
@@ -52,15 +48,11 @@ public:
     NS_LOG_LOGIC ("bands.size () :" << bands.size ());
     g_MicrowaveOvenSpectrumModel5Mhz = Create<SpectrumModel> (bands);
   }
-} g_MicrowaveOvenSpectrumModel5MhzInitializerInstance; //!< MWO model #2
+} g_MicrowaveOvenSpectrumModel5MhzInitializerInstance;
 
 
 
-/**
- * \ingroup spectrum
- * Init a static class containing the MWO #1 model (6Mhz)
- */
-static class MicrowaveOvenSpectrumModel6MhzInitializer
+class MicrowaveOvenSpectrumModel6MhzInitializer
 {
 public:
   MicrowaveOvenSpectrumModel6MhzInitializer ()
@@ -78,7 +70,7 @@ public:
     NS_LOG_LOGIC ("bands.size () :" << bands.size ());
     g_MicrowaveOvenSpectrumModel6Mhz = Create<SpectrumModel> (bands);
   }
-} g_MicrowaveOvenSpectrumModel6MhzInitializerInstance; //!< MWO model #1
+} g_MicrowaveOvenSpectrumModel6MhzInitializerInstance;
 
 
 

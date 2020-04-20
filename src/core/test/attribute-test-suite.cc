@@ -37,43 +37,25 @@
 
 using namespace ns3;
 
-/**
- * Test class for TracedValue callbacks.
- * \see attribute_ValueClassTest
- */
 class ValueClassTest 
 {
 public:
   ValueClassTest () {}
-  
-  /**
-   * TracedValue callback signature for ValueClassTest
-   *
-   * \param [in] oldValue original value of the traced variable
-   * \param [in] newValue new value of the traced variable
-   */
-  typedef void (* TracedValueCallback)(const ValueClassTest oldValue,
-                                       const ValueClassTest newValue);
+private:
+  int m_v;
 };
-
-
 bool operator != (const ValueClassTest &a, const ValueClassTest &b)
 {
-  NS_UNUSED (a);
-  NS_UNUSED (b);
   return true;
 }
 std::ostream & operator << (std::ostream &os, ValueClassTest v)
 {
-  NS_UNUSED (v);
   return os;
 }
 std::istream & operator >> (std::istream &is, ValueClassTest &v)
 {
-  NS_UNUSED (v);
   return is;
 }
-
 ATTRIBUTE_HELPER_HEADER (ValueClassTest);
 ATTRIBUTE_HELPER_CPP (ValueClassTest);
 
@@ -90,7 +72,8 @@ public:
   Derived () {}
 };
 
-NS_OBJECT_ENSURE_REGISTERED (Derived);
+NS_OBJECT_ENSURE_REGISTERED (Derived)
+  ;
 
 class AttributeObjectTest : public Object
 {
@@ -134,13 +117,6 @@ public:
       .AddAttribute ("TestEnum", "help text",
                      EnumValue (TEST_A),
                      MakeEnumAccessor (&AttributeObjectTest::m_enum),
-                     MakeEnumChecker (TEST_A, "TestA",
-                                      TEST_B, "TestB",
-                                      TEST_C, "TestC"))
-      .AddAttribute ("TestEnumSetGet", "help text",
-                     EnumValue (TEST_B),
-                     MakeEnumAccessor (&AttributeObjectTest::DoSetEnum,
-                                       &AttributeObjectTest::DoGetEnum),
                      MakeEnumChecker (TEST_A, "TestA",
                                       TEST_B, "TestB",
                                       TEST_C, "TestC"))
@@ -195,14 +171,11 @@ public:
                      MakeValueClassTestAccessor (&AttributeObjectTest::m_valueSrc),
                      MakeValueClassTestChecker ())
       .AddTraceSource ("Source1", "help test",
-                       MakeTraceSourceAccessor (&AttributeObjectTest::m_intSrc1),
-                       "ns3::TracedValueCallback::Int8")
+                       MakeTraceSourceAccessor (&AttributeObjectTest::m_intSrc1))
       .AddTraceSource ("Source2", "help text",
-                       MakeTraceSourceAccessor (&AttributeObjectTest::m_cb),
-                       "ns3::AttributeObjectTest::NumericTracedCallback")
+                       MakeTraceSourceAccessor (&AttributeObjectTest::m_cb))
       .AddTraceSource ("ValueSource", "help text",
-                       MakeTraceSourceAccessor (&AttributeObjectTest::m_valueSrc),
-                       "ns3::ValueClassTest::TracedValueCallback")
+                       MakeTraceSourceAccessor (&AttributeObjectTest::m_valueSrc))
       .AddAttribute ("Pointer", "help text",
                      PointerValue (),
                      MakePointerAccessor (&AttributeObjectTest::m_ptr),
@@ -236,7 +209,6 @@ public:
     NS_UNUSED (m_uint8);
     NS_UNUSED (m_float);
     NS_UNUSED (m_enum);
-    NS_UNUSED (m_enumSetGet);
   }
 
   virtual ~AttributeObjectTest (void) {};
@@ -260,12 +232,10 @@ private:
   bool DoGetTestB (void) const { return m_boolTestA; }
   int16_t DoGetInt16 (void) const { return m_int16SetGet; }
   void DoSetInt16 (int16_t v) { m_int16SetGet = v; }
-  std::size_t DoGetVectorN (void) const { return m_vector2.size (); }
-  Ptr<Derived> DoGetVector (std::size_t i) const { return m_vector2[i]; }
+  uint32_t DoGetVectorN (void) const { return m_vector2.size (); }
+  Ptr<Derived> DoGetVector (uint32_t i) const { return m_vector2[i]; }
   bool DoSetIntSrc (int8_t v) { m_intSrc2 = v; return true; }
   int8_t DoGetIntSrc (void) const { return m_intSrc2; }
-  bool DoSetEnum (Test_e v) { m_enumSetGet = v; return true; }
-  Test_e DoGetEnum (void) const { return m_enumSetGet; }
 
   bool m_boolTestA;
   bool m_boolTest;
@@ -275,7 +245,6 @@ private:
   uint8_t m_uint8;
   float m_float;
   enum Test_e m_enum;
-  enum Test_e m_enumSetGet;
   Ptr<RandomVariableStream> m_random;
   std::vector<Ptr<Derived> > m_vector1;
   std::vector<Ptr<Derived> > m_vector2;
@@ -283,8 +252,6 @@ private:
   Callback<void,int8_t> m_cbValue;
   TracedValue<int8_t> m_intSrc1;
   TracedValue<int8_t> m_intSrc2;
-
-  typedef void (* NumericTracedCallback) (double, int, float);
   TracedCallback<double, int, float> m_cb;
   TracedValue<ValueClassTest> m_valueSrc;
   Ptr<Derived> m_ptr;
@@ -297,7 +264,8 @@ private:
   Time m_timeWithBounds;
 };
 
-NS_OBJECT_ENSURE_REGISTERED (AttributeObjectTest);
+NS_OBJECT_ENSURE_REGISTERED (AttributeObjectTest)
+  ;
 
 // ===========================================================================
 // Test case template used for generic Attribute Value types -- used to make 
@@ -666,22 +634,6 @@ AttributeTestCase<EnumValue>::DoRun (void)
   NS_TEST_ASSERT_MSG_EQ (ok, true, "Attribute not set properly by SetAttributeFailSafe() via EnumValue");
 
   //
-  // When the object is first created, the Attribute should have the default 
-  // value.
-  //
-  ok = CheckGetCodePaths (p, "TestEnumSetGet", "TestB", EnumValue (AttributeObjectTest::TEST_B));
-  NS_TEST_ASSERT_MSG_EQ (ok, true, "Attribute not set properly by default value");
-
-  //
-  // Set the Attribute using the EnumValue type.
-  //
-  ok = p->SetAttributeFailSafe ("TestEnumSetGet", EnumValue (AttributeObjectTest::TEST_C));
-  NS_TEST_ASSERT_MSG_EQ (ok, true, "Could not SetAttributeFailSafe() to TEST_C");
-
-  ok = CheckGetCodePaths (p, "TestEnumSetGet", "TestC", EnumValue (AttributeObjectTest::TEST_C));
-  NS_TEST_ASSERT_MSG_EQ (ok, true, "Attribute not set properly by SetAttributeFailSafe() via EnumValue");
-
-  //
   // Set the Attribute using the StringValue type.
   //
   ok = p->SetAttributeFailSafe ("TestEnum", StringValue ("TestB"));
@@ -720,9 +672,6 @@ AttributeTestCase<TimeValue>::DoRun (void)
   p = CreateObject<AttributeObjectTest> ();
   NS_TEST_ASSERT_MSG_NE (p, 0, "Unable to CreateObject");
 
-  // The test vectors assume ns resolution
-  Time::SetResolution (Time::NS);
-  
   //
   // Set value
   //
@@ -730,13 +679,13 @@ AttributeTestCase<TimeValue>::DoRun (void)
   NS_TEST_ASSERT_MSG_EQ (ok, true, "Could not SetAttributeFailSafe() via TimeValue to 5s");
 
   ok = CheckGetCodePaths (p, "TestTimeWithBounds", "+5000000000.0ns", TimeValue (Seconds (5)));
-  NS_TEST_ASSERT_MSG_EQ (ok, true, "Attribute not set properly by SetAttributeFailSafe(5s) via TimeValue");
+  NS_TEST_ASSERT_MSG_EQ (ok, true, "Attribute not set properly by SetAttributeFailSafe() (5s) via TimeValue");
 
   ok = p->SetAttributeFailSafe ("TestTimeWithBounds", StringValue ("3s"));
-  NS_TEST_ASSERT_MSG_EQ (ok, true, "Could not SetAttributeFailSafe() via TimeValue to 3s");
+  NS_TEST_ASSERT_MSG_EQ (ok, true, "Could not SetAttributeFailSafe() via TimeValue to 5s");
 
   ok = CheckGetCodePaths (p, "TestTimeWithBounds", "+3000000000.0ns", TimeValue (Seconds (3)));
-  NS_TEST_ASSERT_MSG_EQ (ok, true, "Attribute not set properly by SetAttributeFailSafe(3s) via StringValue");
+  NS_TEST_ASSERT_MSG_EQ (ok, true, "Attribute not set properly by SetAttributeFailSafe() (3s) via StringValue");
 
   
   //
@@ -748,16 +697,16 @@ AttributeTestCase<TimeValue>::DoRun (void)
   // Set the Attribute at the positive limit
   //
   ok = p->SetAttributeFailSafe ("TestTimeWithBounds", TimeValue (Seconds (10)));
-  NS_TEST_ASSERT_MSG_EQ (ok, true, "Could not SetAttributeFailSafe() via TimeValue to 10s");
+  NS_TEST_ASSERT_MSG_EQ (ok, true, "Could not SetAttributeFailSafe() via TimeValue to 10");
 
   ok = CheckGetCodePaths (p, "TestTimeWithBounds", "+10000000000.0ns", TimeValue (Seconds (10)));
-  NS_TEST_ASSERT_MSG_EQ (ok, true, "Attribute not set properly by SetAttributeFailSafe(10s [positive limit]) via StringValue");
+  NS_TEST_ASSERT_MSG_EQ (ok, true, "Attribute not set properly by SetAttributeFailSafe() (positive limit) via StringValue");
 
   //
   // Set the Attribute past the positive limit.
   //
   ok = p->SetAttributeFailSafe ("TestTimeWithBounds", TimeValue (Seconds (11)));
-  NS_TEST_ASSERT_MSG_EQ (ok, false, "Unexpectedly could SetAttributeFailSafe() via TimeValue to 11s [greater than positive limit]");
+  NS_TEST_ASSERT_MSG_EQ (ok, false, "Unexpectedly could SetAttributeFailSafe() via TimeValue to 11");
 
   ok = CheckGetCodePaths (p, "TestTimeWithBounds", "+10000000000.0ns", TimeValue (Seconds (10)));
   NS_TEST_ASSERT_MSG_EQ (ok, true, "Error in SetAttributeFailSafe() but value changes");
@@ -766,16 +715,16 @@ AttributeTestCase<TimeValue>::DoRun (void)
   // Set the Attribute at the negative limit.
   //
   ok = p->SetAttributeFailSafe ("TestTimeWithBounds", TimeValue (Seconds (-5)));
-  NS_TEST_ASSERT_MSG_EQ (ok, true, "Could not SetAttributeFailSafe() via TimeValue to -5s");
+  NS_TEST_ASSERT_MSG_EQ (ok, true, "Could not SetAttributeFailSafe() via TimeValue to -5");
 
   ok = CheckGetCodePaths (p, "TestTimeWithBounds", "-5000000000.0ns", TimeValue (Seconds (-5)));
-  NS_TEST_ASSERT_MSG_EQ (ok, true, "Attribute not set properly by SetAttributeFailSafe(-5s [negative limit]) via StringValue");
+  NS_TEST_ASSERT_MSG_EQ (ok, true, "Attribute not set properly by SetAttributeFailSafe() (negative limit) via StringValue");
 
   //
   // Set the Attribute past the negative limit.
   //
   ok = p->SetAttributeFailSafe ("TestTimeWithBounds", TimeValue (Seconds (-6)));
-  NS_TEST_ASSERT_MSG_EQ (ok, false, "Unexpectedly could SetAttributeFailSafe() via TimeValue to -6s");
+  NS_TEST_ASSERT_MSG_EQ (ok, false, "Unexpectedly could SetAttributeFailSafe() via TimeValue to -6");
 
   ok = CheckGetCodePaths (p, "TestTimeWithBounds", "-5000000000.0ns", TimeValue (Seconds (-5)));
   NS_TEST_ASSERT_MSG_EQ (ok, true, "Error in SetAttributeFailSafe() but value changes");
@@ -824,13 +773,17 @@ RandomVariableStreamAttributeTestCase::DoRun (void)
   //
   // Try to set a UniformRandomVariable
   //
-  ok = p->SetAttributeFailSafe ("TestRandom", StringValue ("ns3::UniformRandomVariable[Min=0.|Max=1.]"));
+  ok = p->SetAttributeFailSafe ("TestRandom", StringValue ("ns3::UniformRandomVariable[Min=0.,Max=1.]"));
   NS_TEST_ASSERT_MSG_EQ (ok, true, "Could not SetAttributeFailSafe() a UniformRandomVariable");
 
   //
   // Try to set a <snicker> ConstantRandomVariable
   //
+  //  ok = p->SetAttributeFailSafe ("TestRandom", StringValue ("ns3::ConstantRandomVariable[Constant=10.0]"));
+  //ok = p->SetAttributeFailSafe ("TestRandom", StringValue ("ns3::UniformRandomVariable[Min=0.,Max=1.]"));
+
   ok = p->SetAttributeFailSafe ("TestRandom", StringValue ("ns3::ConstantRandomVariable[Constant=1.0]"));
+
   NS_TEST_ASSERT_MSG_EQ (ok, true, "Could not SetAttributeFailSafe() a ConstantRandomVariable");
 }
 
@@ -1070,11 +1023,7 @@ public:
 private:
   virtual void DoRun (void);
 
-  void NotifySource1 (int8_t old, int8_t n) 
-  { 
-    NS_UNUSED (old); 
-    m_got1 = n; 
-  }
+  void NotifySource1 (int8_t old, int8_t n) { m_got1 = n; }
   int64_t m_got1;
 };
 
@@ -1093,7 +1042,7 @@ IntegerTraceSourceTestCase::DoRun (void)
   NS_TEST_ASSERT_MSG_NE (p, 0, "Unable to CreateObject");
 
   //
-  // Check to make sure changing an Attribute value triggers a trace callback
+  // Check to make sure changing an Attibute value triggers a trace callback
   // that sets a member variable.
   //
   m_got1 = 1234;
@@ -1146,12 +1095,7 @@ public:
 private:
   virtual void DoRun (void);
 
-  void NotifySource2 (double a, int b, float c) 
-  { 
-    NS_UNUSED (b); 
-    NS_UNUSED (c); 
-    m_got2 = a; 
-  }
+  void NotifySource2 (double a, int b, float c) { m_got2 = a; }
 
   double m_got2;
 };
@@ -1225,12 +1169,7 @@ public:
 private:
   virtual void DoRun (void);
 
-  void NotifySource2 (double a, int b, float c) 
-  { 
-    NS_UNUSED (b);
-    NS_UNUSED (c);
-    m_got2 = a; 
-  }
+  void NotifySource2 (double a, int b, float c) { m_got2 = a; }
 
   double m_got2;
 };
@@ -1273,7 +1212,7 @@ PointerAttributeTestCase::DoRun (void)
   //
   p->GetAttribute ("Pointer", ptr);
   Ptr<Derived> stored = ptr.Get<Derived> ();
-  NS_TEST_ASSERT_MSG_EQ (stored, derived, "Retrieved Attribute does not match stored PointerValue");
+  NS_TEST_ASSERT_MSG_EQ (stored, derived, "Retreived Attribute does not match stored PointerValue");
 
   //
   // We should be able to use the Attribute Get() just like GetObject<type>,
@@ -1283,7 +1222,7 @@ PointerAttributeTestCase::DoRun (void)
   //
   p->GetAttribute ("Pointer", ptr);
   Ptr<Object> storedBase = ptr.Get<Object> ();
-  NS_TEST_ASSERT_MSG_EQ (storedBase, stored, "Retrieved Ptr<Object> does not match stored Ptr<Derived>");
+  NS_TEST_ASSERT_MSG_EQ (storedBase, stored, "Retreived Ptr<Object> does not match stored Ptr<Derived>");
 
   //
   // If we try to Get() something that is unrelated to what we stored, we should
@@ -1291,7 +1230,7 @@ PointerAttributeTestCase::DoRun (void)
   //
   p->GetAttribute ("Pointer", ptr);
   Ptr<AttributeObjectTest> x = ptr.Get<AttributeObjectTest> ();
-  NS_TEST_ASSERT_MSG_EQ (x, 0, "Unexpectedly retrieved unrelated Ptr<type> from stored Ptr<Derived>");
+  NS_TEST_ASSERT_MSG_EQ (x, 0, "Unexpectedly retreived unrelated Ptr<type> from stored Ptr<Derived>");
 
   //
   // Test whether the initialized pointers from two different objects
@@ -1371,7 +1310,7 @@ CallbackValueTestCase::DoRun (void)
 
   //
   // The member variable m_cbValue is declared as a Callback<void, int8_t>.  The
-  // Attribute named "Callback" also points to m_cbValue and allows us to set the
+  // Attibute named "Callback" also points to m_cbValue and allows us to set the
   // callback using that Attribute.
   //
   // NotifyCallbackValue is going to be the target of the callback and will just set

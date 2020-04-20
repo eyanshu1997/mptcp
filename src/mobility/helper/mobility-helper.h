@@ -49,6 +49,7 @@ public:
   MobilityHelper ();
 
   /**
+   * \internal
    * Destroy a Mobility Helper
    */
   ~MobilityHelper ();
@@ -260,24 +261,14 @@ public:
    */
   int64_t AssignStreams (NodeContainer c, int64_t stream);
 
-  /**
-   * \param n1 node 1
-   * \param n2 node 2
-   * \return the distance (squared), in meters, between two nodes
-   */
-  static double GetDistanceSquaredBetween (Ptr<Node> n1, Ptr<Node> n2);
-
 private:
-
   /**
-   * Output course change events from mobility model to output stream
-   * \param stream output stream
-   * \param mobility mobility model
+   * \internal
    */
   static void CourseChanged (Ptr<OutputStreamWrapper> stream, Ptr<const MobilityModel> mobility);
-  std::vector<Ptr<MobilityModel> > m_mobilityStack; //!< Internal stack of mobility models
-  ObjectFactory m_mobility; //!< Object factory to create mobility objects
-  Ptr<PositionAllocator> m_position; //!< Position allocator for use in hierarchical mobility model
+  std::vector<Ptr<MobilityModel> > m_mobilityStack;
+  ObjectFactory m_mobility;
+  Ptr<PositionAllocator> m_position;
 };
 
 } // namespace ns3

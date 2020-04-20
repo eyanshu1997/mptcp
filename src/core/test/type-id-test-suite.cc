@@ -22,18 +22,13 @@
 #include <iomanip>
 #include <ctime>
 
-#include "ns3/integer.h"
-#include "ns3/double.h"
-#include "ns3/object.h"
-#include "ns3/traced-value.h"
 #include "ns3/type-id.h"
 #include "ns3/test.h"
 #include "ns3/log.h"
-#include "ns3/unused.h"
 
 using namespace std;
 
-using namespace ns3;
+namespace ns3 {
 
 
 const std::string suite("type-id: ");
@@ -76,7 +71,7 @@ UniqueTypeIdTestCase::DoRun (void)
   cout << suite << "TypeId list:" << endl;
   cout << suite << "TypeId  Chain  hash          Name" << endl;
   
-  for (uint16_t i = 0; i < nids; ++i)
+  for (uint32_t i = 0; i < nids; ++i)
     {
       const TypeId tid = TypeId::GetRegistered (i);
       cout << suite << "" << std::setw(6) << tid.GetUid ();
@@ -130,7 +125,7 @@ private:
 };
 
 CollisionTestCase::CollisionTestCase ()
-  : TestCase ("Check behavior when type names collide")
+  : TestCase ("Check behavour when type names collide")
 {
 }
 
@@ -191,140 +186,7 @@ CollisionTestCase::DoRun (void)
    */
   
 }
-
-
-//----------------------------
-//
-// Deprecated Attribute test
-
-class DeprecatedAttribute : public Object
-{
-private:
-  // float m_obsAttr;  // this is obsolete, no trivial forwarding
-  // int m_oldAttr;  // this has become m_attr
-  int m_attr;
-
-  // TracedValue<int> m_obsTrace;  // this is obsolete, no trivial forwarding
-  // TracedValue<double> m_oldTrace;  // this has become m_trace
-  TracedValue<double> m_trace;
-
-public:
-  DeprecatedAttribute () : m_attr (0) { NS_UNUSED (m_attr); };
-  virtual ~DeprecatedAttribute () { };
-
-  // Register a type with a deprecated Attribute and TraceSource
-  static TypeId GetTypeId (void)
-  {
-    static TypeId tid = TypeId ("DeprecatedAttribute")
-      .SetParent<Object> ()
-      
-      // The new attribute
-      .AddAttribute ("attribute",
-                     "the Attribute",
-                     IntegerValue (1),
-                     MakeIntegerAccessor (&DeprecatedAttribute::m_attr),
-                     MakeIntegerChecker<int> ())
-      // The old deprecated attribute
-      .AddAttribute ("oldAttribute",
-                     "the old attribute",
-                     IntegerValue (1),
-                     MakeIntegerAccessor (&DeprecatedAttribute::m_attr),
-                     MakeIntegerChecker<int> (),
-                     TypeId::DEPRECATED,
-                     "use 'attribute' instead")
-      // Obsolete attribute, as an example
-      .AddAttribute ("obsoleteAttribute",
-                     "the obsolete attribute",
-                     EmptyAttributeValue (),
-                     MakeEmptyAttributeAccessor (),
-                     MakeEmptyAttributeChecker (),
-                     TypeId::OBSOLETE,
-                     "refactor to use 'attribute'")
-
-      // The new trace source
-      .AddTraceSource ("trace",
-                       "the TraceSource",
-                       MakeTraceSourceAccessor (&DeprecatedAttribute::m_trace),
-                       "ns3::TracedValueCallback::Double")
-      // The old trace source
-      .AddTraceSource ("oldTrace",
-                       "the old trace source",
-                       MakeTraceSourceAccessor (&DeprecatedAttribute::m_trace),
-                       "ns3::TracedValueCallback::Double",
-                       TypeId::DEPRECATED,
-                       "use 'trace' instead")
-      // Obsolete trace source, as an example
-      .AddTraceSource ("obsoleteTraceSource",
-                       "the obsolete trace source",
-                       MakeEmptyTraceSourceAccessor (),
-                       "ns3::TracedValueCallback::Void",
-                       TypeId::OBSOLETE,
-                       "refactor to use 'trace'");
-    
-    return tid;
-  }
-
-};
-
-
-class DeprecatedAttributeTestCase : public TestCase
-{
-public:
-  DeprecatedAttributeTestCase ();
-  virtual ~DeprecatedAttributeTestCase ();
-private:
-  virtual void DoRun (void);
-
-};
-
-DeprecatedAttributeTestCase::DeprecatedAttributeTestCase ()
-  : TestCase ("Check deprecated Attributes and TraceSources")
-{
-}
-
-DeprecatedAttributeTestCase::~DeprecatedAttributeTestCase ()
-{
-}
-
-void
-DeprecatedAttributeTestCase::DoRun (void)
-{
-  cerr << suite << endl;
-  cerr << suite << GetName () << endl;
-
-  TypeId tid = DeprecatedAttribute::GetTypeId ();
-  cerr << suite << "DeprecatedAttribute TypeId: " << tid.GetUid () << endl;
   
-  //  Try the lookups
-  struct TypeId::AttributeInformation ainfo;
-  NS_TEST_ASSERT_MSG_EQ (tid.LookupAttributeByName ("attribute", &ainfo), true,
-                      "lookup new attribute");
-  cerr << suite << "lookup new attribute:"
-       << (ainfo.supportLevel == TypeId::SUPPORTED ? "supported" : "error")
-       << endl;
-
-  NS_TEST_ASSERT_MSG_EQ (tid.LookupAttributeByName ("oldAttribute", &ainfo), true,
-                      "lookup old attribute");
-  cerr << suite << "lookup old attribute:"
-       << (ainfo.supportLevel == TypeId::DEPRECATED ? "deprecated" : "error")
-       << endl;
-
-
-  struct TypeId::TraceSourceInformation tinfo;
-  Ptr<const TraceSourceAccessor> acc;
-  acc = tid.LookupTraceSourceByName ("trace", &tinfo);
-  NS_TEST_ASSERT_MSG_NE (acc, 0, "lookup new trace source");
-  cerr << suite << "lookup new trace source:"
-       << (tinfo.supportLevel == TypeId::SUPPORTED ? "supported" : "error")
-       << endl;
-
-  acc = tid.LookupTraceSourceByName ("oldTrace", &tinfo);
-  NS_TEST_ASSERT_MSG_NE (acc, 0, "lookup old trace source");
-  cerr << suite << "lookup old trace source:"
-       << (tinfo.supportLevel == TypeId::DEPRECATED ? "deprecated" : "error")
-       << endl;
-}
-
   
 //----------------------------
 //
@@ -363,7 +225,7 @@ LookupTimeTestCase::DoRun (void)
   int start = clock ();
   for (uint32_t j = 0; j < REPETITIONS; ++j)
     {
-      for (uint16_t i = 0; i < nids; ++i)
+      for (uint32_t i = 0; i < nids; ++i)
         {
           const TypeId tid = TypeId::GetRegistered (i);
           const TypeId sid = TypeId::LookupByName (tid.GetName ());
@@ -375,7 +237,7 @@ LookupTimeTestCase::DoRun (void)
   start = clock ();
   for (uint32_t j = 0; j < REPETITIONS; ++j)
     {
-      for (uint16_t i = 0; i < nids; ++i)
+      for (uint32_t i = 0; i < nids; ++i)
         {
           const TypeId tid = TypeId::GetRegistered (i);
           const TypeId sid = TypeId::LookupByHash (tid.GetHash ());
@@ -436,7 +298,6 @@ TypeIdTestSuite::TypeIdTestSuite ()
   // as chained.
   AddTestCase (new UniqueTypeIdTestCase, QUICK);
   AddTestCase (new CollisionTestCase, QUICK);
-  AddTestCase (new DeprecatedAttributeTestCase, QUICK);
 }
 
 static TypeIdTestSuite g_TypeIdTestSuite;  
@@ -454,4 +315,7 @@ TypeIdPerformanceSuite::TypeIdPerformanceSuite ()
   AddTestCase (new LookupTimeTestCase, QUICK);
 }
 
-static TypeIdPerformanceSuite g_TypeIdPerformanceSuite;
+static TypeIdPerformanceSuite g_TypeIdPerformanceSuite;  
+  
+
+}  // namespace ns3

@@ -20,22 +20,20 @@
  * Authors: Pavel Boyko <boyko@iitp.ru>
  */
 
-#include <iostream>
-#include <cmath>
 #include "ns3/aodv-module.h"
 #include "ns3/core-module.h"
 #include "ns3/network-module.h"
 #include "ns3/internet-module.h"
 #include "ns3/mobility-module.h"
 #include "ns3/point-to-point-module.h"
+#include "ns3/wifi-module.h" 
 #include "ns3/v4ping-helper.h"
-#include "ns3/yans-wifi-helper.h"
+#include <iostream>
+#include <cmath>
 
 using namespace ns3;
 
 /**
- * \ingroup aodv-examples
- * \ingroup examples
  * \brief Test script.
  * 
  * This script creates 1-dimensional grid topology and then ping last node from the first one:
@@ -48,24 +46,16 @@ class AodvExample
 {
 public:
   AodvExample ();
-  /**
-   * \brief Configure script parameters
-   * \param argc is the command line argument count
-   * \param argv is the command line arguments
-   * \return true on successful configuration
-  */
+  /// Configure script parameters, \return true on successful configuration
   bool Configure (int argc, char **argv);
   /// Run simulation
   void Run ();
-  /**
-   * Report results
-   * \param os the output stream
-   */
+  /// Report results
   void Report (std::ostream & os);
 
 private:
-
-  // parameters
+  ///\name parameters
+  //\{
   /// Number of nodes
   uint32_t size;
   /// Distance between nodes, meters
@@ -76,23 +66,19 @@ private:
   bool pcap;
   /// Print routes if true
   bool printRoutes;
+  //\}
 
-  // network
-  /// nodes used in the example
+  ///\name network
+  //\{
   NodeContainer nodes;
-  /// devices used in the example
   NetDeviceContainer devices;
-  /// interfaces used in the example
   Ipv4InterfaceContainer interfaces;
+  //\}
 
 private:
-  /// Create the nodes
   void CreateNodes ();
-  /// Create the devices
   void CreateDevices ();
-  /// Create the network
   void InstallInternetStack ();
-  /// Create the simulation applications
   void InstallApplications ();
 };
 
@@ -111,7 +97,7 @@ int main (int argc, char **argv)
 AodvExample::AodvExample () :
   size (10),
   step (100),
-  totalTime (100),
+  totalTime (10),
   pcap (true),
   printRoutes (true)
 {
@@ -185,12 +171,12 @@ AodvExample::CreateNodes ()
 void
 AodvExample::CreateDevices ()
 {
-  WifiMacHelper wifiMac;
+  NqosWifiMacHelper wifiMac = NqosWifiMacHelper::Default ();
   wifiMac.SetType ("ns3::AdhocWifiMac");
   YansWifiPhyHelper wifiPhy = YansWifiPhyHelper::Default ();
   YansWifiChannelHelper wifiChannel = YansWifiChannelHelper::Default ();
   wifiPhy.SetChannel (wifiChannel.Create ());
-  WifiHelper wifi;
+  WifiHelper wifi = WifiHelper::Default ();
   wifi.SetRemoteStationManager ("ns3::ConstantRateWifiManager", "DataMode", StringValue ("OfdmRate6Mbps"), "RtsCtsThreshold", UintegerValue (0));
   devices = wifi.Install (wifiPhy, wifiMac, nodes); 
 

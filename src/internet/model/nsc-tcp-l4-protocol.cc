@@ -45,11 +45,12 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
-namespace ns3 {
-
 NS_LOG_COMPONENT_DEFINE ("NscTcpL4Protocol");
 
-NS_OBJECT_ENSURE_REGISTERED (NscTcpL4Protocol);
+namespace ns3 {
+
+NS_OBJECT_ENSURE_REGISTERED (NscTcpL4Protocol)
+  ;
 
 /* see http://www.iana.org/assignments/protocol-numbers */
 const uint8_t NscTcpL4Protocol::PROT_NUMBER = 6;
@@ -126,7 +127,6 @@ NscTcpL4Protocol::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::NscTcpL4Protocol")
     .SetParent<IpL4Protocol> ()
-    .SetGroupName ("Internet")
     .AddConstructor<NscTcpL4Protocol>()
     .AddAttribute ("SocketList", "The list of sockets associated to this protocol.",
                    ObjectVectorValue (),
@@ -244,7 +244,7 @@ NscTcpL4Protocol::NotifyNewAggregate ()
             }
         }
     }
-  IpL4Protocol::NotifyNewAggregate ();
+  Object::NotifyNewAggregate ();
 }
 
 int 
@@ -309,27 +309,25 @@ NscTcpL4Protocol::Allocate (Ipv4Address address)
 }
 
 Ipv4EndPoint *
-NscTcpL4Protocol::Allocate (Ptr<NetDevice> boundNetDevice, uint16_t port)
+NscTcpL4Protocol::Allocate (uint16_t port)
 {
-  NS_LOG_FUNCTION (this << boundNetDevice << port);
-  return m_endPoints->Allocate (boundNetDevice, port);
+  NS_LOG_FUNCTION (this << port);
+  return m_endPoints->Allocate (port);
 }
 
 Ipv4EndPoint *
-NscTcpL4Protocol::Allocate (Ptr<NetDevice> boundNetDevice, Ipv4Address address, uint16_t port)
+NscTcpL4Protocol::Allocate (Ipv4Address address, uint16_t port)
 {
-  NS_LOG_FUNCTION (this << boundNetDevice << address << port);
-  return m_endPoints->Allocate (boundNetDevice, address, port);
+  NS_LOG_FUNCTION (this << address << port);
+  return m_endPoints->Allocate (address, port);
 }
 
 Ipv4EndPoint *
-NscTcpL4Protocol::Allocate (Ptr<NetDevice> boundNetDevice, 
-                            Ipv4Address localAddress, uint16_t localPort,
+NscTcpL4Protocol::Allocate (Ipv4Address localAddress, uint16_t localPort,
                             Ipv4Address peerAddress, uint16_t peerPort)
 {
-  NS_LOG_FUNCTION (this << boundNetDevice << localAddress << localPort << peerAddress << peerPort);
-  return m_endPoints->Allocate (boundNetDevice,
-                                localAddress, localPort,
+  NS_LOG_FUNCTION (this << localAddress << localPort << peerAddress << peerPort);
+  return m_endPoints->Allocate (localAddress, localPort,
                                 peerAddress, peerPort);
 }
 

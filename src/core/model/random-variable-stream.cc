@@ -33,28 +33,21 @@
 #include "log.h"
 #include "rng-stream.h"
 #include "rng-seed-manager.h"
-#include "unused.h"
 #include <cmath>
 #include <iostream>
 
-/**
- * \file
- * \ingroup randomvariable
- * ns3::RandomVariableStream and related implementations
- */
+NS_LOG_COMPONENT_DEFINE ("RandomVariableStream");
 
 namespace ns3 {
 
-NS_LOG_COMPONENT_DEFINE ("RandomVariableStream");
-
-NS_OBJECT_ENSURE_REGISTERED (RandomVariableStream);
+NS_OBJECT_ENSURE_REGISTERED (RandomVariableStream)
+  ;
 
 TypeId 
 RandomVariableStream::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::RandomVariableStream")
     .SetParent<Object> ()
-    .SetGroupName ("Core")
     .AddAttribute("Stream",
 		  "The stream number for this RNG stream. -1 means \"allocate a stream automatically\". "
 		  "Note that if -1 is set, Get will return -1 so that it is not possible to know which "
@@ -138,14 +131,14 @@ RandomVariableStream::Peek(void) const
   return m_rng;
 }
 
-NS_OBJECT_ENSURE_REGISTERED(UniformRandomVariable);
+NS_OBJECT_ENSURE_REGISTERED(UniformRandomVariable)
+  ;
 
 TypeId 
 UniformRandomVariable::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::UniformRandomVariable")
     .SetParent<RandomVariableStream>()
-    .SetGroupName ("Core")
     .AddConstructor<UniformRandomVariable> ()
     .AddAttribute("Min", "The lower bound on the values returned by this RNG stream.",
 		  DoubleValue(0),
@@ -193,7 +186,7 @@ UniformRandomVariable::GetInteger (uint32_t min, uint32_t max)
 {
   NS_LOG_FUNCTION (this << min << max);
   NS_ASSERT (min <= max);
-  return static_cast<uint32_t> ( GetValue ((double) (min), (double) (max) + 1.0) );
+  return static_cast<uint32_t> ( GetValue (min, max + 1) );
 }
 
 double 
@@ -209,14 +202,14 @@ UniformRandomVariable::GetInteger (void)
   return (uint32_t)GetValue (m_min, m_max + 1);
 }
 
-NS_OBJECT_ENSURE_REGISTERED(ConstantRandomVariable);
+NS_OBJECT_ENSURE_REGISTERED(ConstantRandomVariable)
+  ;
 
 TypeId 
 ConstantRandomVariable::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::ConstantRandomVariable")
     .SetParent<RandomVariableStream>()
-    .SetGroupName ("Core")
     .AddConstructor<ConstantRandomVariable> ()
     .AddAttribute("Constant", "The constant value returned by this RNG stream.",
 		  DoubleValue(0),
@@ -264,14 +257,14 @@ ConstantRandomVariable::GetInteger (void)
   return (uint32_t)GetValue (m_constant);
 }
 
-NS_OBJECT_ENSURE_REGISTERED(SequentialRandomVariable);
+NS_OBJECT_ENSURE_REGISTERED(SequentialRandomVariable)
+  ;
 
 TypeId 
 SequentialRandomVariable::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::SequentialRandomVariable")
     .SetParent<RandomVariableStream>()
-    .SetGroupName ("Core")
     .AddConstructor<SequentialRandomVariable> ()
     .AddAttribute("Min", "The first value of the sequence.",
 		  DoubleValue(0),
@@ -364,14 +357,14 @@ SequentialRandomVariable::GetInteger (void)
   return (uint32_t)GetValue ();
 }
 
-NS_OBJECT_ENSURE_REGISTERED(ExponentialRandomVariable);
+NS_OBJECT_ENSURE_REGISTERED(ExponentialRandomVariable)
+  ;
 
 TypeId 
 ExponentialRandomVariable::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::ExponentialRandomVariable")
     .SetParent<RandomVariableStream>()
-    .SetGroupName ("Core")
     .AddConstructor<ExponentialRandomVariable> ()
     .AddAttribute("Mean", "The mean of the values returned by this RNG stream.",
 		  DoubleValue(1.0),
@@ -446,30 +439,24 @@ ExponentialRandomVariable::GetInteger (void)
   return (uint32_t)GetValue (m_mean, m_bound);
 }
 
-NS_OBJECT_ENSURE_REGISTERED(ParetoRandomVariable);
+NS_OBJECT_ENSURE_REGISTERED(ParetoRandomVariable)
+  ;
 
 TypeId 
 ParetoRandomVariable::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::ParetoRandomVariable")
     .SetParent<RandomVariableStream>()
-    .SetGroupName ("Core")
     .AddConstructor<ParetoRandomVariable> ()
     .AddAttribute("Mean", "The mean parameter for the Pareto distribution returned by this RNG stream.",
-      DoubleValue(0.0),
-      MakeDoubleAccessor(&ParetoRandomVariable::m_mean),
-      MakeDoubleChecker<double>(),
-      TypeId::DEPRECATED,
-      "Not anymore used. Use 'Scale' instead - changing this attribute has no effect.")
-    .AddAttribute("Scale", "The scale parameter for the Pareto distribution returned by this RNG stream.",
-      DoubleValue(1.0),
-      MakeDoubleAccessor(&ParetoRandomVariable::m_scale),
-      MakeDoubleChecker<double>())
+		  DoubleValue(1.0),
+		  MakeDoubleAccessor(&ParetoRandomVariable::m_mean),
+		  MakeDoubleChecker<double>())
     .AddAttribute("Shape", "The shape parameter for the Pareto distribution returned by this RNG stream.",
 		  DoubleValue(2.0),
 		  MakeDoubleAccessor(&ParetoRandomVariable::m_shape),
 		  MakeDoubleChecker<double>())
-    .AddAttribute("Bound", "The upper bound on the values returned by this RNG stream (if non-zero).",
+    .AddAttribute("Bound", "The upper bound on the values returned by this RNG stream.",
 		  DoubleValue(0.0),
 		  MakeDoubleAccessor(&ParetoRandomVariable::m_bound),
 		  MakeDoubleChecker<double>())
@@ -478,41 +465,23 @@ ParetoRandomVariable::GetTypeId (void)
 }
 ParetoRandomVariable::ParetoRandomVariable ()
 {
-  // m_shape, m_shape, and m_bound are initialized after constructor
+  // m_mean, m_shape, and m_bound are initialized after constructor
   // by attributes
   NS_LOG_FUNCTION (this);
-  NS_UNUSED (m_mean);
 }
 
 double 
 ParetoRandomVariable::GetMean (void) const
 {
   NS_LOG_FUNCTION (this);
-
-  double mean = std::numeric_limits<double>::infinity();
-
-  if (m_shape > 1)
-    {
-      mean = m_shape * m_scale / (m_shape -1);
-    }
-
-  return mean;
+  return m_mean;
 }
-
 double 
-ParetoRandomVariable::GetScale (void) const
-{
-  NS_LOG_FUNCTION (this);
-  return m_scale;
-}
-
-double
 ParetoRandomVariable::GetShape (void) const
 {
   NS_LOG_FUNCTION (this);
   return m_shape;
 }
-
 double 
 ParetoRandomVariable::GetBound (void) const
 {
@@ -521,10 +490,11 @@ ParetoRandomVariable::GetBound (void) const
 }
 
 double 
-ParetoRandomVariable::GetValue (double scale, double shape, double bound)
+ParetoRandomVariable::GetValue (double mean, double shape, double bound)
 {
   // Calculate the scale parameter.
-  NS_LOG_FUNCTION (this << scale << shape << bound);
+  NS_LOG_FUNCTION (this << mean << shape << bound);
+  double scale = mean * (shape - 1.0) / shape;
 
   while (1)
     {
@@ -546,33 +516,33 @@ ParetoRandomVariable::GetValue (double scale, double shape, double bound)
     }
 }
 uint32_t 
-ParetoRandomVariable::GetInteger (uint32_t scale, uint32_t shape, uint32_t bound)
+ParetoRandomVariable::GetInteger (uint32_t mean, uint32_t shape, uint32_t bound)
 {
-  NS_LOG_FUNCTION (this << scale << shape << bound);
-  return static_cast<uint32_t> ( GetValue (scale, shape, bound) );
+  NS_LOG_FUNCTION (this << mean << shape << bound);
+  return static_cast<uint32_t> ( GetValue (mean, shape, bound) );
 }
 
 double 
 ParetoRandomVariable::GetValue (void)
 {
   NS_LOG_FUNCTION (this);
-  return GetValue (m_scale, m_shape, m_bound);
+  return GetValue (m_mean, m_shape, m_bound);
 }
 uint32_t 
 ParetoRandomVariable::GetInteger (void)
 {
   NS_LOG_FUNCTION (this);
-  return (uint32_t)GetValue (m_scale, m_shape, m_bound);
+  return (uint32_t)GetValue (m_mean, m_shape, m_bound);
 }
 
-NS_OBJECT_ENSURE_REGISTERED(WeibullRandomVariable);
+NS_OBJECT_ENSURE_REGISTERED(WeibullRandomVariable)
+  ;
 
 TypeId 
 WeibullRandomVariable::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::WeibullRandomVariable")
     .SetParent<RandomVariableStream>()
-    .SetGroupName ("Core")
     .AddConstructor<WeibullRandomVariable> ()
     .AddAttribute("Scale", "The scale parameter for the Weibull distribution returned by this RNG stream.",
 		  DoubleValue(1.0),
@@ -659,7 +629,8 @@ WeibullRandomVariable::GetInteger (void)
   return (uint32_t)GetValue (m_scale, m_shape, m_bound);
 }
 
-NS_OBJECT_ENSURE_REGISTERED(NormalRandomVariable);
+NS_OBJECT_ENSURE_REGISTERED(NormalRandomVariable)
+  ;
 
 const double NormalRandomVariable::INFINITE_VALUE = 1e307;
 
@@ -668,7 +639,6 @@ NormalRandomVariable::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::NormalRandomVariable")
     .SetParent<RandomVariableStream>()
-    .SetGroupName ("Core")
     .AddConstructor<NormalRandomVariable> ()
     .AddAttribute("Mean", "The mean value for the normal distribution returned by this RNG stream.",
 		  DoubleValue(0.0),
@@ -779,14 +749,14 @@ NormalRandomVariable::GetInteger (void)
   return (uint32_t)GetValue (m_mean, m_variance, m_bound);
 }
 
-NS_OBJECT_ENSURE_REGISTERED(LogNormalRandomVariable);
+NS_OBJECT_ENSURE_REGISTERED(LogNormalRandomVariable)
+  ;
 
 TypeId 
 LogNormalRandomVariable::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::LogNormalRandomVariable")
     .SetParent<RandomVariableStream>()
-    .SetGroupName ("Core")
     .AddConstructor<LogNormalRandomVariable> ()
     .AddAttribute("Mu", "The mu value for the log-normal distribution returned by this RNG stream.",
 		  DoubleValue(0.0),
@@ -899,14 +869,14 @@ LogNormalRandomVariable::GetInteger (void)
   return (uint32_t)GetValue (m_mu, m_sigma);
 }
 
-NS_OBJECT_ENSURE_REGISTERED(GammaRandomVariable);
+NS_OBJECT_ENSURE_REGISTERED(GammaRandomVariable)
+  ;
 
 TypeId 
 GammaRandomVariable::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::GammaRandomVariable")
     .SetParent<RandomVariableStream>()
-    .SetGroupName ("Core")
     .AddConstructor<GammaRandomVariable> ()
     .AddAttribute("Alpha", "The alpha value for the gamma distribution returned by this RNG stream.",
 		  DoubleValue(1.0),
@@ -1075,14 +1045,14 @@ GammaRandomVariable::GetNormalValue (double mean, double variance, double bound)
     }
 }
 
-NS_OBJECT_ENSURE_REGISTERED(ErlangRandomVariable);
+NS_OBJECT_ENSURE_REGISTERED(ErlangRandomVariable)
+  ;
 
 TypeId 
 ErlangRandomVariable::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::ErlangRandomVariable")
     .SetParent<RandomVariableStream>()
-    .SetGroupName ("Core")
     .AddConstructor<ErlangRandomVariable> ()
     .AddAttribute("K", "The k value for the Erlang distribution returned by this RNG stream.",
 		  IntegerValue(1),
@@ -1187,14 +1157,14 @@ ErlangRandomVariable::GetExponentialValue (double mean, double bound)
     }
 }
 
-NS_OBJECT_ENSURE_REGISTERED(TriangularRandomVariable);
+NS_OBJECT_ENSURE_REGISTERED(TriangularRandomVariable)
+  ;
 
 TypeId 
 TriangularRandomVariable::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::TriangularRandomVariable")
     .SetParent<RandomVariableStream>()
-    .SetGroupName ("Core")
     .AddConstructor<TriangularRandomVariable> ()
     .AddAttribute("Mean", "The mean value for the triangular distribution returned by this RNG stream.",
 		  DoubleValue(0.5),
@@ -1282,14 +1252,14 @@ TriangularRandomVariable::GetInteger (void)
   return (uint32_t)GetValue (m_mean, m_min, m_max);
 }
 
-NS_OBJECT_ENSURE_REGISTERED(ZipfRandomVariable);
+NS_OBJECT_ENSURE_REGISTERED(ZipfRandomVariable)
+  ;
 
 TypeId 
 ZipfRandomVariable::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::ZipfRandomVariable")
     .SetParent<RandomVariableStream>()
-    .SetGroupName ("Core")
     .AddConstructor<ZipfRandomVariable> ()
     .AddAttribute("N", "The n value for the Zipf distribution returned by this RNG stream.",
 		  IntegerValue(1),
@@ -1373,14 +1343,14 @@ ZipfRandomVariable::GetInteger (void)
   return (uint32_t)GetValue (m_n, m_alpha);
 }
 
-NS_OBJECT_ENSURE_REGISTERED(ZetaRandomVariable);
+NS_OBJECT_ENSURE_REGISTERED(ZetaRandomVariable)
+  ;
 
 TypeId 
 ZetaRandomVariable::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::ZetaRandomVariable")
     .SetParent<RandomVariableStream>()
-    .SetGroupName ("Core")
     .AddConstructor<ZetaRandomVariable> ()
     .AddAttribute("Alpha", "The alpha value for the zeta distribution returned by this RNG stream.",
 		  DoubleValue(3.14),
@@ -1457,14 +1427,14 @@ ZetaRandomVariable::GetInteger (void)
   return (uint32_t)GetValue (m_alpha);
 }
 
-NS_OBJECT_ENSURE_REGISTERED(DeterministicRandomVariable);
+NS_OBJECT_ENSURE_REGISTERED(DeterministicRandomVariable)
+  ;
 
 TypeId 
 DeterministicRandomVariable::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::DeterministicRandomVariable")
     .SetParent<RandomVariableStream>()
-    .SetGroupName ("Core")
     .AddConstructor<DeterministicRandomVariable> ()
     ;
   return tid;
@@ -1488,7 +1458,7 @@ DeterministicRandomVariable::~DeterministicRandomVariable ()
 }
 
 void
-DeterministicRandomVariable::SetValueArray (double* values, std::size_t length)
+DeterministicRandomVariable::SetValueArray (double* values, uint64_t length)
 {
   NS_LOG_FUNCTION (this << values << length);
   // Delete any values currently set.
@@ -1503,7 +1473,7 @@ DeterministicRandomVariable::SetValueArray (double* values, std::size_t length)
   m_next = length;
 
   // Copy the values.
-  for (std::size_t i = 0; i < m_count; i++)
+  for (uint64_t i = 0; i < m_count; i++)
     {
       m_data[i] = values[i];
     }
@@ -1530,7 +1500,8 @@ DeterministicRandomVariable::GetInteger (void)
   return (uint32_t)GetValue ();
 }
 
-NS_OBJECT_ENSURE_REGISTERED(EmpiricalRandomVariable);
+NS_OBJECT_ENSURE_REGISTERED(EmpiricalRandomVariable)
+  ;
 
 // ValueCDF methods
 EmpiricalRandomVariable::ValueCDF::ValueCDF ()
@@ -1544,7 +1515,6 @@ EmpiricalRandomVariable::ValueCDF::ValueCDF (double v, double c)
     cdf (c)
 {
   NS_LOG_FUNCTION (this << v << c);
-  NS_ASSERT (c >= 0.0 && c <= 1.0);
 }
 EmpiricalRandomVariable::ValueCDF::ValueCDF (const ValueCDF& c)
   : value (c.value),
@@ -1558,14 +1528,13 @@ EmpiricalRandomVariable::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::EmpiricalRandomVariable")
     .SetParent<RandomVariableStream>()
-    .SetGroupName ("Core")
     .AddConstructor<EmpiricalRandomVariable> ()
     ;
   return tid;
 }
 EmpiricalRandomVariable::EmpiricalRandomVariable ()
   :
-  m_validated (false)
+  validated (false)
 {
   NS_LOG_FUNCTION (this);
 }
@@ -1576,9 +1545,13 @@ EmpiricalRandomVariable::GetValue (void)
   NS_LOG_FUNCTION (this);
   // Return a value from the empirical distribution
   // This code based (loosely) on code by Bruce Mah (Thanks Bruce!)
-  if (!m_validated)
+  if (emp.size () == 0)
     {
-      Validate ();
+      return 0.0; // HuH? No empirical data
+    }
+  if (!validated)
+    {
+      Validate ();      // Insure in non-decreasing
     }
 
   // Get a uniform random variable in [0,1].
@@ -1588,28 +1561,28 @@ EmpiricalRandomVariable::GetValue (void)
       r = (1 - r);
     }
 
-  if (r <= m_emp.front ().cdf)
+  if (r <= emp.front ().cdf)
     {
-      return m_emp.front ().value; // Less than first
+      return emp.front ().value; // Less than first
     }
-  if (r >= m_emp.back ().cdf)
+  if (r >= emp.back ().cdf)
     {
-      return m_emp.back ().value;  // Greater than last
+      return emp.back ().value;  // Greater than last
     }
   // Binary search
   std::vector<ValueCDF>::size_type bottom = 0;
-  std::vector<ValueCDF>::size_type top = m_emp.size () - 1;
+  std::vector<ValueCDF>::size_type top = emp.size () - 1;
   while (1)
     {
       std::vector<ValueCDF>::size_type c = (top + bottom) / 2;
-      if (r >= m_emp[c].cdf && r < m_emp[c + 1].cdf)
+      if (r >= emp[c].cdf && r < emp[c + 1].cdf)
         { // Found it
-          return Interpolate (m_emp[c].cdf, m_emp[c + 1].cdf,
-                              m_emp[c].value, m_emp[c + 1].value,
+          return Interpolate (emp[c].cdf, emp[c + 1].cdf,
+                              emp[c].value, emp[c + 1].value,
                               r);
         }
       // Not here, adjust bounds
-      if (r < m_emp[c].cdf)
+      if (r < emp[c].cdf)
         {
           top    = c - 1;
         }
@@ -1631,20 +1604,16 @@ void EmpiricalRandomVariable::CDF (double v, double c)
 { // Add a new empirical datapoint to the empirical cdf
   // NOTE.   These MUST be inserted in non-decreasing order
   NS_LOG_FUNCTION (this << v << c);
-  m_emp.push_back (ValueCDF (v, c));
+  emp.push_back (ValueCDF (v, c));
 }
 
 void EmpiricalRandomVariable::Validate ()
 {
   NS_LOG_FUNCTION (this);
-  if (m_emp.empty ())
+  ValueCDF prior;
+  for (std::vector<ValueCDF>::size_type i = 0; i < emp.size (); ++i)
     {
-      NS_FATAL_ERROR ("CDF is not initialized");
-    }
-  ValueCDF prior = m_emp[0];
-  for (std::vector<ValueCDF>::size_type i = 0; i < m_emp.size (); ++i)
-    {
-      ValueCDF& current = m_emp[i];
+      ValueCDF& current = emp[i];
       if (current.value < prior.value || current.cdf < prior.cdf)
         { // Error
           std::cerr << "Empirical Dist error,"
@@ -1656,11 +1625,7 @@ void EmpiricalRandomVariable::Validate ()
         }
       prior = current;
     }
-  if (prior.cdf != 1.0)
-    {
-      NS_FATAL_ERROR ("CDF does not cover the whole distribution");
-    }
-  m_validated = true;
+  validated = true;
 }
 
 double EmpiricalRandomVariable::Interpolate (double c1, double c2,

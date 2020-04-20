@@ -26,20 +26,14 @@ using namespace ns3;
 class MyObject : public Object
 {
 public:
-  /**
-   * Register this type.
-   * \return The TypeId.
-   */
   static TypeId GetTypeId (void)
   {
     static TypeId tid = TypeId ("MyObject")
-      .SetParent<Object> ()
-      .SetGroupName ("Tutorial")
+      .SetParent (Object::GetTypeId ())
       .AddConstructor<MyObject> ()
       .AddTraceSource ("MyInteger",
                        "An integer value to trace.",
-                       MakeTraceSourceAccessor (&MyObject::m_myInt),
-                       "ns3::TracedValueCallback::Int32")
+                       MakeTraceSourceAccessor (&MyObject::m_myInt))
     ;
     return tid;
   }

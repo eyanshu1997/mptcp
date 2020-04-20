@@ -52,9 +52,9 @@
 #include "mac64-address.h"
 #include "ipv6-address.h"
 
-namespace ns3 {
-
 NS_LOG_COMPONENT_DEFINE ("Ipv6Address");
+
+namespace ns3 {
 
 #ifdef __cplusplus
 extern "C"
@@ -154,7 +154,7 @@ static bool AsciiToIpv6Host (const char *address, uint8_t addr[16])
   static const char xdigits_u[] = "0123456789ABCDEF";
   unsigned char tmp[16];
   unsigned char* tp = tmp;
-  unsigned char* const endp = tp + 16;
+  unsigned char* endp = 0;
   unsigned char* colonp = 0;
   const char* xdigits = 0;
 #if 0
@@ -165,6 +165,7 @@ static bool AsciiToIpv6Host (const char *address, uint8_t addr[16])
   unsigned int val = 0;
 
   memset (tp, 0x00, 16);
+  endp = tp + 16;
 
   /* Leading :: requires some special handling. */
   if (*address == ':')
@@ -211,7 +212,7 @@ static bool AsciiToIpv6Host (const char *address, uint8_t addr[16])
               continue;
             }
 
-          if (endp - tp < 2)
+          if (tp + 2 > endp)
             {
               return (0);
             }
@@ -225,7 +226,7 @@ static bool AsciiToIpv6Host (const char *address, uint8_t addr[16])
 
       /* \todo Handle IPv4 mapped address (2001::192.168.0.1) */
 #if 0
-      if (ch == '.' && (endp - tp > 3 /* NS_INADDRSZ - 1 */)) &&
+      if (ch == '.' && ((tp + 4 /*NS_INADDRSZ*/) <= endp) &&
           inet_pton4 (curtok, tp) > 0)
         {
           tp += 4 /*NS_INADDRSZ*/;
@@ -238,7 +239,7 @@ static bool AsciiToIpv6Host (const char *address, uint8_t addr[16])
 
   if (seen_xdigits)
     {
-      if ( endp - tp < 2)
+      if (tp + 2 > endp)
         {
           return (0);
         }
@@ -415,25 +416,6 @@ Ipv6Address Ipv6Address::MakeAutoconfiguredAddress (Mac64Address addr, Ipv6Addre
   return ret;
 }
 
-Ipv6Address Ipv6Address::MakeAutoconfiguredAddress (Mac8Address addr, Ipv6Address prefix)
-{
-  NS_LOG_FUNCTION (addr << prefix);
-  Ipv6Address ret;
-  uint8_t buf[2];
-  uint8_t buf2[16];
-
-  buf[0] = 0;
-  addr.CopyTo (&buf[1]);
-  prefix.GetBytes (buf2);
-
-  memcpy (buf2 + 14, buf, 2);
-  buf2[11] = 0xff;
-  buf2[12] = 0xfe;
-
-  ret.Set (buf2);
-  return ret;
-}
-
 Ipv6Address Ipv6Address::MakeAutoconfiguredLinkLocalAddress (Mac16Address addr)
 {
   NS_LOG_FUNCTION (addr);
@@ -489,27 +471,6 @@ Ipv6Address Ipv6Address::MakeAutoconfiguredLinkLocalAddress (Mac64Address addr)
   buf2[0] = 0xfe;
   buf2[1] = 0x80;
   memcpy (buf2 + 8, buf, 8);
-
-  ret.Set (buf2);
-  return ret;
-}
-
-Ipv6Address Ipv6Address::MakeAutoconfiguredLinkLocalAddress (Mac8Address addr)
-{
-  NS_LOG_FUNCTION (addr);
-  Ipv6Address ret;
-  uint8_t buf[2];
-  uint8_t buf2[16];
-
-  buf[0] = 0;
-  addr.CopyTo (&buf[1]);
-
-  memset (buf2, 0x00, sizeof (buf2));
-  buf2[0] = 0xfe;
-  buf2[1] = 0x80;
-  memcpy (buf2 + 14, buf, 2);
-  buf2[11] = 0xff;
-  buf2[12] = 0xfe;
 
   ret.Set (buf2);
   return ret;
@@ -711,20 +672,15 @@ bool Ipv6Address::IsSolicitedMulticast () const
 bool Ipv6Address::IsAllNodesMulticast () const
 {
   NS_LOG_FUNCTION (this);
-  static Ipv6Address allNodesI ("ff01::1");
-  static Ipv6Address allNodesL ("ff02::1");
-  static Ipv6Address allNodesR ("ff03::1");
-  return (*this == allNodesI || *this == allNodesL || *this == allNodesR);
+  static Ipv6Address allnodes ("ff02::1");
+  return (*this == allnodes);
 }
 
 bool Ipv6Address::IsAllRoutersMulticast () const
 {
   NS_LOG_FUNCTION (this);
-  static Ipv6Address allroutersI ("ff01::2");
-  static Ipv6Address allroutersL ("ff02::2");
-  static Ipv6Address allroutersR ("ff03::2");
-  static Ipv6Address allroutersS ("ff05::2");
-  return (*this == allroutersI || *this == allroutersL || *this == allroutersR || *this == allroutersS);
+  static Ipv6Address allrouters ("ff02::2");
+  return (*this == allrouters);
 }
 
 bool Ipv6Address::IsAllHostsMulticast () const
@@ -1055,8 +1011,8 @@ size_t Ipv6AddressHash::operator () (Ipv6Address const &x) const
   return lookuphash (buf, sizeof (buf), 0);
 }
 
-ATTRIBUTE_HELPER_CPP (Ipv6Address);
-ATTRIBUTE_HELPER_CPP (Ipv6Prefix);
+ATTRIBUTE_HELPER_CPP (Ipv6Address); /// Macro to make help make class an ns-3 attribute
+ATTRIBUTE_HELPER_CPP (Ipv6Prefix);  /// Macro to make help make class an ns-3 attribute
 
 } /* namespace ns3 */
 

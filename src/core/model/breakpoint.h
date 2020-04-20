@@ -21,13 +21,6 @@
 #ifndef BREAKPOINT_H
 #define BREAKPOINT_H
 
-/**
- * \file
- * \ingroup breakpoint
- * NS_BREAKPOINT() macro definition and ns3::BreakpointFallback
- * function declaration.
- */
-
 namespace ns3 {
 
 /* Hacker macro to place breakpoints for selected machines.
@@ -43,18 +36,11 @@ namespace ns3 {
 
 /**
  * \ingroup debugging
- * \defgroup breakpoint Breakpoints
- *
- * \brief Trigger a debugger breakpoint.
- */
-
-/**
- * \ingroup breakpoint
  *
  * Inserts a breakpoint instruction (or equivalent system call) into
- * the code for selected machines.  When an NS_ASSERT cannot verify
- * its condition, this macro is used. Falls back to calling
- * ns3::BreakpointFallback() for architectures where breakpoint assembly
+ * the code for selected machines.  When an NS_ASSERT cannot verify its condition, 
+ * this macro is used. Falls back to calling
+ * AssertBreakpoint() for architectures where breakpoint assembly
  * instructions are not supported.
  */
 #if (defined (__i386__) || defined (__amd64__) || defined (__x86_64__)) && defined (__GNUC__) && __GNUC__ >= 2
@@ -71,7 +57,7 @@ namespace ns3 {
 #endif
 
 /**
- * \ingroup breakpoint
+ * \ingroup debugging
  *
  * \brief fallback breakpoint function
  *

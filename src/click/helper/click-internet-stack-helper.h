@@ -172,6 +172,7 @@ public:
 private:
   /**
    * @brief Enable pcap output the indicated Ipv4 and interface pair.
+   * @internal
    *
    * @param prefix Filename prefix to use for pcap files.
    * @param ipv4 Ptr to the Ipv4 interface on which you want to enable tracing.
@@ -184,6 +185,7 @@ private:
 
   /**
    * @brief Enable ascii trace output on the indicated Ipv4 and interface pair.
+   * @internal
    *
    * @param stream An OutputStreamWrapper representing an existing file to use
    *               when writing trace data.
@@ -200,12 +202,24 @@ private:
   void Initialize (void);
   ObjectFactory m_tcpFactory;
 
+  /**
+   * \internal
+   */
   static void CreateAndAggregateObjectFromTypeId (Ptr<Node> node, const std::string typeId);
 
+  /**
+   * \internal
+   */
   static void Cleanup (void);
 
+  /**
+   * \internal
+   */
   bool PcapHooked (Ptr<Ipv4> ipv4);
 
+  /**
+   * \internal
+   */
   bool AsciiHooked (Ptr<Ipv4> ipv4);
 
   /**

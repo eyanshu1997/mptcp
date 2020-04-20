@@ -4,7 +4,7 @@
 CSMA NetDevice
 --------------
 
-This is the introduction to CSMA NetDevice chapter, to complement the CSMA model
+This is the introduction to CSMA NetDevice chapter, to complement the Csma model
 doxygen.
 
 Overview of the CSMA model

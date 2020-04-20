@@ -136,17 +136,4 @@ NodeContainer::GetGlobal (void)
   return c;
 }
 
-bool
-NodeContainer::Contains (uint32_t id) const
-{
-  for (uint32_t i = 0; i < m_nodes.size (); i++)
-    {
-      if (m_nodes[i]->GetId () == id)
-        {
-          return true;
-        }
-    }
-  return false;
-}
-
 } // namespace ns3

@@ -36,7 +36,6 @@
 namespace ns3 {
 
 /**
- * \ingroup fd-net-device
  * \brief build a set of FdNetDevice objects attached to a virtual TAP network
  * interface
  *
@@ -67,13 +66,8 @@ public:
   void SetTapMask (Ipv4Mask mask);
 
 protected:
-
-  /**
-   * This method creates an ns3::FdNetDevice attached to a virtual TAP network
-   * interface
-   *
-   * \param node The node to install the device in
-   * \returns A container holding the added net device.
+  /*
+   * \internal
    */
   Ptr<NetDevice> InstallPriv (Ptr<Node> node) const;
 
@@ -89,13 +83,17 @@ protected:
   virtual int CreateFileDescriptor (void) const;
 
   /**
-   * The IP address for the TAP device.
-   */
+  * \internal
+  *
+  * The IP address for the TAP device.
+  */
   Ipv4Address m_tapIp;
 
   /**
-   * The network mask for the TAP device.
-   */
+  * \internal
+  *
+  * The network mask for the TAP device.
+  */
   Ipv4Mask m_tapMask;
 
 };

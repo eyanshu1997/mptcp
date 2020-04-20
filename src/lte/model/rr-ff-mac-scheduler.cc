@@ -32,12 +32,11 @@
 #include <ns3/lte-vendor-specific-parameters.h>
 #include <ns3/boolean.h>
 
-namespace ns3 {
-
 NS_LOG_COMPONENT_DEFINE ("RrFfMacScheduler");
 
-/// Type 0 allocation RBG
-static const int Type0AllocationRbg[4] = {
+namespace ns3 {
+
+int Type0AllocationRbg[4] = {
   10,       // RGB size 1
   26,       // RGB size 2
   63,       // RGB size 3
@@ -47,7 +46,174 @@ static const int Type0AllocationRbg[4] = {
 
 
 
-NS_OBJECT_ENSURE_REGISTERED (RrFfMacScheduler);
+NS_OBJECT_ENSURE_REGISTERED (RrFfMacScheduler)
+  ;
+
+
+class RrSchedulerMemberCschedSapProvider : public FfMacCschedSapProvider
+{
+public:
+  RrSchedulerMemberCschedSapProvider (RrFfMacScheduler* scheduler);
+
+  // inherited from FfMacCschedSapProvider
+  virtual void CschedCellConfigReq (const struct CschedCellConfigReqParameters& params);
+  virtual void CschedUeConfigReq (const struct CschedUeConfigReqParameters& params);
+  virtual void CschedLcConfigReq (const struct CschedLcConfigReqParameters& params);
+  virtual void CschedLcReleaseReq (const struct CschedLcReleaseReqParameters& params);
+  virtual void CschedUeReleaseReq (const struct CschedUeReleaseReqParameters& params);
+
+private:
+  RrSchedulerMemberCschedSapProvider ();
+  RrFfMacScheduler* m_scheduler;
+};
+
+RrSchedulerMemberCschedSapProvider::RrSchedulerMemberCschedSapProvider ()
+{
+}
+
+RrSchedulerMemberCschedSapProvider::RrSchedulerMemberCschedSapProvider (RrFfMacScheduler* scheduler) : m_scheduler (scheduler)
+{
+}
+
+
+void
+RrSchedulerMemberCschedSapProvider::CschedCellConfigReq (const struct CschedCellConfigReqParameters& params)
+{
+  m_scheduler->DoCschedCellConfigReq (params);
+}
+
+void
+RrSchedulerMemberCschedSapProvider::CschedUeConfigReq (const struct CschedUeConfigReqParameters& params)
+{
+  m_scheduler->DoCschedUeConfigReq (params);
+}
+
+
+void
+RrSchedulerMemberCschedSapProvider::CschedLcConfigReq (const struct CschedLcConfigReqParameters& params)
+{
+  m_scheduler->DoCschedLcConfigReq (params);
+}
+
+void
+RrSchedulerMemberCschedSapProvider::CschedLcReleaseReq (const struct CschedLcReleaseReqParameters& params)
+{
+  m_scheduler->DoCschedLcReleaseReq (params);
+}
+
+void
+RrSchedulerMemberCschedSapProvider::CschedUeReleaseReq (const struct CschedUeReleaseReqParameters& params)
+{
+  m_scheduler->DoCschedUeReleaseReq (params);
+}
+
+
+
+
+class RrSchedulerMemberSchedSapProvider : public FfMacSchedSapProvider
+{
+public:
+  RrSchedulerMemberSchedSapProvider (RrFfMacScheduler* scheduler);
+
+  // inherited from FfMacSchedSapProvider
+  virtual void SchedDlRlcBufferReq (const struct SchedDlRlcBufferReqParameters& params);
+  virtual void SchedDlPagingBufferReq (const struct SchedDlPagingBufferReqParameters& params);
+  virtual void SchedDlMacBufferReq (const struct SchedDlMacBufferReqParameters& params);
+  virtual void SchedDlTriggerReq (const struct SchedDlTriggerReqParameters& params);
+  virtual void SchedDlRachInfoReq (const struct SchedDlRachInfoReqParameters& params);
+  virtual void SchedDlCqiInfoReq (const struct SchedDlCqiInfoReqParameters& params);
+  virtual void SchedUlTriggerReq (const struct SchedUlTriggerReqParameters& params);
+  virtual void SchedUlNoiseInterferenceReq (const struct SchedUlNoiseInterferenceReqParameters& params);
+  virtual void SchedUlSrInfoReq (const struct SchedUlSrInfoReqParameters& params);
+  virtual void SchedUlMacCtrlInfoReq (const struct SchedUlMacCtrlInfoReqParameters& params);
+  virtual void SchedUlCqiInfoReq (const struct SchedUlCqiInfoReqParameters& params);
+
+
+private:
+  RrSchedulerMemberSchedSapProvider ();
+  RrFfMacScheduler* m_scheduler;
+};
+
+
+
+RrSchedulerMemberSchedSapProvider::RrSchedulerMemberSchedSapProvider ()
+{
+}
+
+
+RrSchedulerMemberSchedSapProvider::RrSchedulerMemberSchedSapProvider (RrFfMacScheduler* scheduler)
+  : m_scheduler (scheduler)
+{
+}
+
+void
+RrSchedulerMemberSchedSapProvider::SchedDlRlcBufferReq (const struct SchedDlRlcBufferReqParameters& params)
+{
+  m_scheduler->DoSchedDlRlcBufferReq (params);
+}
+
+void
+RrSchedulerMemberSchedSapProvider::SchedDlPagingBufferReq (const struct SchedDlPagingBufferReqParameters& params)
+{
+  m_scheduler->DoSchedDlPagingBufferReq (params);
+}
+
+void
+RrSchedulerMemberSchedSapProvider::SchedDlMacBufferReq (const struct SchedDlMacBufferReqParameters& params)
+{
+  m_scheduler->DoSchedDlMacBufferReq (params);
+}
+
+void
+RrSchedulerMemberSchedSapProvider::SchedDlTriggerReq (const struct SchedDlTriggerReqParameters& params)
+{
+  m_scheduler->DoSchedDlTriggerReq (params);
+}
+
+void
+RrSchedulerMemberSchedSapProvider::SchedDlRachInfoReq (const struct SchedDlRachInfoReqParameters& params)
+{
+  m_scheduler->DoSchedDlRachInfoReq (params);
+}
+
+void
+RrSchedulerMemberSchedSapProvider::SchedDlCqiInfoReq (const struct SchedDlCqiInfoReqParameters& params)
+{
+  m_scheduler->DoSchedDlCqiInfoReq (params);
+}
+
+void
+RrSchedulerMemberSchedSapProvider::SchedUlTriggerReq (const struct SchedUlTriggerReqParameters& params)
+{
+  m_scheduler->DoSchedUlTriggerReq (params);
+}
+
+void
+RrSchedulerMemberSchedSapProvider::SchedUlNoiseInterferenceReq (const struct SchedUlNoiseInterferenceReqParameters& params)
+{
+  m_scheduler->DoSchedUlNoiseInterferenceReq (params);
+}
+
+void
+RrSchedulerMemberSchedSapProvider::SchedUlSrInfoReq (const struct SchedUlSrInfoReqParameters& params)
+{
+  m_scheduler->DoSchedUlSrInfoReq (params);
+}
+
+void
+RrSchedulerMemberSchedSapProvider::SchedUlMacCtrlInfoReq (const struct SchedUlMacCtrlInfoReqParameters& params)
+{
+  m_scheduler->DoSchedUlMacCtrlInfoReq (params);
+}
+
+void
+RrSchedulerMemberSchedSapProvider::SchedUlCqiInfoReq (const struct SchedUlCqiInfoReqParameters& params)
+{
+  m_scheduler->DoSchedUlCqiInfoReq (params);
+}
+
+
+
 
 
 RrFfMacScheduler::RrFfMacScheduler ()
@@ -57,8 +223,8 @@ RrFfMacScheduler::RrFfMacScheduler ()
     m_nextRntiUl (0)
 {
   m_amc = CreateObject <LteAmc> ();
-  m_cschedSapProvider = new MemberCschedSapProvider<RrFfMacScheduler> (this);
-  m_schedSapProvider = new MemberSchedSapProvider<RrFfMacScheduler> (this);
+  m_cschedSapProvider = new RrSchedulerMemberCschedSapProvider (this);
+  m_schedSapProvider = new RrSchedulerMemberSchedSapProvider (this);
 }
 
 RrFfMacScheduler::~RrFfMacScheduler ()
@@ -86,7 +252,6 @@ RrFfMacScheduler::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::RrFfMacScheduler")
     .SetParent<FfMacScheduler> ()
-    .SetGroupName("Lte")
     .AddConstructor<RrFfMacScheduler> ()
     .AddAttribute ("CqiTimerThreshold",
                    "The number of TTIs a CQI is valid (default 1000 - 1 sec.)",
@@ -131,18 +296,6 @@ FfMacSchedSapProvider*
 RrFfMacScheduler::GetFfMacSchedSapProvider ()
 {
   return m_schedSapProvider;
-}
-
-void
-RrFfMacScheduler::SetLteFfrSapProvider (LteFfrSapProvider* s)
-{
-  m_ffrSapProvider = s;
-}
-
-LteFfrSapUser*
-RrFfMacScheduler::GetLteFfrSapUser ()
-{
-  return m_ffrSapUser;
 }
 
 void
@@ -478,7 +631,7 @@ RrFfMacScheduler::DoSchedDlTriggerReq (const struct FfMacSchedSapProvider::Sched
   std::vector <struct RachListElement_s>::iterator itRach;
   for (itRach = m_rachList.begin (); itRach != m_rachList.end (); itRach++)
     {
-      NS_ASSERT_MSG (m_amc->GetUlTbSizeFromMcs (m_ulGrantMcs, m_cschedCellConfig.m_ulBandwidth) > (*itRach).m_estimatedSize, " Default UL Grant MCS does not allow to send RACH messages");
+      NS_ASSERT_MSG (m_amc->GetTbSizeFromMcs (m_ulGrantMcs, m_cschedCellConfig.m_ulBandwidth) > (*itRach).m_estimatedSize, " Default UL Grant MCS does not allow to send RACH messages");
       BuildRarListElement_s newRar;
       newRar.m_rnti = (*itRach).m_rnti;
       // DL-RACH Allocation
@@ -492,7 +645,7 @@ RrFfMacScheduler::DoSchedDlTriggerReq (const struct FfMacSchedSapProvider::Sched
       while ((tbSizeBits < (*itRach).m_estimatedSize) && (rbStart + rbLen < m_cschedCellConfig.m_ulBandwidth))
         {
           rbLen++;
-          tbSizeBits = m_amc->GetUlTbSizeFromMcs (m_ulGrantMcs, rbLen);
+          tbSizeBits = m_amc->GetTbSizeFromMcs (m_ulGrantMcs, rbLen);
         }
       if (tbSizeBits < (*itRach).m_estimatedSize)
         {
@@ -511,6 +664,7 @@ RrFfMacScheduler::DoSchedDlTriggerReq (const struct FfMacSchedSapProvider::Sched
         {
           m_rachAllocationMap.at (i) = (*itRach).m_rnti;
         }
+      rbStart = rbStart + rbLen;
 
       if (m_harqOn == true)
         {
@@ -550,7 +704,6 @@ RrFfMacScheduler::DoSchedDlTriggerReq (const struct FfMacSchedSapProvider::Sched
           (*itDci).second.at (harqId) = uldci;
         }
 
-      rbStart = rbStart + rbLen;
       ret.m_buildRarList.push_back (newRar);
     }
   m_rachList.clear ();
@@ -695,7 +848,7 @@ RrFfMacScheduler::DoSchedDlTriggerReq (const struct FfMacSchedSapProvider::Sched
                       dciRbg.at (j) = rbgId;
                       j++;
                     }
-                  rbgId = (rbgId + 1) % rbgNum;
+                  rbgId++;
                 }
               if (j == dciRbg.size ())
                 {
@@ -713,7 +866,7 @@ RrFfMacScheduler::DoSchedDlTriggerReq (const struct FfMacSchedSapProvider::Sched
               else
                 {
                   // HARQ retx cannot be performed on this TTI -> store it
-                  dlInfoListUntxed.push_back (m_dlInfoListBuffered.at (i));
+                  dlInfoListUntxed.push_back (params.m_dlInfoList.at (i));
                   NS_LOG_INFO (this << " No resource for this retx -> buffer it");
                 }
             }
@@ -766,17 +919,8 @@ RrFfMacScheduler::DoSchedDlTriggerReq (const struct FfMacSchedSapProvider::Sched
                     {
                       if (j < dci.m_ndi.size ())
                         {
-                          NS_LOG_INFO (" layer " << (uint16_t)j << " tb size " << dci.m_tbsSize.at (j));
                           rlcPduListPerLc.push_back ((*itRlcPdu).second.at (j).at (dci.m_harqProcess).at (k));
                         }
-                    }
-                  else
-                    { // if no retx needed on layer j, push an RlcPduListElement_s object with m_size=0 to keep the size of rlcPduListPerLc vector = 2 in case of MIMO
-                      NS_LOG_INFO (" layer " << (uint16_t)j << " tb size "<<dci.m_tbsSize.at (j));
-                      RlcPduListElement_s emptyElement;
-                      emptyElement.m_logicalChannelIdentity = (*itRlcPdu).second.at (j).at (dci.m_harqProcess).at (k).m_logicalChannelIdentity;
-                      emptyElement.m_size = 0;
-                      rlcPduListPerLc.push_back (emptyElement);
                     }
                 }
 
@@ -859,7 +1003,7 @@ RrFfMacScheduler::DoSchedDlTriggerReq (const struct FfMacSchedSapProvider::Sched
             }
           else
             {
-              cqi = 1; // lowest value for trying a transmission
+              cqi = 1; // lowest value fro trying a transmission
             }
           if (cqi != 0)
             {
@@ -903,18 +1047,10 @@ RrFfMacScheduler::DoSchedDlTriggerReq (const struct FfMacSchedSapProvider::Sched
   // served last scheduling trigger event
   if (m_nextRntiDl != 0)
     {
-      NS_LOG_DEBUG ("Start from the successive of " << (uint16_t) m_nextRntiDl);
       for (it = m_rlcBufferReq.begin (); it != m_rlcBufferReq.end (); it++)
         {
           if ((*it).m_rnti == m_nextRntiDl)
             {
-              // select the next RNTI to starting
-              it++;
-              if (it == m_rlcBufferReq.end ())
-              {
-                it = m_rlcBufferReq.begin ();
-              }
-              m_nextRntiDl = (*it).m_rnti;
               break;
             }
         }
@@ -981,7 +1117,7 @@ RrFfMacScheduler::DoSchedDlTriggerReq (const struct FfMacSchedSapProvider::Sched
               newDci.m_mcs.push_back ( m_amc->GetMcsFromCqi ((*itCqi).second) );
             }
         }
-      int tbSize = (m_amc->GetDlTbSizeFromMcs (newDci.m_mcs.at (0), rbgPerTb * rbgSize) / 8);
+      int tbSize = (m_amc->GetTbSizeFromMcs (newDci.m_mcs.at (0), rbgPerTb * rbgSize) / 8);
       uint16_t rlcPduSize = tbSize / lcNum;
       while ((*it).m_rnti == newEl.m_rnti)
         {
@@ -1046,9 +1182,6 @@ RrFfMacScheduler::DoSchedDlTriggerReq (const struct FfMacSchedSapProvider::Sched
           newDci.m_ndi.push_back (1);
           newDci.m_rv.push_back (0);
         }
-
-      newDci.m_tpc = 1; //1 is mapped to 0 in Accumulated Mode and to -1 in Absolute Mode
-
       newEl.m_dci = newDci;
       if (m_harqOn == true)
         {
@@ -1104,7 +1237,7 @@ RrFfMacScheduler::DoSchedDlCqiInfoReq (const struct FfMacSchedSapProvider::Sched
     {
       if ( params.m_cqiList.at (i).m_cqiType == CqiListElement_s::P10 )
         {
-          NS_LOG_LOGIC ("wideband CQI " <<  (uint32_t) params.m_cqiList.at (i).m_wbCqi.at (0) << " reported");
+          // wideband CQI reporting
           std::map <uint16_t,uint8_t>::iterator it;
           uint16_t rnti = params.m_cqiList.at (i).m_rnti;
           it = m_p10CqiRxed.find (rnti);
@@ -1196,7 +1329,7 @@ RrFfMacScheduler::DoSchedUlTriggerReq (const struct FfMacSchedSapProvider::Sched
                 {
                   NS_LOG_ERROR ("No info find in HARQ buffer for UE (might change eNB) " << rnti);
                 }
-              if ((*itStat).second.at (harqId) >= 3)
+              if ((*itStat).second.at (harqId) > 3)
                 {
                   NS_LOG_INFO ("Max number of retransmissions reached (UL)-> drop process");
                   continue;
@@ -1256,7 +1389,6 @@ RrFfMacScheduler::DoSchedUlTriggerReq (const struct FfMacSchedSapProvider::Sched
     {
       if (ret.m_dciList.size () > 0)
         {
-          m_allocationMaps.insert (std::pair <uint16_t, std::vector <uint16_t> > (params.m_sfnSf, rbgAllocationMap));
           m_schedSapUser->SchedUlConfigInd (ret);
         }
       return;  // no flows to be scheduled
@@ -1322,7 +1454,7 @@ RrFfMacScheduler::DoSchedUlTriggerReq (const struct FfMacSchedSapProvider::Sched
       uldci.m_rbLen = rbPerFlow;
       bool allocated = false;
       NS_LOG_INFO (this << " RB Allocated " << rbAllocated << " rbPerFlow " << rbPerFlow << " flows " << nflows);
-      while ((!allocated)&&((rbAllocated + rbPerFlow - m_cschedCellConfig.m_ulBandwidth) < 1) && (rbPerFlow != 0))
+      while ((!allocated)&&((rbAllocated + rbPerFlow - 1) < m_cschedCellConfig.m_ulBandwidth) && (rbPerFlow != 0))
         {
           // check availability
           bool free = true;
@@ -1417,7 +1549,7 @@ RrFfMacScheduler::DoSchedUlTriggerReq (const struct FfMacSchedSapProvider::Sched
             }
           uldci.m_mcs = m_amc->GetMcsFromCqi (cqi);
         }
-      uldci.m_tbSize = (m_amc->GetUlTbSizeFromMcs (uldci.m_mcs, rbPerFlow) / 8); // MCS 0 -> UL-AMC TBD
+      uldci.m_tbSize = (m_amc->GetTbSizeFromMcs (uldci.m_mcs, rbPerFlow) / 8); // MCS 0 -> UL-AMC TBD
 
       UpdateUlRlcBufferInfo (uldci.m_rnti, uldci.m_tbSize);
       uldci.m_ndi = 1;
@@ -1450,15 +1582,7 @@ RrFfMacScheduler::DoSchedUlTriggerReq (const struct FfMacSchedSapProvider::Sched
               NS_FATAL_ERROR ("Unable to find RNTI entry in UL DCI HARQ buffer for RNTI " << uldci.m_rnti);
             }
           (*itDci).second.at (harqId) = uldci;
-          // Update HARQ process status (RV 0)
-          std::map <uint16_t, UlHarqProcessesStatus_t>::iterator itStat = m_ulHarqProcessesStatus.find (uldci.m_rnti);
-          if (itStat == m_ulHarqProcessesStatus.end ())
-            {
-              NS_LOG_ERROR ("No info find in HARQ buffer for UE (might change eNB) " << uldci.m_rnti);
-            }
-          (*itStat).second.at (harqId) = 0;
         }
-        
       NS_LOG_INFO (this << " UL Allocation - UE " << (*it).first << " startPRB " << (uint32_t)uldci.m_rbStart << " nPRB " << (uint32_t)uldci.m_rbLen << " CQI " << cqi << " MCS " << (uint32_t)uldci.m_mcs << " TBsize " << uldci.m_tbSize << " harqId " << (uint16_t)harqId);
 
       it++;

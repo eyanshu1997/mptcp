@@ -22,18 +22,17 @@
 #define WIFI_NET_DEVICE_H
 
 #include "ns3/net-device.h"
+#include "ns3/packet.h"
 #include "ns3/traced-callback.h"
+#include "ns3/mac48-address.h"
+#include <string>
 
 namespace ns3 {
 
 class WifiRemoteStationManager;
+class WifiChannel;
 class WifiPhy;
 class WifiMac;
-class NetDeviceQueueInterface;
-class QueueItem;
-
-/// This value conforms to the 802.11 specification
-static const uint16_t MAX_MSDU_SIZE = 2304;
 
 /**
  * \defgroup wifi Wifi Models
@@ -46,16 +45,12 @@ static const uint16_t MAX_MSDU_SIZE = 2304;
  * \brief Hold together all Wifi-related objects.
  * \ingroup wifi
  *
- * This class holds together ns3::Channel, ns3::WifiPhy,
+ * This class holds together ns3::WifiChannel, ns3::WifiPhy,
  * ns3::WifiMac, and, ns3::WifiRemoteStationManager.
  */
 class WifiNetDevice : public NetDevice
 {
 public:
-  /**
-   * \brief Get the type ID.
-   * \return the object TypeId
-   */
   static TypeId GetTypeId (void);
 
   WifiNetDevice ();
@@ -64,15 +59,15 @@ public:
   /**
    * \param mac the mac layer to use.
    */
-  void SetMac (const Ptr<WifiMac> mac);
+  void SetMac (Ptr<WifiMac> mac);
   /**
    * \param phy the phy layer to use.
    */
-  void SetPhy (const Ptr<WifiPhy> phy);
+  void SetPhy (Ptr<WifiPhy> phy);
   /**
    * \param manager the manager to use.
    */
-  void SetRemoteStationManager (const Ptr<WifiRemoteStationManager> manager);
+  void SetRemoteStationManager (Ptr<WifiRemoteStationManager> manager);
   /**
    * \returns the mac we are currently using.
    */
@@ -87,37 +82,36 @@ public:
   Ptr<WifiRemoteStationManager> GetRemoteStationManager (void) const;
 
 
-  //inherited from NetDevice base class.
-  void SetIfIndex (const uint32_t index);
-  uint32_t GetIfIndex (void) const;
-  Ptr<Channel> GetChannel (void) const;
-  void SetAddress (Address address);
-  Address GetAddress (void) const;
-  bool SetMtu (const uint16_t mtu);
-  uint16_t GetMtu (void) const;
-  bool IsLinkUp (void) const;
-  void AddLinkChangeCallback (Callback<void> callback);
-  bool IsBroadcast (void) const;
-  Address GetBroadcast (void) const;
-  bool IsMulticast (void) const;
-  Address GetMulticast (Ipv4Address multicastGroup) const;
-  bool IsPointToPoint (void) const;
-  bool IsBridge (void) const;
-  bool Send (Ptr<Packet> packet, const Address& dest, uint16_t protocolNumber);
-  Ptr<Node> GetNode (void) const;
-  void SetNode (const Ptr<Node> node);
-  bool NeedsArp (void) const;
-  void SetReceiveCallback (NetDevice::ReceiveCallback cb);
-  Address GetMulticast (Ipv6Address addr) const;
-  bool SendFrom (Ptr<Packet> packet, const Address& source, const Address& dest, uint16_t protocolNumber);
-  void SetPromiscReceiveCallback (PromiscReceiveCallback cb);
-  bool SupportsSendFrom (void) const;
+  // inherited from NetDevice base class.
+  virtual void SetIfIndex (const uint32_t index);
+  virtual uint32_t GetIfIndex (void) const;
+  virtual Ptr<Channel> GetChannel (void) const;
+  virtual void SetAddress (Address address);
+  virtual Address GetAddress (void) const;
+  virtual bool SetMtu (const uint16_t mtu);
+  virtual uint16_t GetMtu (void) const;
+  virtual bool IsLinkUp (void) const;
+  virtual void AddLinkChangeCallback (Callback<void> callback);
+  virtual bool IsBroadcast (void) const;
+  virtual Address GetBroadcast (void) const;
+  virtual bool IsMulticast (void) const;
+  virtual Address GetMulticast (Ipv4Address multicastGroup) const;
+  virtual bool IsPointToPoint (void) const;
+  virtual bool IsBridge (void) const;
+  virtual bool Send (Ptr<Packet> packet, const Address& dest, uint16_t protocolNumber);
+  virtual Ptr<Node> GetNode (void) const;
+  virtual void SetNode (Ptr<Node> node);
+  virtual bool NeedsArp (void) const;
+  virtual void SetReceiveCallback (NetDevice::ReceiveCallback cb);
 
+  virtual Address GetMulticast (Ipv6Address addr) const;
 
+  virtual bool SendFrom (Ptr<Packet> packet, const Address& source, const Address& dest, uint16_t protocolNumber);
+  virtual void SetPromiscReceiveCallback (PromiscReceiveCallback cb);
+  virtual bool SupportsSendFrom (void) const;
 protected:
-  void DoDispose (void);
-  void DoInitialize (void);
-  void NotifyNewAggregate (void);
+   virtual void DoDispose (void);
+   virtual void DoInitialize (void);
   /**
    * Receive a packet from the lower layer and pass the
    * packet up the stack.
@@ -126,26 +120,10 @@ protected:
    * \param from
    * \param to
    */
-  void ForwardUp (Ptr<Packet> packet, Mac48Address from, Mac48Address to);
-
-
+   void ForwardUp (Ptr<Packet> packet, Mac48Address from, Mac48Address to);
 private:
-  /**
-   * \brief Copy constructor
-   * \param o object to copy
-   *
-   * Defined and unimplemented to avoid misuse
-   */
-  WifiNetDevice (const WifiNetDevice &o);
-
-  /**
-   * \brief Assignment operator
-   * \param o object to copy
-   * \returns the copied object
-   *
-   * Defined and unimplemented to avoid misuse
-   */
-  WifiNetDevice &operator = (const WifiNetDevice &o);
+  // This value conforms to the 802.11 specification
+  static const uint16_t MAX_MSDU_SIZE = 2304;
 
   /**
    * Set that the link is up. A link is always up in ad-hoc mode.
@@ -157,77 +135,34 @@ private:
    */
   void LinkDown (void);
   /**
+   * Return the WifiChannel this device is connected to.
+   *
+   * \return WifiChannel
+   */
+  Ptr<WifiChannel> DoGetChannel (void) const;
+  /**
    * Complete the configuration of this Wi-Fi device by
    * connecting all lower components (e.g. MAC, WifiRemoteStation) together.
    */
   void CompleteConfig (void);
-  /**
-   * Perform the actions needed to support flow control and dynamic queue limits
-   */
-  void FlowControlConfig (void);
 
-  /**
-   * \brief Determine the tx queue for a given packet
-   * \param item the packet
-   * \returns the access category
-   *
-   * Modelled after the Linux function ieee80211_select_queue (net/mac80211/wme.c).
-   * A SocketPriority tag is attached to the packet (or the existing one is
-   * replaced) to carry the user priority, which is set to the three most
-   * significant bits of the DS field (TOS field in case of IPv4 and Traffic
-   * Class field in case of IPv6). The Access Category corresponding to the
-   * user priority according to the QosUtilsMapTidToAc function is returned.
-   *
-   * The following table shows the mapping for the Diffserv Per Hop Behaviors.
-   *
-   * PHB  | TOS (binary) | UP  | Access Category
-   * -----|--------------|-----|-----------------
-   * EF   |   101110xx   |  5  |     AC_VI
-   * AF11 |   001010xx   |  1  |     AC_BK
-   * AF21 |   010010xx   |  2  |     AC_BK
-   * AF31 |   011010xx   |  3  |     AC_BE
-   * AF41 |   100010xx   |  4  |     AC_VI
-   * AF12 |   001100xx   |  1  |     AC_BK
-   * AF22 |   010100xx   |  2  |     AC_BK
-   * AF32 |   011100xx   |  3  |     AC_BE
-   * AF42 |   100100xx   |  4  |     AC_VI
-   * AF13 |   001110xx   |  1  |     AC_BK
-   * AF23 |   010110xx   |  2  |     AC_BK
-   * AF33 |   011110xx   |  3  |     AC_BE
-   * AF43 |   100110xx   |  4  |     AC_VI
-   * CS0  |   000000xx   |  0  |     AC_BE
-   * CS1  |   001000xx   |  1  |     AC_BK
-   * CS2  |   010000xx   |  2  |     AC_BK
-   * CS3  |   011000xx   |  3  |     AC_BE
-   * CS4  |   100000xx   |  4  |     AC_VI
-   * CS5  |   101000xx   |  5  |     AC_VI
-   * CS6  |   110000xx   |  6  |     AC_VO
-   * CS7  |   111000xx   |  7  |     AC_VO
-   *
-   * This method is called by the traffic control layer before enqueuing a
-   * packet in the queue disc, if a queue disc is installed on the outgoing
-   * device, or passing a packet to the device, otherwise.
-   */
-  uint8_t SelectQueue (Ptr<QueueItem> item) const;
+  Ptr<Node> m_node;
+  Ptr<WifiPhy> m_phy;
+  Ptr<WifiMac> m_mac;
+  Ptr<WifiRemoteStationManager> m_stationManager;
+  NetDevice::ReceiveCallback m_forwardUp;
+  NetDevice::PromiscReceiveCallback m_promiscRx;
 
-  Ptr<Node> m_node; //!< the node
-  Ptr<WifiPhy> m_phy; //!< the phy
-  Ptr<WifiMac> m_mac; //!< the MAC
-  Ptr<WifiRemoteStationManager> m_stationManager; //!< the station manager
-  Ptr<NetDeviceQueueInterface> m_queueInterface;   //!< NetDevice queue interface
-  NetDevice::ReceiveCallback m_forwardUp; //!< forward up callback
-  NetDevice::PromiscReceiveCallback m_promiscRx; //!< promiscious receive callback
+  TracedCallback<Ptr<const Packet>, Mac48Address> m_rxLogger;
+  TracedCallback<Ptr<const Packet>, Mac48Address> m_txLogger;
 
-  TracedCallback<Ptr<const Packet>, Mac48Address> m_rxLogger; //!< receive trace callback
-  TracedCallback<Ptr<const Packet>, Mac48Address> m_txLogger; //!< transmit trace callback
-
-  uint32_t m_ifIndex; //!< IF index
-  bool m_linkUp; //!< link up
-  TracedCallback<> m_linkChanges; //!< link change callback
-  mutable uint16_t m_mtu; //!< MTU
-  bool m_configComplete; //!< configuration complete
+  uint32_t m_ifIndex;
+  bool m_linkUp;
+  TracedCallback<> m_linkChanges;
+  mutable uint16_t m_mtu;
+  bool m_configComplete;
 };
 
-} //namespace ns3
+} // namespace ns3
 
 #endif /* WIFI_NET_DEVICE_H */

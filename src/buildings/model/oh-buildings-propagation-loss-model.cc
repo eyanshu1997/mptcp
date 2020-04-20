@@ -31,11 +31,12 @@
 #include "ns3/enum.h"
 
 
-namespace ns3 {
-
 NS_LOG_COMPONENT_DEFINE ("OhBuildingsPropagationLossModel");
 
-NS_OBJECT_ENSURE_REGISTERED (OhBuildingsPropagationLossModel);
+namespace ns3 {
+
+NS_OBJECT_ENSURE_REGISTERED (OhBuildingsPropagationLossModel)
+  ;
 
 
 
@@ -54,7 +55,6 @@ OhBuildingsPropagationLossModel::GetTypeId (void)
   static TypeId tid = TypeId ("ns3::OhBuildingsPropagationLossModel")
   
   .SetParent<BuildingsPropagationLossModel> ()
-  .SetGroupName ("Buildings")
   
   .AddConstructor<OhBuildingsPropagationLossModel> ();
   

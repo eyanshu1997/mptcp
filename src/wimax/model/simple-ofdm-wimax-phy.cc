@@ -35,19 +35,17 @@
 #include <string>
 #include <cmath>
 
+NS_LOG_COMPONENT_DEFINE ("SimpleOfdmWimaxPhy");
 namespace ns3 {
 
-NS_LOG_COMPONENT_DEFINE ("SimpleOfdmWimaxPhy");
-
-NS_OBJECT_ENSURE_REGISTERED (SimpleOfdmWimaxPhy);
+NS_OBJECT_ENSURE_REGISTERED (SimpleOfdmWimaxPhy)
+  ;
 
 TypeId SimpleOfdmWimaxPhy::GetTypeId (void)
 {
-  static TypeId tid = TypeId ("ns3::SimpleOfdmWimaxPhy")
-    .SetParent<WimaxPhy> ()
-    .SetGroupName ("Wimax")
-    
-    .AddConstructor<SimpleOfdmWimaxPhy> ()
+  static TypeId
+    tid =
+    TypeId ("ns3::SimpleOfdmWimaxPhy").SetParent<WimaxPhy> ()
 
     .AddAttribute ("NoiseFigure",
                    "Loss (dB) in the Signal-to-Noise-Ratio due to non-idealities in the receiver.",
@@ -92,42 +90,33 @@ TypeId SimpleOfdmWimaxPhy::GetTypeId (void)
                                        &SimpleOfdmWimaxPhy::SetTraceFilePath),
                    MakeStringChecker ())
 
-    .AddTraceSource ("Rx", "Receive trace",
-                     MakeTraceSourceAccessor (&SimpleOfdmWimaxPhy::m_traceRx),
-                     "ns3::PacketBurst::TracedCallback")
-    .AddTraceSource ("Tx", "Transmit trace",
-                     MakeTraceSourceAccessor (&SimpleOfdmWimaxPhy::m_traceTx),
-                     "ns3::PacketBurst::TracedCallback")
+    .AddTraceSource ("Rx", "Receive trace", MakeTraceSourceAccessor (&SimpleOfdmWimaxPhy::m_traceRx))
+
+    .AddTraceSource ("Tx", "Transmit trace", MakeTraceSourceAccessor (&SimpleOfdmWimaxPhy::m_traceTx))
 
     .AddTraceSource ("PhyTxBegin",
                      "Trace source indicating a packet has begun transmitting over the channel medium",
-                     MakeTraceSourceAccessor (&SimpleOfdmWimaxPhy::m_phyTxBeginTrace),
-                     "ns3::PacketBurst::TracedCallback")
+                     MakeTraceSourceAccessor (&SimpleOfdmWimaxPhy::m_phyTxBeginTrace))
 
     .AddTraceSource ("PhyTxEnd",
                      "Trace source indicating a packet has been completely transmitted over the channel",
-                     MakeTraceSourceAccessor (&SimpleOfdmWimaxPhy::m_phyTxEndTrace),
-                     "ns3::PacketBurst::TracedCallback")
+                     MakeTraceSourceAccessor (&SimpleOfdmWimaxPhy::m_phyTxEndTrace))
 
     .AddTraceSource ("PhyTxDrop",
                      "Trace source indicating a packet has been dropped by the device during transmission",
-                     MakeTraceSourceAccessor (&SimpleOfdmWimaxPhy::m_phyTxDropTrace),
-                     "ns3::PacketBurst::TracedCallback")
+                     MakeTraceSourceAccessor (&SimpleOfdmWimaxPhy::m_phyTxDropTrace))
 
     .AddTraceSource ("PhyRxBegin",
                      "Trace source indicating a packet has begun being received from the channel medium by the device",
-                     MakeTraceSourceAccessor (&SimpleOfdmWimaxPhy::m_phyRxBeginTrace),
-                     "ns3::PacketBurst::TracedCallback")
+                     MakeTraceSourceAccessor (&SimpleOfdmWimaxPhy::m_phyRxBeginTrace))
 
     .AddTraceSource ("PhyRxEnd",
                      "Trace source indicating a packet has been completely received from the channel medium by the device",
-                     MakeTraceSourceAccessor (&SimpleOfdmWimaxPhy::m_phyRxEndTrace),
-                     "ns3::PacketBurst::TracedCallback")
+                     MakeTraceSourceAccessor (&SimpleOfdmWimaxPhy::m_phyRxEndTrace))
 
     .AddTraceSource ("PhyRxDrop",
                      "Trace source indicating a packet has been dropped by the device during reception",
-                     MakeTraceSourceAccessor (&SimpleOfdmWimaxPhy::m_phyRxDropTrace),
-                     "ns3::PacketBurst::TracedCallback");
+                     MakeTraceSourceAccessor (&SimpleOfdmWimaxPhy::m_phyRxDropTrace));
   return tid;
 }
 
@@ -914,7 +903,7 @@ SimpleOfdmWimaxPhy::DoGetFrameDuration (uint8_t frameDurationCode) const
 }
 
 /*
- Retruns number of blocks (FEC blocks) the burst will be split in.
+ Retruns number of blocks (FEC blocks) the burst will be splitted in.
  The size of the block is specific for each modulation type.
  */
 uint16_t

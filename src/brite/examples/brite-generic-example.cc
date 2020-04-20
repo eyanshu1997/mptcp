@@ -63,14 +63,25 @@ main (int argc, char *argv[])
 
   PointToPointHelper p2p;
 
+  Ipv4StaticRoutingHelper staticRouting;
+  Ipv4GlobalRoutingHelper globalRouting;
+  Ipv4ListRoutingHelper listRouting;
+  Ipv4NixVectorHelper nixRouting;
 
   InternetStackHelper stack;
 
   if (nix)
     {
-      Ipv4NixVectorHelper nixRouting;
-      stack.SetRoutingHelper (nixRouting);
+      listRouting.Add (staticRouting, 0);
+      listRouting.Add (nixRouting, 10);
     }
+  else
+    {
+      listRouting.Add (staticRouting, 0);
+      listRouting.Add (globalRouting, 10);
+    }
+
+  stack.SetRoutingHelper (listRouting);
 
   Ipv4AddressHelper address;
   address.SetBase ("10.0.0.0", "255.255.255.252");

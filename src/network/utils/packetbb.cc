@@ -28,6 +28,8 @@
 #include "ns3/log.h"
 #include "packetbb.h"
 
+NS_LOG_COMPONENT_DEFINE ("PacketBB");
+
 static const uint8_t VERSION = 0;
 /* Packet flags */
 static const uint8_t PHAS_SEQ_NUM = 0x8;
@@ -56,9 +58,8 @@ static const uint8_t TIS_MULTIVALUE = 0x04;
 
 namespace ns3 {
 
-NS_LOG_COMPONENT_DEFINE ("PacketBB");
-
-NS_OBJECT_ENSURE_REGISTERED (PbbPacket);
+NS_OBJECT_ENSURE_REGISTERED (PbbPacket)
+  ;
 
 PbbTlvBlock::PbbTlvBlock (void)
 {
@@ -839,7 +840,6 @@ PbbPacket::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::PbbPacket")
     .SetParent<Header> ()
-    .SetGroupName("Network")
     .AddConstructor<PbbPacket> ()
   ;
   return tid;
@@ -2517,7 +2517,7 @@ PbbAddressBlock::GetHeadTail (uint8_t *head, uint8_t &headlen,
         }
 
       /* If headlen == fulllen - 1, then tail is 0 */
-      if (GetAddressLength () - headlen > 0)
+      if (headlen <= GetAddressLength () - 1)
         {
           for (i = GetAddressLength () - 1;
                GetAddressLength () - 1 - i <= taillen && i > headlen;

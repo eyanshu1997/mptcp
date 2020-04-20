@@ -28,8 +28,6 @@
 namespace ns3 {
 
 /**
- * \ingroup network
- *
  * Types of ethernet packets. Indicates the type of the current
  * header.
  */
@@ -105,10 +103,6 @@ public:
    */
   uint32_t GetHeaderSize () const;
 
-  /**
-   * \brief Get the type ID.
-   * \return the object TypeId
-   */
   static TypeId GetTypeId (void);
   virtual TypeId GetInstanceTypeId (void) const;
   virtual void Print (std::ostream &os) const;
@@ -116,18 +110,18 @@ public:
   virtual void Serialize (Buffer::Iterator start) const;
   virtual uint32_t Deserialize (Buffer::Iterator start);
 private:
-  static const int PREAMBLE_SIZE = 8; //!< size of the preamble_sfd header field
-  static const int LENGTH_SIZE = 2;   //!< size of the length_type header field
-  static const int MAC_ADDR_SIZE = 6; //!< size of src/dest addr header fields
+  static const int PREAMBLE_SIZE = 8; /// size of the preamble_sfd header field
+  static const int LENGTH_SIZE = 2;   /// size of the length_type header field
+  static const int MAC_ADDR_SIZE = 6; /// size of src/dest addr header fields
 
   /**
    * If false, the preamble/sfd are not serialised/deserialised.
    */
   bool m_enPreambleSfd;
-  uint64_t m_preambleSfd;     //!< Value of the Preamble/SFD fields
-  uint16_t m_lengthType;      //!< Length or type of the packet
-  Mac48Address m_source;        //!< Source address
-  Mac48Address m_destination;   //!< Destination address
+  uint64_t m_preambleSfd;     /// Value of the Preamble/SFD fields
+  uint16_t m_lengthType;      /// Length or type of the packet
+  Mac48Address m_source;        /// Source address
+  Mac48Address m_destination;   /// Destination address
 };
 
 } // namespace ns3

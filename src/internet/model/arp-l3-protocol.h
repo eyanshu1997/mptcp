@@ -21,7 +21,7 @@
 #define ARP_L3_PROTOCOL_H
 
 #include <list>
-#include "ns3/ipv4-header.h"
+#include "ns3/ipv4-address.h"
 #include "ns3/net-device.h"
 #include "ns3/address.h"
 #include "ns3/ptr.h"
@@ -35,20 +35,16 @@ class NetDevice;
 class Node;
 class Packet;
 class Ipv4Interface;
-class TrafficControlLayer;
 
 /**
- * \ingroup ipv4
- * \defgroup arp ARP protocol.
+ * \ingroup internet
+ * \defgroup arp Arp
  *
- * The ARP protocol and its associated tables are responsible
- * for the IPv4 - MAC address translation.
- * Each NetDevice has its own ARP table.
+ * This is an overview of Arp capabilities (write me).
  */
-
 /**
  * \ingroup arp
- * \brief An implementation of the ARP protocol.
+ * \brief An implementation of the ARP protocol
  */
 class ArpL3Protocol : public Object
 {
@@ -68,12 +64,6 @@ public:
    * \param node the node
    */
   void SetNode (Ptr<Node> node);
-
-  /**
-   * \brief Set the TrafficControlLayer.
-   * \param tc TrafficControlLayer object
-   */
-  void SetTrafficControl (Ptr<TrafficControlLayer> tc);
 
   /**
    * \brief Create an ARP cache for the device/interface
@@ -97,14 +87,13 @@ public:
   /**
    * \brief Perform an ARP lookup
    * \param p the packet
-   * \param ipHeader the IPv4 header
    * \param destination destination IP address
    * \param device outgoing device
    * \param cache ARP cache
    * \param hardwareDestination filled with the destination MAC address (if the entry exists)
    * \return true if there is a matching ARP Entry
    */
-  bool Lookup (Ptr<Packet> p, const Ipv4Header & ipHeader, Ipv4Address destination,
+  bool Lookup (Ptr<Packet> p, Ipv4Address destination, 
                Ptr<NetDevice> device,
                Ptr<ArpCache> cache,
                Address *hardwareDestination);
@@ -170,7 +159,6 @@ private:
   Ptr<Node> m_node; //!< node the ARP L3 protocol is associated with
   TracedCallback<Ptr<const Packet> > m_dropTrace; //!< trace for packets dropped by ARP
   Ptr<RandomVariableStream> m_requestJitter; //!< jitter to de-sync ARP requests
-  Ptr<TrafficControlLayer> m_tc; //!< The associated TrafficControlLayer
 
 };
 

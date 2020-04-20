@@ -23,17 +23,17 @@
 #include "wimax-channel.h"
 #include "wimax-phy.h"
 
-namespace ns3 {
-
 NS_LOG_COMPONENT_DEFINE ("WimaxChannel");
 
-NS_OBJECT_ENSURE_REGISTERED (WimaxChannel);
+namespace ns3 {
+
+NS_OBJECT_ENSURE_REGISTERED (WimaxChannel)
+  ;
 
 TypeId WimaxChannel::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::WimaxChannel")
-    .SetParent<Channel> ()
-    .SetGroupName("Wimax");
+    .SetParent<Channel> ();
   return tid;
 }
 
@@ -51,14 +51,14 @@ WimaxChannel::Attach (Ptr<WimaxPhy> phy)
   DoAttach (phy);
 }
 
-std::size_t
+uint32_t
 WimaxChannel::GetNDevices (void) const
 {
   return DoGetNDevices ();
 }
 
 Ptr<NetDevice>
-WimaxChannel::GetDevice (std::size_t index) const
+WimaxChannel::GetDevice (uint32_t index) const
 {
   return DoGetDevice (index);
 }

@@ -40,7 +40,6 @@ class CallbackBase;
 class NodeList
 {
 public:
-  /// Node container iterator
   typedef std::vector< Ptr<Node> >::const_iterator Iterator;
 
   /**

@@ -42,14 +42,9 @@ class Kun2600MhzPropagationLossModel : public PropagationLossModel
 {
 
 public:
-  /**
-   * \brief Get the type ID.
-   * \return the object TypeId
-   */
-  static TypeId GetTypeId (void);
 
-  Kun2600MhzPropagationLossModel ();
-  virtual ~Kun2600MhzPropagationLossModel ();
+  // inherited from Object
+  static TypeId GetTypeId (void);
 
   /** 
    * \param a the first mobility model
@@ -61,19 +56,6 @@ public:
   double GetLoss (Ptr<MobilityModel> a, Ptr<MobilityModel> b) const;
 
 private:
-  /**
-   * \brief Copy constructor
-   *
-   * Defined and unimplemented to avoid misuse
-   */
-  Kun2600MhzPropagationLossModel (const Kun2600MhzPropagationLossModel &);
-  /**
-   * \brief Copy constructor
-   *
-   * Defined and unimplemented to avoid misuse
-   * \returns
-   */
-  Kun2600MhzPropagationLossModel & operator = (const Kun2600MhzPropagationLossModel &);
 
   // inherited from PropagationLossModel
   virtual double DoCalcRxPower (double txPowerDbm,

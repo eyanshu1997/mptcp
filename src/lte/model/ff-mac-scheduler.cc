@@ -24,11 +24,12 @@
 #include <ns3/enum.h>
 
 
-namespace ns3 {
-
 NS_LOG_COMPONENT_DEFINE ("FfMacScheduler");
 
-NS_OBJECT_ENSURE_REGISTERED (FfMacScheduler);
+namespace ns3 {
+
+NS_OBJECT_ENSURE_REGISTERED (FfMacScheduler)
+  ;
 
 
 FfMacScheduler::FfMacScheduler ()
@@ -54,7 +55,6 @@ FfMacScheduler::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::FfMacScheduler")
     .SetParent<Object> ()
-    .SetGroupName("Lte")
     .AddAttribute ("UlCqiFilter",
                    "The filter to apply on UL CQIs received",
                    EnumValue (FfMacScheduler::ALL_UL_CQI),

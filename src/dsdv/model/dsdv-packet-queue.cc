@@ -35,10 +35,9 @@
 #include "ns3/socket.h"
 #include "ns3/log.h"
 
-namespace ns3 {
-
 NS_LOG_COMPONENT_DEFINE ("DsdvPacketQueue");
 
+namespace ns3 {
 namespace dsdv {
 uint32_t
 PacketQueue::GetSize ()
@@ -65,7 +64,7 @@ PacketQueue::Enqueue (QueueEntry & entry)
     }
   numPacketswithdst = GetCountForPacketsWithDst (entry.GetIpv4Header ().GetDestination ());
   NS_LOG_DEBUG ("Number of packets with this destination: " << numPacketswithdst);
-  /** For Brock Paper comparison*/
+  /** For Brock Paper comparision*/
   if (numPacketswithdst >= m_maxLenPerDst || m_queue.size () >= m_maxLen)
     {
       NS_LOG_DEBUG ("Max packets reached for this destination. Not queuing any further packets");
@@ -144,16 +143,8 @@ PacketQueue::GetCountForPacketsWithDst (Ipv4Address dst)
   return count;
 }
 
-/**
- * IsExpired structure
- */
 struct IsExpired
 {
-  /**
-   * \brief Check for expired entry
-   * \param e QueueEntry to check
-   * \return true if expired
-   */
   bool
   operator() (QueueEntry const & e) const
   {

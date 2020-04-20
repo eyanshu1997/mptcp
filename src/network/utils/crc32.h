@@ -24,11 +24,9 @@
 namespace ns3 {
 
 /**
- * Calculates the CRC-32 for a given input
- *
  * \param data buffer to calculate the checksum for
  * \param length the length of the buffer (bytes)
- * \returns the computed crc-32.
+ * \returns the computed crc.
  *
  */
 uint32_t CRC32Calculate (const uint8_t *data, int length);

@@ -34,7 +34,7 @@ IeLinkMetricReport::IeLinkMetricReport (uint32_t metric)
 WifiInformationElementId
 IeLinkMetricReport::ElementId () const
 {
-  return IE_MESH_LINK_METRIC_REPORT;
+  return IE11S_LINK_METRIC_REPORT;
 }
 uint8_t
 IeLinkMetricReport::GetInformationFieldSize (void) const
@@ -66,7 +66,9 @@ IeLinkMetricReport::DeserializeInformationField (Buffer::Iterator start, uint8_t
 void
 IeLinkMetricReport::Print (std::ostream& os) const
 {
-  os << "Metric=" << m_metric;
+  os << std::endl << "<information_element id=" << ElementId () << ">" << std::endl;
+  os << "Metric = " << m_metric;
+  os << "</information_element>" << std::endl;
 }
 bool
 operator== (const IeLinkMetricReport & a, const IeLinkMetricReport & b)

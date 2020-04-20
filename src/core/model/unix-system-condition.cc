@@ -17,75 +17,35 @@
  */
 
 #include <pthread.h>
-#include <cerrno>        // for ETIMEDOUT
-#include <time.h>        // for timespec
-#include <sys/time.h>    // for timeval, gettimeofday
+#include <cerrno> // for ETIMEDOUT
+#include <sys/time.h>
 
 #include "fatal-error.h"
 #include "system-condition.h"
 #include "log.h"
 
 
-/**
- * \file
- * \ingroup thread
- * ns3::SystemCondition and ns3::SystemConditionPrivate implementations.
- */
+NS_LOG_COMPONENT_DEFINE ("SystemCondition");
 
 namespace ns3 {
 
-NS_LOG_COMPONENT_DEFINE ("SystemCondition");
-
-/**
- * \ingroup thread
- * Implementation of SystemCondition for Unix-like systems.
- */
 class SystemConditionPrivate {
-public:
-  /** Conversion from ns to s. */
+public: 
   static const uint64_t NS_PER_SEC = (uint64_t)1000000000;
 
-  /** Constructor. */
   SystemConditionPrivate ();
-  /** Destructor. */
   ~SystemConditionPrivate ();
-
-  /**
-   * Set the condition.
-   *
-   * \param [in] condition The new condition value.
-   */
+	
   void SetCondition (bool condition);
-  /**
-   * Get the condition value.
-   *
-   * \returns The condition value.
-   */
   bool GetCondition (void);
-  /** Signal the condition. */
   void Signal (void);
-  /** Broadcast the condition. */
   void Broadcast (void);
-  /**
-   * Unset the condition, then wait for another thread
-   * to set it with SetCondition. */
   void Wait (void);
-  /**
-   * Unset the condition, then wait for a limited amount of wall-clock
-   * time for another thread to set it with SetCondition.
-   *
-   * \param [in] ns Maximum time to wait, in ns.
-   * \returns \c true if the condition timed out; \c false if the other
-   * thread set it.
-   */
   bool TimedWait (uint64_t ns);
 
 private:
-  /** Mutex controlling access to the condition. */
   pthread_mutex_t m_mutex;
-  /** The pthread condition variable. */
   pthread_cond_t  m_cond;
-  /** The condition state. */
   bool m_condition;
 };
 

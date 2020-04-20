@@ -30,20 +30,26 @@
 #include "ns3/ipv4-interface.h"
 #include "ns3/loopback-net-device.h"
 
-using namespace ns3;
+namespace ns3 {
 
-/**
- * \ingroup internet-test
- * \ingroup tests
- *
- * \brief IPv4 Test
- */
 class Ipv4L3ProtocolTestCase : public TestCase
 {
 public:
+  /**
+   * \brief Constructor.
+   */
   Ipv4L3ProtocolTestCase ();
-  virtual ~Ipv4L3ProtocolTestCase ();
-  virtual void  DoRun (void);
+  /**
+   * \brief Destructor.
+   */
+  virtual
+  ~Ipv4L3ProtocolTestCase ();
+  /**
+   * \brief Run unit tests for this class.
+   * \return false if all tests have passed, false otherwise
+   */
+  virtual void
+  DoRun (void);
 
 };
 
@@ -110,7 +116,7 @@ Ipv4L3ProtocolTestCase::DoRun (void)
   num = interface->GetNAddresses ();
   NS_TEST_ASSERT_MSG_EQ (num, 2, "Should find 2 addresses??");
 
-  /* Test Ipv4Address::RemoveAddress(i, address) */
+  /* Test Ipv4Address::RemoveAddress(i, addresss) */
   bool result = ipv4->RemoveAddress (index, Ipv4Address
 ("192.168.0.2"));
   NS_TEST_ASSERT_MSG_EQ (true, result, "Unable to remove Address??");
@@ -135,13 +141,7 @@ Ipv4L3ProtocolTestCase::DoRun (void)
 }
 
   
-/**
- * \ingroup internet-test
- * \ingroup tests
- *
- * \brief IPv4 TestSuite
- */
-class IPv4L3ProtocolTestSuite : public TestSuite
+static class IPv4L3ProtocolTestSuite : public TestSuite
 {
 public:
   IPv4L3ProtocolTestSuite () :
@@ -149,6 +149,6 @@ public:
   {
     AddTestCase (new Ipv4L3ProtocolTestCase (), TestCase::QUICK);
   }
-};
+} g_ipv4protocolTestSuite;
 
-static IPv4L3ProtocolTestSuite g_ipv4protocolTestSuite; //!< Static variable for test initialization
+} // namespace ns3

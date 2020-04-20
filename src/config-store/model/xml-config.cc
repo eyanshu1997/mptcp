@@ -1,23 +1,3 @@
-/* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
-/*
- * Copyright (c) 2009 INRIA
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation;
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- *
- * Author: Mathieu Lacage <mathieu.lacage@cutebugs.net>
- */
-
 #include "xml-config.h"
 #include "attribute-default-iterator.h"
 #include "attribute-iterator.h"
@@ -29,9 +9,9 @@
 #include <libxml/encoding.h>
 #include <libxml/xmlwriter.h>
 
-namespace ns3 {
-
 NS_LOG_COMPONENT_DEFINE ("XmlConfig");
+
+namespace ns3 {
 
 XmlConfigSave::XmlConfigSave ()
   : m_writer (0)
@@ -52,14 +32,14 @@ XmlConfigSave::SetFilename (std::string filename)
   m_writer = xmlNewTextWriterFilename (filename.c_str (), 0);
   if (m_writer == NULL) 
     {
-      NS_FATAL_ERROR ("Error creating the XML writer");
+      NS_FATAL_ERROR ("Error creating the xml writer");
     }
   rc = xmlTextWriterSetIndent (m_writer, 1);
   if (rc < 0)
     {
       NS_FATAL_ERROR ("Error at xmlTextWriterSetIndent");
     }
-  /* Start the document with the XML default for the version,
+  /* Start the document with the xml default for the version,
    * encoding utf-8 and the default for the standalone
    * declaration. */
   rc = xmlTextWriterStartDocument (m_writer, NULL, "utf-8", NULL);
@@ -68,7 +48,7 @@ XmlConfigSave::SetFilename (std::string filename)
       NS_FATAL_ERROR ("Error at xmlTextWriterStartDocument");
     }
 
-  /* Start an element named "ns3". Since this is the first
+  /* Start an element named "ns3". Since thist is the first
    * element, this will be the root element of the document. */
   rc = xmlTextWriterStartElement (m_writer, BAD_CAST "ns3");
   if (rc < 0) 

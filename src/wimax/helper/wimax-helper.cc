@@ -36,9 +36,9 @@
 #include "ns3/wimax-mac-to-mac-header.h"
 
 
-namespace ns3 {
-
 NS_LOG_COMPONENT_DEFINE ("WimaxHelper");
+
+namespace ns3 {
 
 WimaxHelper::WimaxHelper (void)
   : m_channel (0)
@@ -545,11 +545,6 @@ WimaxHelper::EnableAsciiInternal (Ptr<OutputStreamWrapper> stream,
 
 }
 
-/**
- * \brief print pcap record
- * \param file pcap file
- * \param burst packet burst to print
- */
 static void PcapSniffTxRxEvent (Ptr<PcapFileWrapper> file,
                                 Ptr<const PacketBurst> burst)
 {

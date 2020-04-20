@@ -27,25 +27,24 @@
 #include "ns3/log.h"
 #include "ns3/mpi-interface.h"
 
-namespace ns3 {
-
 NS_LOG_COMPONENT_DEFINE ("PointToPointRemoteChannel");
 
-NS_OBJECT_ENSURE_REGISTERED (PointToPointRemoteChannel);
+namespace ns3 {
+
+NS_OBJECT_ENSURE_REGISTERED (PointToPointRemoteChannel)
+  ;
 
 TypeId
 PointToPointRemoteChannel::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::PointToPointRemoteChannel")
     .SetParent<PointToPointChannel> ()
-    .SetGroupName ("PointToPoint")
     .AddConstructor<PointToPointRemoteChannel> ()
   ;
   return tid;
 }
 
 PointToPointRemoteChannel::PointToPointRemoteChannel ()
-  : PointToPointChannel ()
 {
 }
 
@@ -55,7 +54,7 @@ PointToPointRemoteChannel::~PointToPointRemoteChannel ()
 
 bool
 PointToPointRemoteChannel::TransmitStart (
-  Ptr<const Packet> p,
+  Ptr<Packet> p,
   Ptr<PointToPointNetDevice> src,
   Time txTime)
 {
@@ -70,7 +69,7 @@ PointToPointRemoteChannel::TransmitStart (
 #ifdef NS3_MPI
   // Calculate the rxTime (absolute)
   Time rxTime = Simulator::Now () + txTime + GetDelay ();
-  MpiInterface::SendPacket (p->Copy (), rxTime, dst->GetNode ()->GetId (), dst->GetIfIndex ());
+  MpiInterface::SendPacket (p, rxTime, dst->GetNode ()->GetId (), dst->GetIfIndex ());
 #else
   NS_FATAL_ERROR ("Can't use distributed simulator without MPI compiled in");
 #endif

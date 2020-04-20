@@ -27,9 +27,7 @@
 #include "ns3/event-id.h"
 #include "ns3/ptr.h"
 #include "ns3/address.h"
-#include "ns3/traced-callback.h"
 #include "packet-loss-counter.h"
-
 namespace ns3 {
 /**
  * \ingroup applications
@@ -38,7 +36,7 @@ namespace ns3 {
 
 /**
  * \ingroup udpclientserver
- *
+ * \class UdpServer
  * \brief A UDP server, receives UDP packets from a remote host.
  *
  * UDP packets carry a 32bits sequence number followed by a 64bits time
@@ -65,7 +63,7 @@ public:
    * \brief Returns the number of received packets
    * \return the number of received packets
    */
-  uint64_t GetReceived (void) const;
+  uint32_t GetReceived (void) const;
 
   /**
    * \brief Returns the size of the window used for checking loss.
@@ -100,15 +98,8 @@ private:
   uint16_t m_port; //!< Port on which we listen for incoming packets.
   Ptr<Socket> m_socket; //!< IPv4 Socket
   Ptr<Socket> m_socket6; //!< IPv6 Socket
-  uint64_t m_received; //!< Number of received packets
+  uint32_t m_received; //!< Number of received packets
   PacketLossCounter m_lossCounter; //!< Lost packet counter
-
-  /// Callbacks for tracing the packet Rx events
-  TracedCallback<Ptr<const Packet> > m_rxTrace;
-
-  /// Callbacks for tracing the packet Rx events, includes source and destination addresses
-  TracedCallback<Ptr<const Packet>, const Address &, const Address &> m_rxTraceWithAddresses;
-
 };
 
 } // namespace ns3

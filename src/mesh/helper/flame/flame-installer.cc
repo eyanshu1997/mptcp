@@ -20,19 +20,20 @@
 
 #include "ns3/flame-installer.h"
 #include "ns3/flame-protocol.h"
+#include "ns3/wifi-net-device.h"
 #include "ns3/mesh-wifi-interface-mac.h"
 
 namespace ns3
 {
 using namespace flame;
-NS_OBJECT_ENSURE_REGISTERED (FlameStack);
+NS_OBJECT_ENSURE_REGISTERED (FlameStack)
+  ;
   
 TypeId
 FlameStack::GetTypeId ()
 {
   static TypeId tid = TypeId ("ns3::FlameStack")
-    .SetParent<MeshStack> ()
-    .SetGroupName ("Mesh")
+    .SetParent<Object> ()
     .AddConstructor<FlameStack> ();
   return tid;
 }

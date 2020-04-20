@@ -38,9 +38,7 @@ using namespace ns3;
  * attaches one UE per eNodeB starts a flow for each UE to  and from a remote host.
  * It also  starts yet another flow between each UE pair.
  */
-
 NS_LOG_COMPONENT_DEFINE ("EpcFirstExample");
-
 int
 main (int argc, char *argv[])
 {
@@ -49,7 +47,6 @@ main (int argc, char *argv[])
   double simTime = 1.1;
   double distance = 60.0;
   double interPacketInterval = 100;
-  bool useCa = false;
 
   // Command line arguments
   CommandLine cmd;
@@ -57,15 +54,7 @@ main (int argc, char *argv[])
   cmd.AddValue("simTime", "Total duration of the simulation [s])", simTime);
   cmd.AddValue("distance", "Distance between eNBs [m]", distance);
   cmd.AddValue("interPacketInterval", "Inter packet interval [ms])", interPacketInterval);
-  cmd.AddValue("useCa", "Whether to use carrier aggregation.", useCa);
   cmd.Parse(argc, argv);
-
-  if (useCa)
-   {
-     Config::SetDefault ("ns3::LteHelper::UseCa", BooleanValue (useCa));
-     Config::SetDefault ("ns3::LteHelper::NumberOfComponentCarriers", UintegerValue (2));
-     Config::SetDefault ("ns3::LteHelper::EnbComponentCarrierManager", StringValue ("ns3::RrComponentCarrierManager"));
-   }
 
   Ptr<LteHelper> lteHelper = CreateObject<LteHelper> ();
   Ptr<PointToPointEpcHelper>  epcHelper = CreateObject<PointToPointEpcHelper> ();

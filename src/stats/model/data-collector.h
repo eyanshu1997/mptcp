@@ -52,12 +52,6 @@ public:
   virtual ~DataCollector();
 
   /**
-   * Register this type.
-   * \return The TypeId.
-   */
-  static TypeId GetTypeId (void);
-  
-  /**
    * Provide specific parameters to the DataCollector
    * \param experiment Label for the experiment
    * \param strategy Label for the strategy

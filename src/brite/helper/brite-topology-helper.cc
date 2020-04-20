@@ -30,9 +30,9 @@
 #include <iostream>
 #include <fstream>
 
-namespace ns3 {
-
 NS_LOG_COMPONENT_DEFINE ("BriteTopologyHelper");
+
+namespace ns3 {
 
 BriteTopologyHelper::BriteTopologyHelper (std::string confFile,
                                           std::string seedFile,
@@ -353,7 +353,7 @@ void BriteTopologyHelper::GenerateBriteTopology (void)
   BuildBriteNodeInfoList ();
   BuildBriteEdgeInfoList ();
 
-  //brite automatically spits out the seed values used to a separate file so no need to keep this anymore
+  //brite automatically spits out the seed values used to a seperate file so no need to keep this anymore
   if (generateSeedFile)
     {
       remove ("briteSeedFile.txt");
@@ -456,7 +456,7 @@ BriteTopologyHelper::ConstructTopology ()
       // Set the link delay
       // The brite value for delay is given in milliseconds
       m_britePointToPointHelper.SetChannelAttribute ("Delay",
-                                                     TimeValue (Seconds ((*it).delay/1000.0)));
+                                                     TimeValue (MilliSeconds ((*it).delay)));
 
       // The brite value for data rate is given in Mbps
       m_britePointToPointHelper.SetDeviceAttribute ("DataRate",

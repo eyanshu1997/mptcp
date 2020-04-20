@@ -47,10 +47,6 @@ public:
   TraceFadingLossModel ();
   virtual ~TraceFadingLossModel ();
 
-  /**
-   * \brief Get the type ID.
-   * \return the object TypeId
-   */
   static TypeId GetTypeId ();
   
   virtual void DoInitialize (void);
@@ -92,25 +88,16 @@ private:
   */
   double GetValue (int subChannel, double speed);
   
-  /**
-  * \brief Set the trace file name
-  * \param fileName the trace file
-  */
   void SetTraceFileName (std::string fileName);
-  /**
-  * \brief Set the trace time
-  * \param t the trace time
-  */
   void SetTraceLength (Time t);
   
-  /// Load trace function
   void LoadTrace ();
 
 
    
-  mutable std::map <ChannelRealizationId_t, int > m_windowOffsetsMap; ///< windows offsets map
+  mutable std::map <ChannelRealizationId_t, int > m_windowOffsetsMap;
   
-  mutable std::map <ChannelRealizationId_t, Ptr<UniformRandomVariable> > m_startVariableMap; ///< start variable map
+  mutable std::map <ChannelRealizationId_t, Ptr<UniformRandomVariable> > m_startVariableMap;
   
   /**
    * Vector with fading samples in time domain (for a fixed RB)
@@ -123,21 +110,21 @@ private:
 
 
   
-  std::string m_traceFile; ///< the trace file name
+  std::string m_traceFile;
   
-  FadingTrace m_fadingTrace; ///< fading trace
+  FadingTrace m_fadingTrace;
 
   
-  Time m_traceLength; ///< the trace time
-  uint32_t m_samplesNum; ///< number of samples
-  Time m_windowSize; ///< window size
-  uint8_t m_rbNum; ///< RB number
-  mutable Time m_lastWindowUpdate; ///< time of last window update
-  uint8_t m_timeGranularity; ///< time granularity
-  mutable uint64_t m_currentStream; ///< the current stream
-  mutable uint64_t m_lastStream; ///< the last stream
-  uint64_t m_streamSetSize; ///< stream set size
-  mutable bool m_streamsAssigned; ///< is streams assigned?
+  Time m_traceLength;
+  uint32_t m_samplesNum;
+  Time m_windowSize;
+  uint8_t m_rbNum;
+  mutable Time m_lastWindowUpdate;
+  uint8_t m_timeGranularity;
+  mutable uint64_t m_currentStream;
+  mutable uint64_t m_lastStream;
+  uint64_t m_streamSetSize;
+  mutable bool m_streamsAssigned;
   
 };
 

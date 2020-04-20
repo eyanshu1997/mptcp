@@ -36,17 +36,11 @@ namespace ns3 {
  */
 class LtePdcp : public Object // SimpleRefCount<LtePdcp>
 {
-  /// allow LtePdcpSpecificLteRlcSapUser class friend access
   friend class LtePdcpSpecificLteRlcSapUser;
-  /// allow LtePdcpSpecificLtePdcpSapProvider<LtePdcp> class friend access
   friend class LtePdcpSpecificLtePdcpSapProvider<LtePdcp>;
 public:
   LtePdcp ();
   virtual ~LtePdcp ();
-  /**
-   * \brief Get the type ID.
-   * \return the object TypeId
-   */
   static TypeId GetTypeId (void);
   virtual void DoDispose ();
 
@@ -92,11 +86,11 @@ public:
    */
   LteRlcSapUser* GetLteRlcSapUser ();
 
-  /// maximum PDCP SN
   static const uint16_t MAX_PDCP_SN = 4096;
 
   /**
    * Status variables of the PDCP
+   * 
    */
   struct Status
   {
@@ -117,53 +111,21 @@ public:
    */
   void SetStatus (Status s);
 
-  /**
-   * TracedCallback for PDU transmission event.
-   *
-   * \param [in] rnti The C-RNTI identifying the UE.
-   * \param [in] lcid The logical channel id corresponding to
-   *             the sending RLC instance.
-   * \param [in] size Packet size.
-   */
-  typedef void (* PduTxTracedCallback)
-    (uint16_t rnti, uint8_t lcid, uint32_t size);
-
-  /**
-   * TracedCallback signature for PDU receive event.
-   *
-   * \param [in] rnti The C-RNTI identifying the UE.
-   * \param [in] lcid The logical channel id corresponding to
-   *             the sending RLC instance.
-   * \param [in] size Packet size.
-   * \param [in] delay Delay since packet sent, in ns..
-   */
-  typedef void (* PduRxTracedCallback)
-    (const uint16_t rnti, const uint8_t lcid,
-     const uint32_t size, const uint64_t delay);
-
 protected:
-  /**
-   * Interface provided to upper RRC entity
-   *
-   * \param p packet
-   */
+  // Interface provided to upper RRC entity
   virtual void DoTransmitPdcpSdu (Ptr<Packet> p);
 
-  LtePdcpSapUser* m_pdcpSapUser; ///< PDCP SAP user
-  LtePdcpSapProvider* m_pdcpSapProvider; ///< PDCP SAP provider
+  LtePdcpSapUser* m_pdcpSapUser;
+  LtePdcpSapProvider* m_pdcpSapProvider;
 
-  /**
-   * Interface provided to lower RLC entity
-   *
-   * \param p packet
-   */
+  // Interface provided to lower RLC entity
   virtual void DoReceivePdu (Ptr<Packet> p);
 
-  LteRlcSapUser* m_rlcSapUser; ///< RLC SAP user 
-  LteRlcSapProvider* m_rlcSapProvider; ///< RLC SAP provider
+  LteRlcSapUser* m_rlcSapUser;
+  LteRlcSapProvider* m_rlcSapProvider;
 
-  uint16_t m_rnti; ///< RNTI
-  uint8_t m_lcid; ///< LCID
+  uint16_t m_rnti;
+  uint8_t m_lcid;
 
   /**
    * Used to inform of a PDU delivery to the RLC SAP provider.
@@ -181,9 +143,6 @@ private:
    * State variables. See section 7.1 in TS 36.323
    */
   uint16_t m_txSequenceNumber;
-  /**
-   * State variables. See section 7.1 in TS 36.323
-   */
   uint16_t m_rxSequenceNumber;
 
   /**

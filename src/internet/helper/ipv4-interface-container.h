@@ -1,23 +1,3 @@
-/* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
-/*
- * Copyright (c) 2008 INRIA
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation;
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- *
- * Author: Mathieu Lacage <mathieu.lacage@cutebugs.net>
- */
-
 #ifndef IPV4_INTERFACE_CONTAINER_H
 #define IPV4_INTERFACE_CONTAINER_H
 
@@ -29,8 +9,6 @@
 namespace ns3 {
 
 /**
- * \ingroup ipv4
- *
  * \brief holds a vector of std::pair of Ptr<Ipv4> and interface index.
  *
  * Typically ns-3 Ipv4Interfaces are installed on devices using an Ipv4 address
@@ -68,7 +46,7 @@ public:
    * Concatenate the entries in the other container with ours.
    * \param other container
    */
-  void Add (const Ipv4InterfaceContainer& other);
+  void Add (Ipv4InterfaceContainer other);
 
   /**
    * \brief Get an iterator which refers to the first pair in the 
@@ -162,6 +140,8 @@ public:
    *
    * \param ipv4 pointer to Ipv4 object
    * \param interface interface index of the Ipv4Interface to add to the container
+   *
+   * @see Ipv4InterfaceContainer
    */
   void Add (Ptr<Ipv4> ipv4, uint32_t interface);
 
@@ -170,6 +150,8 @@ public:
    * entry std::pair.
    *
    * \param ipInterfacePair the pair of a pointer to Ipv4 object and interface index of the Ipv4Interface to add to the container
+   *
+   * @see Ipv4InterfaceContainer
    */
   void Add (std::pair<Ptr<Ipv4>, uint32_t> ipInterfacePair);
 
@@ -180,6 +162,8 @@ public:
    * \param ipv4Name std:string referring to the saved name of an Ipv4 Object that
    *        has been previously named using the Object Name Service.
    * \param interface interface index of the Ipv4Interface to add to the container
+   *
+   * @see Ipv4InterfaceContainer
    */
   void Add (std::string ipv4Name, uint32_t interface);
 
@@ -187,32 +171,22 @@ public:
    * Get the std::pair of an Ptr<Ipv4> and interface stored at the location 
    * specified by the index.
    *
-   * \param i the index of the container entry to retrieve.
-   * \return the std::pair of a Ptr<Ipv4> and an interface index
+   * \param i the index of the entry to retrieve.
+   * \return the Ipv4InterfaceContainer
    *
-   * \note The returned Ptr<Ipv4> cannot be used directly to fetch the
-   *       Ipv4Interface using the returned index (the GetInterface () method
-   *       is provided in class Ipv4L3Protocol, and not class Ipv4). An
-   *       example usage is provided below.
-   *
-   * \code
-   *   Ipv4InterfaceContainer c;
-   *   ...
-   *   std::pair<Ptr<Ipv4>, uint32_t> returnValue = c.Get (0);
-   *   Ptr<Ipv4> ipv4 = returnValue.first;
-   *   uint32_t index = returnValue.second;
-   *   Ptr<Ipv4Interface> iface =  ipv4->GetObject<Ipv4L3Protocol> ()->GetInterface (index);
-   * \endcode
+   * @see Ipv4InterfaceContainer
    */
   std::pair<Ptr<Ipv4>, uint32_t> Get (uint32_t i) const;
 
 private:
   /**
+   * \internal
    * \brief Container for pairs of Ipv4 smart pointer / Interface Index.
    */
   typedef std::vector<std::pair<Ptr<Ipv4>,uint32_t> > InterfaceVector;
 
   /**
+   * \internal
    * \brief List of IPv4 stack and interfaces index.
    */
   InterfaceVector m_interfaces;

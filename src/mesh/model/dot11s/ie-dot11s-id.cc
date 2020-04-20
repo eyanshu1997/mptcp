@@ -52,7 +52,7 @@ IeMeshId::IeMeshId (std::string s)
 WifiInformationElementId
 IeMeshId::ElementId () const
 {
-  return IE_MESH_ID;
+  return IE11S_MESH_ID;
 }
 bool
 IeMeshId::IsEqual (IeMeshId const &o) const
@@ -115,7 +115,9 @@ IeMeshId::DeserializeInformationField (Buffer::Iterator start, uint8_t length)
 void
 IeMeshId::Print (std::ostream& os) const
 {
-  os << "MeshId=(meshId=" << PeekString () << ")";
+  os << std::endl << "<information_element id=" << ElementId () << ">" << std::endl;
+  os << "meshId =  " << PeekString ();
+  os << "</information_element>" << std::endl;
 }
 bool
 operator== (const IeMeshId & a, const IeMeshId & b)

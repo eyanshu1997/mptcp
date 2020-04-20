@@ -41,22 +41,21 @@ namespace ns3 {
 class NoOpHandoverAlgorithm : public LteHandoverAlgorithm
 {
 public:
-  /// Creates a No-op handover algorithm instance.
+  /**
+   * \brief Creates a No-op handover algorithm instance.
+   */
   NoOpHandoverAlgorithm ();
 
   virtual ~NoOpHandoverAlgorithm ();
 
-  /**
-   * \brief Get the type ID.
-   * \return the object TypeId
-   */
+  // inherited from Object
   static TypeId GetTypeId ();
 
   // inherited from LteHandoverAlgorithm
   virtual void SetLteHandoverManagementSapUser (LteHandoverManagementSapUser* s);
   virtual LteHandoverManagementSapProvider* GetLteHandoverManagementSapProvider ();
 
-  /// let the forwarder class access the protected and private members
+  // let the forwarder class access the protected and private members
   friend class MemberLteHandoverManagementSapProvider<NoOpHandoverAlgorithm>;
 
 protected:
@@ -68,9 +67,8 @@ protected:
   void DoReportUeMeas (uint16_t rnti, LteRrcSap::MeasResults measResults);
 
 private:
-  /// Interface to the eNodeB RRC instance.
+  // Handover Management SAPs
   LteHandoverManagementSapUser* m_handoverManagementSapUser;
-  /// Receive API calls from the eNodeB RRC instance.
   LteHandoverManagementSapProvider* m_handoverManagementSapProvider;
 
 }; // end of class NoOpHandoverAlgorithm

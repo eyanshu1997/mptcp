@@ -312,7 +312,8 @@ OfdmDlBurstProfile::Read (Buffer::Iterator start)
 
 // ----------------------------------------------------------------------------------------------------------
 
-NS_OBJECT_ENSURE_REGISTERED (Dcd);
+NS_OBJECT_ENSURE_REGISTERED (Dcd)
+  ;
 
 Dcd::Dcd (void)
   : m_reserved (0),
@@ -384,7 +385,6 @@ Dcd::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::Dcd")
     .SetParent<Header> ()
-    .SetGroupName("Wimax")
     .AddConstructor<Dcd> ()
   ;
   return tid;
@@ -545,7 +545,8 @@ OfdmDlMapIe::Read (Buffer::Iterator start)
 
 // ----------------------------------------------------------------------------------------------------------
 
-NS_OBJECT_ENSURE_REGISTERED (DlMap);
+NS_OBJECT_ENSURE_REGISTERED (DlMap)
+  ;
 
 DlMap::DlMap (void)
   : m_dcdCount (0),
@@ -604,7 +605,6 @@ DlMap::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::DlMap")
     .SetParent<Header> ()
-    .SetGroupName("Wimax")
     .AddConstructor<DlMap> ()
   ;
   return tid;

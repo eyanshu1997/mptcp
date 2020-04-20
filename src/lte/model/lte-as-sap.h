@@ -56,7 +56,7 @@ public:
    *
    * \param dlEarfcn the downlink carrier frequency (EARFCN)
    */
-  virtual void StartCellSelection (uint32_t dlEarfcn) = 0;
+  virtual void StartCellSelection (uint16_t dlEarfcn) = 0;
 
   /** 
    * \brief Force the RRC entity to stay camped on a certain eNodeB.
@@ -64,7 +64,7 @@ public:
    * \param cellId the cell ID identifying the eNodeB
    * \param dlEarfcn the downlink carrier frequency (EARFCN)
    */
-  virtual void ForceCampedOnEnb (uint16_t cellId, uint32_t dlEarfcn) = 0;
+  virtual void ForceCampedOnEnb (uint16_t cellId, uint16_t dlEarfcn) = 0;
 
   /**
    * \brief Tell the RRC entity to enter Connected mode.
@@ -147,24 +147,19 @@ template <class C>
 class MemberLteAsSapProvider : public LteAsSapProvider
 {
 public:
-  /**
-   * Constructor
-   *
-   * \param owner the owner class
-   */
   MemberLteAsSapProvider (C* owner);
 
   // inherited from LteAsSapProvider
   virtual void SetCsgWhiteList (uint32_t csgId);
-  virtual void StartCellSelection (uint32_t dlEarfcn);
-  virtual void ForceCampedOnEnb (uint16_t cellId, uint32_t dlEarfcn);
+  virtual void StartCellSelection (uint16_t dlEarfcn);
+  virtual void ForceCampedOnEnb (uint16_t cellId, uint16_t dlEarfcn);
   virtual void Connect (void);
   virtual void SendData (Ptr<Packet> packet, uint8_t bid);
   virtual void Disconnect ();
 
 private:
   MemberLteAsSapProvider ();
-  C* m_owner; ///< the owner class
+  C* m_owner;
 };
 
 template <class C>
@@ -187,14 +182,14 @@ MemberLteAsSapProvider<C>::SetCsgWhiteList (uint32_t csgId)
 
 template <class C>
 void
-MemberLteAsSapProvider<C>::StartCellSelection (uint32_t dlEarfcn)
+MemberLteAsSapProvider<C>::StartCellSelection (uint16_t dlEarfcn)
 {
   m_owner->DoStartCellSelection (dlEarfcn);
 }
 
 template <class C>
 void
-MemberLteAsSapProvider<C>::ForceCampedOnEnb (uint16_t cellId, uint32_t dlEarfcn)
+MemberLteAsSapProvider<C>::ForceCampedOnEnb (uint16_t cellId, uint16_t dlEarfcn)
 {
   m_owner->DoForceCampedOnEnb (cellId, dlEarfcn);
 }
@@ -230,11 +225,6 @@ template <class C>
 class MemberLteAsSapUser : public LteAsSapUser
 {
 public:
-  /**
-   * Constructor
-   *
-   * \param owner the owner class
-   */
   MemberLteAsSapUser (C* owner);
 
   // inherited from LteAsSapUser
@@ -245,7 +235,7 @@ public:
 
 private:
   MemberLteAsSapUser ();
-  C* m_owner; ///< the owner class
+  C* m_owner;
 };
 
 template <class C>

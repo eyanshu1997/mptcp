@@ -52,13 +52,10 @@
 
 using namespace ns3;
 
-/**
- * Struct holding IPv6 address data
- */
 struct in6_ifreq {
-  struct in6_addr ifr6_addr;      //!< IPv6 address
-  uint32_t        ifr6_prefixlen; //!< IPv6 prefix length
-  int32_t         ifr6_ifindex;   //!< interface index
+  struct in6_addr ifr6_addr;
+  uint32_t        ifr6_prefixlen;
+  int32_t         ifr6_ifindex;
 };
 
 char
@@ -121,7 +118,7 @@ SetIpv4 (const char *deviceName, const char *ip, const char *netmask)
   // Set the IP address of the new interface/device.
   //
   memset(&ifr,  0, sizeof(struct ifreq));
-  strncpy(ifr.ifr_name, deviceName, IFNAMSIZ - 1);
+  strncpy(ifr.ifr_name, deviceName, IFNAMSIZ);
 
   sin = (struct sockaddr_in*) &ifr.ifr_addr;
   inet_pton(AF_INET, ip, &sin->sin_addr);
@@ -136,7 +133,7 @@ SetIpv4 (const char *deviceName, const char *ip, const char *netmask)
   // Set the net mask of the new interface/device
   //
   memset(&ifr,  0, sizeof(struct ifreq));
-  strncpy(ifr.ifr_name, deviceName, IFNAMSIZ - 1);
+  strncpy(ifr.ifr_name, deviceName, IFNAMSIZ);
 
   sin = (struct sockaddr_in*) &ifr.ifr_netmask;
   inet_pton(AF_INET, netmask, &sin->sin_addr);
@@ -158,7 +155,7 @@ SetIpv6 (const char* deviceName, const char *ip, int netprefix)
 
   int sock = socket(AF_INET6, SOCK_DGRAM, 0);
   memset(&ifr,  0, sizeof(struct ifreq));
-  strncpy(ifr.ifr_name, deviceName, IFNAMSIZ - 1);
+  strncpy(ifr.ifr_name, deviceName, IFNAMSIZ);
 
   ABORT_IF (ioctl (sock, SIOGIFINDEX, &ifr) == -1, 
           "Could not get interface index", true);
@@ -206,7 +203,7 @@ SetUp (char *deviceName)
   int sock = socket(AF_INET, SOCK_DGRAM, 0);
 
   memset(&ifr,  0, sizeof(struct ifreq));
-  strncpy(ifr.ifr_name, deviceName, IFNAMSIZ - 1);
+  strncpy(ifr.ifr_name, deviceName, IFNAMSIZ);
 
   ABORT_IF (ioctl (sock, SIOCGIFFLAGS, &ifr) == -1, 
           "Could not get flags for interface", true);
@@ -248,7 +245,7 @@ CreateTap (char *deviceName, const char *mac, const int ifftap, const int iffpi,
   //
   if (*deviceName) 
     {
-       strncpy(ifr.ifr_name, deviceName, IFNAMSIZ - 1);
+       strncpy(ifr.ifr_name, deviceName, IFNAMSIZ);
     }
 
   

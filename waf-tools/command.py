@@ -21,8 +21,8 @@ class command_task(Task.Task):
 	def __str__(self):
 		"string to display to the user"
 		env = self.env
-		src_str = ' '.join([a.bldpath() for a in self.inputs])
-		tgt_str = ' '.join([a.bldpath() for a in self.outputs])
+		src_str = ' '.join([a.nice_path(env) for a in self.inputs])
+		tgt_str = ' '.join([a.nice_path(env) for a in self.outputs])
 		if self.outputs:
 			sep = ' -> '
 		else:
@@ -31,7 +31,7 @@ class command_task(Task.Task):
 		pipeline = shellcmd.Pipeline()
 		pipeline.parse(self.generator.command)
 		cmd = pipeline.get_abbreviated_command()
-		return 'command (%s): %s%s%s' % (cmd, src_str, sep, tgt_str)
+		return 'command (%s): %s%s%s\n' % (cmd, src_str, sep, tgt_str)
 
 	def _subst_arg(self, arg, direction, namespace):
 		"""
@@ -80,17 +80,17 @@ class command_task(Task.Task):
 		namespace.update(env=self.env, SRC=self.inputs, TGT=self.outputs)
 		for cmd in pipeline.pipeline:
 			if isinstance(cmd, shellcmd.Command):
-				if isinstance(cmd.stdin, str):
+				if isinstance(cmd.stdin, basestring):
 					cmd.stdin = self._subst_arg(cmd.stdin, 'in', namespace)
-				if isinstance(cmd.stdout, str):
+				if isinstance(cmd.stdout, basestring):
 					cmd.stdout = self._subst_arg(cmd.stdout, 'out', namespace)
-				if isinstance(cmd.stderr, str):
+				if isinstance(cmd.stderr, basestring):
 					cmd.stderr = self._subst_arg(cmd.stderr, 'out', namespace)
-				for argI in range(len(cmd.argv)):
+				for argI in xrange(len(cmd.argv)):
 					cmd.argv[argI] = self._subst_arg(cmd.argv[argI], None, namespace)
 				if cmd.env_vars is not None:
 					env_vars = dict()
-					for name, value in cmd.env_vars.items():
+					for name, value in cmd.env_vars.iteritems():
 						env_vars[name] = self._subst_arg(value, None, namespace)
 					cmd.env_vars = env_vars
 			elif isinstance(cmd, shellcmd.Chdir):

@@ -26,11 +26,12 @@
 #include "ethernet-header.h"
 #include "address-utils.h"
 
-namespace ns3 {
-
 NS_LOG_COMPONENT_DEFINE ("EthernetHeader");
 
-NS_OBJECT_ENSURE_REGISTERED (EthernetHeader);
+namespace ns3 {
+
+NS_OBJECT_ENSURE_REGISTERED (EthernetHeader)
+  ;
 
 EthernetHeader::EthernetHeader (bool hasPreamble)
   : m_enPreambleSfd (hasPreamble),
@@ -118,7 +119,6 @@ EthernetHeader::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::EthernetHeader")
     .SetParent<Header> ()
-    .SetGroupName("Network")
     .AddConstructor<EthernetHeader> ()
   ;
   return tid;

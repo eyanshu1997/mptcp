@@ -31,17 +31,17 @@
 #include "burst-profile-manager.h"
 #include "service-flow-manager.h"
 
-namespace ns3 {
-
 NS_LOG_COMPONENT_DEFINE ("SSLinkManager");
 
-NS_OBJECT_ENSURE_REGISTERED (SSLinkManager);
+namespace ns3 {
+
+NS_OBJECT_ENSURE_REGISTERED (SSLinkManager)
+  ;
 
 TypeId SSLinkManager::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::SSLinkManager")
-    .SetParent<Object> ()
-    .SetGroupName("Wimax");
+    .SetParent<Object> ();
   return tid;
 }
 
@@ -441,7 +441,7 @@ SSLinkManager::DeleteUplinkParameters (void)
 bool
 SSLinkManager::IsUlChannelUsable (void)
 {
-  // don't know how to check if usable, see Figure 58.
+  // dont know how to check if usable, see Figure 58.
   return true; // temporarily assuming usable
 }
 
@@ -466,7 +466,7 @@ SSLinkManager::AdjustRangingParameters (const RngRsp &rngrsp)
 void
 SSLinkManager::NegotiateBasicCapabilities (void)
 {
-  // code to nagotiate basic capabilities goes here, ignored until very advanced stages
+  // code to nagotiate basic capabilites goes here, ignored until very advanced stages
 }
 
 uint16_t
@@ -490,7 +490,7 @@ SSLinkManager::CalculateMaxIRSignalStrength (void)
 uint16_t
 SSLinkManager::GetMinTransmitPowerLevel (void)
 {
-  // code to calculate minimum transmit power level of the SS, see page 189 of amendment
+  // code to calculate minimum transmit power level of the SS, see page 189 of ammendment
   return 10; // temp
 }
 

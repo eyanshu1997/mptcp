@@ -36,44 +36,43 @@
 #include "ns3/socket.h"
 #include "ns3/log.h"
 
+NS_LOG_COMPONENT_DEFINE ("PassiveBuffer");
+
 namespace ns3 {
-
-NS_LOG_COMPONENT_DEFINE ("DsrPassiveBuffer");
-
 namespace dsr {
 
-NS_OBJECT_ENSURE_REGISTERED (DsrPassiveBuffer);
+NS_OBJECT_ENSURE_REGISTERED (PassiveBuffer)
+  ;
 
-TypeId DsrPassiveBuffer::GetTypeId ()
+TypeId PassiveBuffer::GetTypeId ()
 {
-  static TypeId tid = TypeId ("ns3::dsr::DsrPassiveBuffer")
+  static TypeId tid = TypeId ("ns3::dsr::PassiveBuffer")
     .SetParent<Object> ()
-    .SetGroupName ("Dsr")
-    .AddConstructor<DsrPassiveBuffer> ()
+    .AddConstructor<PassiveBuffer> ()
   ;
   return tid;
 }
 
-DsrPassiveBuffer::DsrPassiveBuffer ()
+PassiveBuffer::PassiveBuffer ()
 {
 }
 
-DsrPassiveBuffer::~DsrPassiveBuffer ()
+PassiveBuffer::~PassiveBuffer ()
 {
 }
 
 uint32_t
-DsrPassiveBuffer::GetSize ()
+PassiveBuffer::GetSize ()
 {
   Purge ();
   return m_passiveBuffer.size ();
 }
 
 bool
-DsrPassiveBuffer::Enqueue (DsrPassiveBuffEntry & entry)
+PassiveBuffer::Enqueue (PassiveBuffEntry & entry)
 {
   Purge ();
-  for (std::vector<DsrPassiveBuffEntry>::const_iterator i = m_passiveBuffer.begin (); i
+  for (std::vector<PassiveBuffEntry>::const_iterator i = m_passiveBuffer.begin (); i
        != m_passiveBuffer.end (); ++i)
     {
 //      NS_LOG_INFO ("packet id " << i->GetPacket ()->GetUid () << " " << entry.GetPacket ()->GetUid () << " source " << i->GetSource () << " " << entry.GetSource ()
@@ -104,9 +103,9 @@ DsrPassiveBuffer::Enqueue (DsrPassiveBuffEntry & entry)
 }
 
 bool
-DsrPassiveBuffer::AllEqual (DsrPassiveBuffEntry & entry)
+PassiveBuffer::AllEqual (PassiveBuffEntry & entry)
 {
-  for (std::vector<DsrPassiveBuffEntry>::iterator i = m_passiveBuffer.begin (); i
+  for (std::vector<PassiveBuffEntry>::iterator i = m_passiveBuffer.begin (); i
        != m_passiveBuffer.end (); ++i)
     {
 //      NS_LOG_INFO ("packet id " << i->GetPacket ()->GetUid () << " " << entry.GetPacket ()->GetUid () << " source " << i->GetSource () << " " << entry.GetSource ()
@@ -118,7 +117,7 @@ DsrPassiveBuffer::AllEqual (DsrPassiveBuffEntry & entry)
           && (i->GetDestination () == entry.GetDestination ()) && (i->GetIdentification () == entry.GetIdentification ()) && (i->GetFragmentOffset () == entry.GetFragmentOffset ())
           && (i->GetSegsLeft () == entry.GetSegsLeft () + 1))
         {
-          i = m_passiveBuffer.erase (i);   // Erase the same maintain buffer entry for the received packet
+          m_passiveBuffer.erase (i);   // Erase the same maintain buffer entry for the received packet
           return true;
         }
     }
@@ -126,18 +125,18 @@ DsrPassiveBuffer::AllEqual (DsrPassiveBuffEntry & entry)
 }
 
 bool
-DsrPassiveBuffer::Dequeue (Ipv4Address dst, DsrPassiveBuffEntry & entry)
+PassiveBuffer::Dequeue (Ipv4Address dst, PassiveBuffEntry & entry)
 {
   Purge ();
   /*
    * Dequeue the entry with destination address dst
    */
-  for (std::vector<DsrPassiveBuffEntry>::iterator i = m_passiveBuffer.begin (); i != m_passiveBuffer.end (); ++i)
+  for (std::vector<PassiveBuffEntry>::iterator i = m_passiveBuffer.begin (); i != m_passiveBuffer.end (); ++i)
     {
       if (i->GetDestination () == dst)
         {
           entry = *i;
-          i = m_passiveBuffer.erase (i);
+          m_passiveBuffer.erase (i);
           NS_LOG_DEBUG ("Packet size while dequeuing " << entry.GetPacket ()->GetSize ());
           return true;
         }
@@ -146,12 +145,12 @@ DsrPassiveBuffer::Dequeue (Ipv4Address dst, DsrPassiveBuffEntry & entry)
 }
 
 bool
-DsrPassiveBuffer::Find (Ipv4Address dst)
+PassiveBuffer::Find (Ipv4Address dst)
 {
   /*
    * Make sure if the send buffer contains entry with certain dst
    */
-  for (std::vector<DsrPassiveBuffEntry>::const_iterator i = m_passiveBuffer.begin (); i
+  for (std::vector<PassiveBuffEntry>::const_iterator i = m_passiveBuffer.begin (); i
        != m_passiveBuffer.end (); ++i)
     {
       if (i->GetDestination () == dst)
@@ -163,16 +162,10 @@ DsrPassiveBuffer::Find (Ipv4Address dst)
   return false;
 }
 
-/// IsExpired structure
 struct IsExpired
 {
-  /**
-   * Check for an expired entry
-   * \param e passive buffer entry
-   * \return true if equal
-   */
   bool
-  operator() (DsrPassiveBuffEntry const & e) const
+  operator() (PassiveBuffEntry const & e) const
   {
     // NS_LOG_DEBUG("Expire time for packet in req queue: "<<e.GetExpireTime ());
     return (e.GetExpireTime () < Seconds (0));
@@ -180,14 +173,14 @@ struct IsExpired
 };
 
 void
-DsrPassiveBuffer::Purge ()
+PassiveBuffer::Purge ()
 {
   /*
    * Purge the buffer to eliminate expired entries
    */
   NS_LOG_DEBUG ("The passive buffer size " << m_passiveBuffer.size ());
   IsExpired pred;
-  for (std::vector<DsrPassiveBuffEntry>::iterator i = m_passiveBuffer.begin (); i
+  for (std::vector<PassiveBuffEntry>::iterator i = m_passiveBuffer.begin (); i
        != m_passiveBuffer.end (); ++i)
     {
       if (pred (*i))
@@ -197,11 +190,11 @@ DsrPassiveBuffer::Purge ()
         }
     }
   m_passiveBuffer.erase (std::remove_if (m_passiveBuffer.begin (), m_passiveBuffer.end (), pred),
-                         m_passiveBuffer.end ());
+                       m_passiveBuffer.end ());
 }
 
 void
-DsrPassiveBuffer::Drop (DsrPassiveBuffEntry en, std::string reason)
+PassiveBuffer::Drop (PassiveBuffEntry en, std::string reason)
 {
   NS_LOG_LOGIC (reason << en.GetPacket ()->GetUid () << " " << en.GetDestination ());
 //  en.GetErrorCallback () (en.GetPacket (), en.GetDestination (),
@@ -210,7 +203,7 @@ DsrPassiveBuffer::Drop (DsrPassiveBuffEntry en, std::string reason)
 }
 
 void
-DsrPassiveBuffer::DropLink (DsrPassiveBuffEntry en, std::string reason)
+PassiveBuffer::DropLink (PassiveBuffEntry en, std::string reason)
 {
   NS_LOG_LOGIC (reason << en.GetPacket ()->GetUid () << " " << en.GetSource () << " " << en.GetNextHop ());
 //  en.GetErrorCallback () (en.GetPacket (), en.GetDestination (),

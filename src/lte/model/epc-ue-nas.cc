@@ -27,14 +27,15 @@
 #include "epc-ue-nas.h"
 #include "lte-as-sap.h"
 
-namespace ns3 {
-
 NS_LOG_COMPONENT_DEFINE ("EpcUeNas");
 
+namespace ns3 {
 
 
-/// Map each of UE NAS states to its string representation.
-static const std::string g_ueNasStateName[EpcUeNas::NUM_STATES] =
+
+
+
+const char* g_ueNasStateName[EpcUeNas::NUM_STATES] =
 {
   "OFF",
   "ATTACHING",
@@ -43,19 +44,16 @@ static const std::string g_ueNasStateName[EpcUeNas::NUM_STATES] =
   "ACTIVE"
 };
 
-/**
- * \param s The UE NAS state.
- * \return The string representation of the given state.
- */
-static inline const std::string & ToString (EpcUeNas::State s)
+std::string ToString (EpcUeNas::State s)
 {
-  return g_ueNasStateName[s];
+  return std::string (g_ueNasStateName[s]);
 }
 
 
 
 
-NS_OBJECT_ENSURE_REGISTERED (EpcUeNas);
+NS_OBJECT_ENSURE_REGISTERED (EpcUeNas)
+  ;
 
 EpcUeNas::EpcUeNas ()
   : m_state (OFF),
@@ -85,12 +83,10 @@ EpcUeNas::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::EpcUeNas")
     .SetParent<Object> ()
-    .SetGroupName("Lte")
     .AddConstructor<EpcUeNas> ()
     .AddTraceSource ("StateTransition",
                      "fired upon every UE NAS state transition",
-                     MakeTraceSourceAccessor (&EpcUeNas::m_stateTransitionCallback),
-                     "ns3::EpcUeNas::StateTracedCallback")
+                     MakeTraceSourceAccessor (&EpcUeNas::m_stateTransitionCallback))
   ;
   return tid;
 }
@@ -146,7 +142,7 @@ EpcUeNas::SetForwardUpCallback (Callback <void, Ptr<Packet> > cb)
 }
 
 void
-EpcUeNas::StartCellSelection (uint32_t dlEarfcn)
+EpcUeNas::StartCellSelection (uint16_t dlEarfcn)
 {
   NS_LOG_FUNCTION (this << dlEarfcn);
   m_asSapProvider->StartCellSelection (dlEarfcn);
@@ -162,7 +158,7 @@ EpcUeNas::Connect ()
 }
 
 void
-EpcUeNas::Connect (uint16_t cellId, uint32_t dlEarfcn)
+EpcUeNas::Connect (uint16_t cellId, uint16_t dlEarfcn)
 {
   NS_LOG_FUNCTION (this << cellId << dlEarfcn);
 
@@ -241,13 +237,17 @@ EpcUeNas::DoNotifyConnectionSuccessful ()
   SwitchToState (ACTIVE); // will eventually activate dedicated bearers
 }
 
-void
+void 
 EpcUeNas::DoNotifyConnectionFailed ()
 {
   NS_LOG_FUNCTION (this);
 
-  // immediately retry the connection
-  Simulator::ScheduleNow (&LteAsSapProvider::Connect, m_asSapProvider);
+  SwitchToState (OFF);
+  /**
+   * \todo Currently not implemented, action by NAS and upper layers after UE
+   *       fails to switch to CONNNECTED mode. Maybe a retry, or just stop here
+   *       and fire a trace to let user know.
+   */
 }
 
 void

@@ -231,9 +231,24 @@ private:
   //stores all of the nodes used in the BRITE generated topology
   NodeContainer m_nodes;
 
+  /**
+    * \internal
+    */
   void BuildBriteNodeInfoList (void);
+
+  /**
+    * \internal
+    */
   void BuildBriteEdgeInfoList (void);
+
+  /**
+    * \internal
+    */
   void ConstructTopology (void);
+
+  /**
+    * \internal
+    */
   void GenerateBriteTopology (void);
 
   /// brite configuration file to use

@@ -95,24 +95,6 @@ public:
   }
 
   /**
-   * \brief Handles energy recharged.
-   *
-   * Not implemented
-   */
-  virtual void HandleEnergyRecharged (void)
-  {
-  }
-
-  /**
-   * \brief Handles energy changed.
-   *
-   * Not implemented
-   */
-  virtual void HandleEnergyChanged (void)
-  {
-  }
-
-  /**
    * \param current the current draw of device.
    *
    * Set the actual current draw of the device.

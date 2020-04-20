@@ -37,7 +37,7 @@ namespace ns3 {
 
 /**
  *
- * This minimal SpectrumPhy implementation calculates the SINR with
+ * This minimal SpectrumPhy implemetation calculates the SINR with
  * respect to the strongest signal for a given point. The original
  * purpose of this class is to be used to generate a
  * Radio Environment Map (REM) by locating several instances in a grid
@@ -45,7 +45,7 @@ namespace ns3 {
  * amount of time. 
  *
  * The assumption on which this class works is that the system
- * being considered is an infrastructure radio access network using
+ * being considered is an infrastructured radio access network using
  * FDD, hence all signals will be transmitted simultaneously. 
  */
 class RemSpectrumPhy : public SpectrumPhy
@@ -57,10 +57,6 @@ public:
 
   // inherited from Object
   void DoDispose ();
-  /**
-   * \brief Get the type ID.
-   * \return the object TypeId
-   */
   static TypeId GetTypeId (void);
 
   // inherited from SpectrumPhy
@@ -68,7 +64,7 @@ public:
   void SetMobility (Ptr<MobilityModel> m);
   void SetDevice (Ptr<NetDevice> d);
   Ptr<MobilityModel> GetMobility ();
-  Ptr<NetDevice> GetDevice () const;
+  Ptr<NetDevice> GetDevice ();
   Ptr<const SpectrumModel> GetRxSpectrumModel () const;
   Ptr<AntennaModel> GetRxAntenna ();
   void StartRx (Ptr<SpectrumSignalParameters> params);
@@ -82,14 +78,13 @@ public:
 
   /** 
    * 
-   * \param noisePower the noise power
    * \return the Signal to Noise Ratio calculated 
    */
   double GetSinr (double noisePower);
 
-  /**
+  /** 
    * make StartRx a no-op from now on, and mark instance as inactive
-   *
+   * 
    */
   void Deactivate ();
 
@@ -105,31 +100,14 @@ public:
    */
   void Reset ();
 
-  /**
-   * set usage of DataChannel
-   *
-   * \param value if true, data channel signal will be processed, control signal otherwise
-   */
-  void SetUseDataChannel (bool value);
-
-  /**
-   * set RB Id
-   *
-   * \param rbId Resource Block Id which will be processed
-   */
-  void SetRbId (int32_t rbId);
-
 private:
-  Ptr<MobilityModel> m_mobility; ///< the mobility model
-  Ptr<const SpectrumModel> m_rxSpectrumModel; ///< receive spectrum model
+  Ptr<MobilityModel> m_mobility;
+  Ptr<const SpectrumModel> m_rxSpectrumModel;
 
-  double m_referenceSignalPower; ///< reference signal power
-  double m_sumPower; ///< sum power
+  double m_referenceSignalPower;
+  double m_sumPower;
 
-  bool m_active; ///< is active?
-
-  bool m_useDataChannel; ///< use data channel
-  int32_t m_rbId; ///< RBID
+  bool m_active;
 
 };
 

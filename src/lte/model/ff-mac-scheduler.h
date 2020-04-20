@@ -33,8 +33,6 @@ class FfMacCschedSapUser;
 class FfMacSchedSapUser;
 class FfMacCschedSapProvider;
 class FfMacSchedSapProvider;
-class LteFfrSapProvider;
-class LteFfrSapUser;
 
 /**
  * \ingroup lte
@@ -77,10 +75,6 @@ public:
 
   // inherited from Object
   virtual void DoDispose (void);
-  /**
-   * \brief Get the type ID.
-   * \return the object TypeId
-   */
   static TypeId GetTypeId (void);
 
   /**
@@ -112,25 +106,10 @@ public:
    */
   virtual FfMacSchedSapProvider* GetFfMacSchedSapProvider () = 0;
 
-  //FFR SAPs
-  /**
-   *
-   * Set the Provider part of the LteFfrSap that this Scheduler will
-   * interact with
-   *
-   * \param s
-   */
-  virtual void SetLteFfrSapProvider (LteFfrSapProvider* s) = 0;
-
-  /**
-   *
-   * \return the User part of the LteFfrSap provided by the FfrAlgorithm
-   */
-  virtual LteFfrSapUser* GetLteFfrSapUser () = 0;
   
 protected:
     
-  UlCqiFilter_t m_ulCqiFilter; ///< UL CQI filter
+  UlCqiFilter_t m_ulCqiFilter;
 
 };
 

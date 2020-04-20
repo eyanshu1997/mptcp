@@ -33,61 +33,32 @@
 namespace ns3 {
 
 
-/**
- * X2IfaceInfo
- */
 class X2IfaceInfo : public SimpleRefCount<X2IfaceInfo>
 {
 public:
-  /**
-   * Constructor
-   *
-   * \param remoteIpAddr remote IP address
-   * \param localCtrlPlaneSocket control plane socket
-   * \param localUserPlaneSocket user plane socket
-   */
   X2IfaceInfo (Ipv4Address remoteIpAddr, Ptr<Socket> localCtrlPlaneSocket, Ptr<Socket> localUserPlaneSocket);
   virtual ~X2IfaceInfo (void);
 
-  /**
-   * Assignment operator
-   *
-   * \returns X2IfaceInfo& 
-   */
   X2IfaceInfo& operator= (const X2IfaceInfo &);
 
 public:
-  Ipv4Address   m_remoteIpAddr; ///< remote IP address
-  Ptr<Socket>   m_localCtrlPlaneSocket; ///< local control plane socket
-  Ptr<Socket>   m_localUserPlaneSocket; ///< local user plane socket
+  Ipv4Address   m_remoteIpAddr;
+  Ptr<Socket>   m_localCtrlPlaneSocket;
+  Ptr<Socket>   m_localUserPlaneSocket;
 };
 
 
-/**
- * X2CellInfo
- */
 class X2CellInfo : public SimpleRefCount<X2CellInfo>
 {
 public:
-  /**
-   * Constructor
-   *
-   * \param localCellId local cell ID
-   * \param remoteCellId remote cell ID
-   */
   X2CellInfo (uint16_t localCellId, uint16_t remoteCellId);
   virtual ~X2CellInfo (void);
 
-  /**
-   * Assignment operator
-   *
-   * \returns X2CellInfo&  
-   */
   X2CellInfo& operator= (const X2CellInfo &);
 
 public:
-  uint16_t m_localCellId; ///< local cell ID
-  uint16_t m_remoteCellId; ///< remote cell ID
+  uint16_t m_localCellId;
+  uint16_t m_remoteCellId;
 };
 
 
@@ -98,7 +69,6 @@ public:
  */
 class EpcX2 : public Object
 {
-  /// allow EpcX2SpecificEpcX2SapProvider<EpcX2> class friend access
   friend class EpcX2SpecificEpcX2SapProvider<EpcX2>;
 
 public:
@@ -112,10 +82,6 @@ public:
    */
   virtual ~EpcX2 (void);
 
-  /**
-   * \brief Get the type ID.
-   * \return the object TypeId
-   */
   static TypeId GetTypeId (void);
   virtual void DoDispose (void);
 
@@ -161,50 +127,17 @@ public:
 
 protected:
   // Interface provided by EpcX2SapProvider
-  /**
-   * Send handover request function
-   * \param params the send handover request parameters
-   */
   virtual void DoSendHandoverRequest (EpcX2SapProvider::HandoverRequestParams params);
-  /**
-   * Send handover request ack function
-   * \param params the send handover request ack parameters
-   */
   virtual void DoSendHandoverRequestAck (EpcX2SapProvider::HandoverRequestAckParams params);
-  /**
-   * Send handover preparation failure function
-   * \param params the handover preparation failure parameters
-   */
   virtual void DoSendHandoverPreparationFailure (EpcX2SapProvider::HandoverPreparationFailureParams params);
-  /**
-   * Send SN status transfer function
-   * \param params the SN status transfer parameters 
-   */
   virtual void DoSendSnStatusTransfer (EpcX2SapProvider::SnStatusTransferParams params);
-  /**
-   * Send UE context release function
-   * \param params the UE context release parameters
-   */
   virtual void DoSendUeContextRelease (EpcX2SapProvider::UeContextReleaseParams params);
-  /**
-   * Send load information function
-   * \param params the send load information parameters
-   */
   virtual void DoSendLoadInformation (EpcX2SapProvider::LoadInformationParams params);
-  /**
-   * Send resource status update function
-   * \param params the send resource status update parameters
-   */
   virtual void DoSendResourceStatusUpdate (EpcX2SapProvider::ResourceStatusUpdateParams params);
-  /**
-   * Send UE data function
-   *
-   * \param params EpcX2SapProvider::UeDataParams
-   */
   virtual void DoSendUeData (EpcX2SapProvider::UeDataParams params);
 
-  EpcX2SapUser* m_x2SapUser; ///< X2 SAP user
-  EpcX2SapProvider* m_x2SapProvider; ///< X2 SAP provider
+  EpcX2SapUser* m_x2SapUser;
+  EpcX2SapProvider* m_x2SapProvider;
 
 
 private:
@@ -222,12 +155,9 @@ private:
   std::map < Ptr<Socket>, Ptr<X2CellInfo> > m_x2InterfaceCellIds;
 
   /**
-   * UDP ports to be used for the X2-C interface
+   * UDP ports to be used for the X2 interfaces: X2-C and X2-U
    */
   uint16_t m_x2cUdpPort;
-  /**
-   * UDP ports to be used for the X2-U interface
-   */
   uint16_t m_x2uUdpPort;
 
 };

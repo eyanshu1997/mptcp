@@ -25,18 +25,18 @@
 #include <sstream>
 #include <cmath>
 
-namespace ns3 {
-
 NS_LOG_COMPONENT_DEFINE ("Asn1Header");
 
-NS_OBJECT_ENSURE_REGISTERED (Asn1Header);
+namespace ns3 {
+
+NS_OBJECT_ENSURE_REGISTERED (Asn1Header)
+  ;
 
 TypeId
 Asn1Header::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::Asn1Header")
     .SetParent<Header> ()
-    .SetGroupName("Lte")
   ;
   return tid;
 }
@@ -270,11 +270,6 @@ void Asn1Header::SerializeSequence (std::bitset<6> optionalOrDefaultMask, bool i
   SerializeSequence<6> (optionalOrDefaultMask,isExtensionMarkerPresent);
 }
 
-void Asn1Header::SerializeSequence (std::bitset<7> optionalOrDefaultMask, bool isExtensionMarkerPresent) const
-{
-  SerializeSequence<7> (optionalOrDefaultMask,isExtensionMarkerPresent);
-}
-
 void Asn1Header::SerializeSequence (std::bitset<9> optionalOrDefaultMask, bool isExtensionMarkerPresent) const
 {
   SerializeSequence<9> (optionalOrDefaultMask,isExtensionMarkerPresent);
@@ -321,12 +316,17 @@ void Asn1Header::SerializeChoice (int numOptions, int selectedOption, bool isExt
 
 void Asn1Header::SerializeInteger (int n, int nmin, int nmax) const
 {
-  NS_ASSERT_MSG (nmin <= n && n <= nmax,
-                 "Integer " << n << " is outside range [" << nmin << ", " << nmax << "]");
+  // Misusage check: Ensure nmax>nmin ...
+  if (nmin > nmax)
+    {
+      int aux = nmin;
+      nmin = nmax;
+      nmax = aux;
+    }
 
   // Clause 11.5.3 ITU-T X.691
   int range = nmax - nmin + 1;
-  // Subtract nmin to n
+  // Substract nmin to n
   n -= nmin;
 
   // Clause 11.5.4 ITU-T X.691
@@ -725,11 +725,6 @@ Buffer::Iterator Asn1Header::DeserializeSequence (std::bitset<5> *optionalOrDefa
 Buffer::Iterator Asn1Header::DeserializeSequence (std::bitset<6> *optionalOrDefaultMask, bool isExtensionMarkerPresent, Buffer::Iterator bIterator)
 {
   return DeserializeSequence<6> (optionalOrDefaultMask,isExtensionMarkerPresent,bIterator);
-}
-
-Buffer::Iterator Asn1Header::DeserializeSequence (std::bitset<7> *optionalOrDefaultMask, bool isExtensionMarkerPresent, Buffer::Iterator bIterator)
-{
-  return DeserializeSequence<7> (optionalOrDefaultMask,isExtensionMarkerPresent,bIterator);
 }
 
 Buffer::Iterator Asn1Header::DeserializeSequence (std::bitset<9> *optionalOrDefaultMask, bool isExtensionMarkerPresent, Buffer::Iterator bIterator)

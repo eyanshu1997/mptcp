@@ -20,37 +20,17 @@
 #include "ns3/watchdog.h"
 #include "ns3/test.h"
 
-/**
- * \file
- * \ingroup core-tests
- * \ingroup timer
- * \ingroup timer-tests
- * Watchdog test suite.
- */
+using namespace ns3;
 
-namespace ns3 {
-
-  namespace tests {
-    
-
-/**
- * \ingroup timer-tests
- *  Watchdog test
- */
 class WatchdogTestCase : public TestCase
 {
 public:
-  /** Constructor. */
   WatchdogTestCase ();
   virtual void DoRun (void);
-  /**
-   * Function to invoke when Watchdog expires.
-   * \param arg The argument passed.
-   */
-  void Expire (int arg);
-  bool m_expired;         //!< Flag for expired Watchdog
-  Time m_expiredTime;     //!< Time when Watchdog expired
-  int  m_expiredArgument; //!< Argument supplied to expired Watchdog
+  void Expire (Time expected);
+  bool m_expired;
+  Time m_expiredTime;
+  Time m_expiredArgument;
 };
 
 WatchdogTestCase::WatchdogTestCase()
@@ -59,57 +39,41 @@ WatchdogTestCase::WatchdogTestCase()
 }
 
 void
-WatchdogTestCase::Expire (int arg)
+WatchdogTestCase::Expire (Time expected)
 {
   m_expired = true;
   m_expiredTime = Simulator::Now ();
-  m_expiredArgument = arg;
+  m_expiredArgument = expected;
 }
 
 void
 WatchdogTestCase::DoRun (void)
 {
   m_expired = false;
-  m_expiredArgument = 0;
+  m_expiredArgument = Seconds (0);
   m_expiredTime = Seconds (0);
-  
   Watchdog watchdog;
   watchdog.SetFunction (&WatchdogTestCase::Expire, this);
-  watchdog.SetArguments (1);
+  watchdog.SetArguments (MicroSeconds (40));
   watchdog.Ping (MicroSeconds (10));
-  Simulator::Schedule (MicroSeconds ( 5), &Watchdog::Ping, &watchdog, MicroSeconds (20));
-  Simulator::Schedule (MicroSeconds (20), &Watchdog::Ping, &watchdog, MicroSeconds ( 2));
+  Simulator::Schedule (MicroSeconds (5), &Watchdog::Ping, &watchdog, MicroSeconds (20));
+  Simulator::Schedule (MicroSeconds (20), &Watchdog::Ping, &watchdog, MicroSeconds (2));
   Simulator::Schedule (MicroSeconds (23), &Watchdog::Ping, &watchdog, MicroSeconds (17));
   Simulator::Run ();
   Simulator::Destroy ();
   NS_TEST_ASSERT_MSG_EQ (m_expired, true, "The timer did not expire ??");
   NS_TEST_ASSERT_MSG_EQ (m_expiredTime, MicroSeconds (40), "The timer did not expire at the expected time ?");
-  NS_TEST_ASSERT_MSG_EQ (m_expiredArgument, 1, "We did not get the right argument");
+  NS_TEST_ASSERT_MSG_EQ (m_expiredArgument, MicroSeconds (40), "We did not get the right argument");
 }
 
 
-/**
- * \ingroup timer-tests
- *  Watchdog test suite
- */
-class WatchdogTestSuite : public TestSuite
+
+static class WatchdogTestSuite : public TestSuite
 {
 public:
-  /** Constructor. */
   WatchdogTestSuite()
-    : TestSuite ("watchdog")
+    : TestSuite ("watchdog", UNIT)
   {
-    AddTestCase (new WatchdogTestCase ());
+    AddTestCase (new WatchdogTestCase (), TestCase::QUICK);
   }
-};
-
-/**
- * \ingroup timer-tests
- * WatchdogTestSuite instance variable.
- */
-static WatchdogTestSuite g_watchdogTestSuite;
-
-
-  }  // namespace tests
-
-}  // namespace ns3
+} g_watchdogTestSuite;

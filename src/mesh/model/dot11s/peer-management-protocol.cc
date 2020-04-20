@@ -33,23 +33,20 @@
 #include "ns3/wifi-net-device.h"
 #include "ns3/trace-source-accessor.h"
 
-namespace ns3 {
-
 NS_LOG_COMPONENT_DEFINE ("PeerManagementProtocol");
-  
+namespace ns3 {
 namespace dot11s {
-  
 /***************************************************
  * PeerManager
  ***************************************************/
-NS_OBJECT_ENSURE_REGISTERED (PeerManagementProtocol);
+NS_OBJECT_ENSURE_REGISTERED (PeerManagementProtocol)
+  ;
 
 TypeId
 PeerManagementProtocol::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::dot11s::PeerManagementProtocol")
     .SetParent<Object> ()
-    .SetGroupName ("Mesh")
     .AddConstructor<PeerManagementProtocol> ()
     // maximum number of peer links. Now we calculate the total
     // number of peer links on all interfaces
@@ -76,13 +73,11 @@ PeerManagementProtocol::GetTypeId (void)
                     )
     .AddTraceSource ("LinkOpen",
                      "New peer link opened",
-                     MakeTraceSourceAccessor (&PeerManagementProtocol::m_linkOpenTraceSrc),
-                     "ns3::PeerManagementProtocol::LinkOpenCloseTracedCallback"
+                     MakeTraceSourceAccessor (&PeerManagementProtocol::m_linkOpenTraceSrc)
                      )
     .AddTraceSource ("LinkClose",
                      "New peer link closed",
-                     MakeTraceSourceAccessor (&PeerManagementProtocol::m_linkCloseTraceSrc),
-                     "ns3::PeerManagementProtocol::LinkOpenCloseTracedCallback"
+                     MakeTraceSourceAccessor (&PeerManagementProtocol::m_linkCloseTraceSrc)
                      )
 
   ;
@@ -365,14 +360,14 @@ PeerManagementProtocol::IsActiveLink (uint32_t interface, Mac48Address peerAddre
 bool
 PeerManagementProtocol::ShouldSendOpen (uint32_t interface, Mac48Address peerAddress)
 {
-  return (m_stats.linksTotal < m_maxNumberOfPeerLinks);
+  return (m_stats.linksTotal <= m_maxNumberOfPeerLinks);
 }
 
 bool
 PeerManagementProtocol::ShouldAcceptOpen (uint32_t interface, Mac48Address peerAddress,
                                           PmpReasonCode & reasonCode)
 {
-  if (m_stats.linksTotal >= m_maxNumberOfPeerLinks)
+  if (m_stats.linksTotal > m_maxNumberOfPeerLinks)
     {
       reasonCode = REASON11S_MESH_MAX_PEERS;
       return false;
@@ -498,11 +493,9 @@ PeerManagementProtocol::PeerLinkStatus (uint32_t interface, Mac48Address peerAdd
 {
   PeerManagementProtocolMacMap::iterator plugin = m_plugins.find (interface);
   NS_ASSERT (plugin != m_plugins.end ());
-  NS_LOG_DEBUG ("Link between me:" << m_address << " my interface:" 
-                    << plugin->second->GetAddress ()
-                    << " and peer mesh point:" << peerMeshPointAddress << " and its interface:" << peerAddress
-                    << ", at my interface ID:" << interface << ". State movement:" << PeerLink::PeerStateNames[ostate] 
-                    << " -> " << PeerLink::PeerStateNames[nstate]);
+  NS_LOG_DEBUG ("Link between me:" << m_address << " my interface:" << plugin->second->GetAddress ()
+                                   << " and peer mesh point:" << peerMeshPointAddress << " and its interface:" << peerAddress
+                                   << ", at my interface ID:" << interface << ". State movement:" << ostate << " -> " << nstate);
   if ((nstate == PeerLink::ESTAB) && (ostate != PeerLink::ESTAB))
     {
       NotifyLinkOpen (peerMeshPointAddress, peerAddress, plugin->second->GetAddress (), interface);

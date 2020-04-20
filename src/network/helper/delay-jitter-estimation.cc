@@ -25,20 +25,10 @@
 
 namespace ns3 {
 
-/**
- * Tag to perform Delay and Jitter estimations
- *
- * The tag holds the packet's creation timestamp
- */
 class DelayJitterEstimationTimestampTag : public Tag
 {
 public:
   DelayJitterEstimationTimestampTag ();
-
-  /**
-   * \brief Get the type ID.
-   * \return the object TypeId
-   */
   static TypeId GetTypeId (void);
   virtual TypeId GetInstanceTypeId (void) const;
 
@@ -47,13 +37,9 @@ public:
   virtual void Deserialize (TagBuffer i);
   virtual void Print (std::ostream &os) const;
 
-  /**
-   * \brief Get the Transmission time stored in the tag
-   * \return the transmission time
-   */
   Time GetTxTime (void) const;
 private:
-  uint64_t m_creationTime; //!< The time stored in the tag
+  uint64_t m_creationTime;
 };
 
 DelayJitterEstimationTimestampTag::DelayJitterEstimationTimestampTag ()
@@ -66,7 +52,6 @@ DelayJitterEstimationTimestampTag::GetTypeId (void)
 {
   static TypeId tid = TypeId ("anon::DelayJitterEstimationTimestampTag")
     .SetParent<Tag> ()
-    .SetGroupName("Network")
     .AddConstructor<DelayJitterEstimationTimestampTag> ()
     .AddAttribute ("CreationTime",
                    "The time at which the timestamp was created",

@@ -33,18 +33,6 @@ SocketWriter::~SocketWriter ()
   m_node = 0;
 }
 
-/* static */
-TypeId
-SocketWriter::GetTypeId (void)
-{
-  static TypeId tid = TypeId ("ns3::SocketWriter")
-    .SetParent<Application> ()
-    .SetGroupName ("Stats")
-    .AddConstructor<SocketWriter> ()
-    ;
-  return tid;
-}
-  
 void
 SocketWriter::StartApplication ()
 {

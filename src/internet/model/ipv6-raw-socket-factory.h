@@ -29,7 +29,6 @@ namespace ns3
 class Socket;
 
 /**
- * \ingroup ipv6
  * \ingroup socket
  *
  * \brief API to create IPv6 RAW socket instances 

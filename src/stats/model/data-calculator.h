@@ -114,12 +114,6 @@ public:
   virtual ~DataCalculator();
 
   /**
-   * Register this type.
-   * \return The TypeId.
-   */
-  static TypeId GetTypeId (void);
-  
-  /**
    * Returns whether the DataCalculator is enabled
    * \return true if DataCalculator is enabled
    */

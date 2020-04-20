@@ -24,11 +24,12 @@
 #include "ns3/simulation-singleton.h"
 #include "ipv6-address-generator.h"
 
-namespace ns3 {
-
 NS_LOG_COMPONENT_DEFINE ("Ipv6AddressGenerator");
 
+namespace ns3 {
+
 /**
+ * \internal
  * \ingroup address
  *
  * \brief Implementation class of Ipv6AddressGenerator
@@ -44,6 +45,7 @@ public:
   virtual ~Ipv6AddressGeneratorImpl ();
 
   /**
+   * \internal
    * \brief Initialise the base network and interfaceId for the generator
    *
    * The first call to NextAddress() or GetAddress() will return the
@@ -57,6 +59,7 @@ public:
              const Ipv6Address interfaceId);
 
   /**
+   * \internal
    * \brief Get the next network according to the given Ipv6Prefix
    *
    * This operation is a pre-increment, meaning that the internal state
@@ -71,6 +74,7 @@ public:
   Ipv6Address NextNetwork (const Ipv6Prefix prefix);
 
   /**
+   * \internal
    * \brief Get the current network of the given Ipv6Prefix
    *
    * Does not change the internal state; this just peeks at the current
@@ -82,6 +86,7 @@ public:
   Ipv6Address GetNetwork (const Ipv6Prefix prefix) const;
 
   /**
+   * \internal
    * \brief Set the interfaceId for the given Ipv6Prefix
    *
    * \param interfaceId The interfaceId to set for the current Ipv6Prefix
@@ -90,6 +95,7 @@ public:
   void InitAddress (const Ipv6Address interfaceId, const Ipv6Prefix prefix);
 
   /**
+   * \internal
    * \brief Get the Ipv6Address that will be allocated upon NextAddress ()
    *
    * Does not change the internal state; just is used to peek the next
@@ -101,6 +107,7 @@ public:
   Ipv6Address GetAddress (const Ipv6Prefix prefix) const;
 
   /**
+   * \internal
    * \brief Allocate the next Ipv6Address for the configured network and prefix
    *
    * This operation is a post-increment, meaning that the first address
@@ -112,11 +119,13 @@ public:
   Ipv6Address NextAddress (const Ipv6Prefix prefix);
 
   /**
+   * \internal
    * \brief Reset the networks and Ipv6Address to zero
    */
   void Reset (void);
 
   /**
+   * \internal
    * \brief Add the Ipv6Address to the list of IPv6 entries
    *
    * Typically, this is used by external address allocators that want
@@ -129,32 +138,17 @@ public:
   bool AddAllocated (const Ipv6Address addr);
 
   /**
-   * \brief Check the Ipv6Address allocation in the list of IPv6 entries
-   *
-   * \param addr The Ipv6Address to be checked in the list of Ipv4 entries
-   * \returns true if the network is already allocated
-   */
-  bool IsAddressAllocated (const Ipv6Address addr);
-
-  /**
-   * \brief Check if a network has already allocated addresses
-   *
-   * \param addr The Ipv6 network to be checked
-   * \param prefix The Ipv6 network prefix
-   * \returns true if the network is already allocated
-   */
-  bool IsNetworkAllocated (const Ipv6Address addr, const Ipv6Prefix prefix);
-
-  /**
+   * \internal
    * \brief Used to turn off fatal errors and assertions, for testing
    */
   void TestMode (void);
 
 private:
-  static const uint32_t N_BITS = 128; //!< the number of bits in the address
-  static const uint32_t MOST_SIGNIFICANT_BIT = 0x80; //!< MSB set to 1
+  static const uint32_t N_BITS = 128; //!< /internal the number of bits in the address
+  static const uint32_t MOST_SIGNIFICANT_BIT = 0x80; //!< /internal MSB set to 1
 
   /**
+   * \internal
    * \brief Create an index number for the prefix
    * \param prefix the prefix to index
    * \returns an index
@@ -162,33 +156,35 @@ private:
   uint32_t PrefixToIndex (Ipv6Prefix prefix) const;
 
   /**
+   * \internal
    * \brief This class holds the state for a given network
    */
   class NetworkState
   {
 public:
-    uint8_t prefix[16];  //!< the network prefix
-    uint32_t shift;      //!< a shift
-    uint8_t network[16]; //!< the network
-    uint8_t addr[16];    //!< the address
-    uint8_t addrMax[16]; //!< the maximum address
+    uint8_t prefix[16];  //!< /internal the network prefix
+    uint32_t shift;      //!< /internal a shift
+    uint8_t network[16]; //!< /internal the network
+    uint8_t addr[16];    //!< /internal the address
+    uint8_t addrMax[16]; //!< /internal the maximum address
   };
 
-  NetworkState m_netTable[N_BITS]; //!< the available networks
+  NetworkState m_netTable[N_BITS]; //!< /internal the available networks
 
   /**
+   * \internal
    * \brief This class holds the allocated addresses
    */
   class Entry
   {
 public:
-    uint8_t addrLow[16];  //!< the lowest allocated address
-    uint8_t addrHigh[16]; //!< the highest allocated address
+    uint8_t addrLow[16];  //!< /internal the lowest allocated address
+    uint8_t addrHigh[16]; //!< /internal the highest allocated address
   };
 
-  std::list<Entry> m_entries; //!< contained of allocated addresses
-  Ipv6Address m_base; //!< base address
-  bool m_test; //!< test mode (if true)
+  std::list<Entry> m_entries; //!< /internal contained of allocated addresses
+  Ipv6Address m_base; //!< /internal base address
+  bool m_test; //!< /internal test mode (if true)
 };
 
 Ipv6AddressGeneratorImpl::Ipv6AddressGeneratorImpl ()
@@ -301,13 +297,17 @@ Ipv6AddressGeneratorImpl::GetNetwork (
   const Ipv6Prefix prefix) const
 {
   NS_LOG_FUNCTION (this);
-  uint8_t nw[16] = { 0 };
+  uint8_t nw[16];
   uint32_t index = PrefixToIndex (prefix);
   uint32_t a = m_netTable[index].shift / 8;
   uint32_t b = m_netTable[index].shift % 8;
   for (uint32_t j = 0; j < 16 - a; ++j)
     {
       nw[j] = m_netTable[index].network[j + a];
+    }
+  for (uint32_t j = 16 - a; j < 16; ++j)
+    {
+      nw[j] = 0;
     }
   for (uint32_t j = 0; j < 15; j++)
     {
@@ -393,12 +393,16 @@ Ipv6AddressGeneratorImpl::GetAddress (const Ipv6Prefix prefix) const
 
   uint32_t index = PrefixToIndex (prefix);
 
-  uint8_t nw[16] = { 0 };
+  uint8_t nw[16];
   uint32_t a = m_netTable[index].shift / 8;
   uint32_t b = m_netTable[index].shift % 8;
   for (uint32_t j = 0; j < 16 - a; ++j)
     {
       nw[j] = m_netTable[index].network[j + a];
+    }
+  for (uint32_t j = 16 - a; j < 16; ++j)
+    {
+      nw[j] = 0;
     }
   for (uint32_t j = 0; j < 15; j++)
     {
@@ -421,12 +425,16 @@ Ipv6AddressGeneratorImpl::NextAddress (const Ipv6Prefix prefix)
 
   uint32_t index = PrefixToIndex (prefix);
 
-  uint8_t ad[16] = { 0 };
+  uint8_t ad[16];
   uint32_t a = m_netTable[index].shift / 8;
   uint32_t b = m_netTable[index].shift % 8;
   for (uint32_t j = 0; j < 16 - a; ++j)
     {
       ad[j] = m_netTable[index].network[j + a];
+    }
+  for (uint32_t j = 16 - a; j < 16; ++j)
+    {
+      ad[j] = 0;
     }
   for (uint32_t j = 0; j < 15; j++)
     {
@@ -548,7 +556,7 @@ Ipv6AddressGeneratorImpl::AddAllocated (const Ipv6Address address)
       // couldn't have been extended to include this new address since the
       // code immediately above would have been executed and that next lower
       // block extended upward.  So we know it's safe to extend the current
-      // block down to include the new address.
+      // block down to includ the new address.
       //
       for (uint32_t j = 0; j < 16; j++)
         {
@@ -574,61 +582,6 @@ Ipv6AddressGeneratorImpl::AddAllocated (const Ipv6Address address)
   m_entries.insert (i, entry);
   return true;
 }
-
-bool
-Ipv6AddressGeneratorImpl::IsAddressAllocated (const Ipv6Address address)
-{
-  NS_LOG_FUNCTION (this << address);
-
-  uint8_t addr[16];
-  address.GetBytes (addr);
-
-  std::list<Entry>::iterator i;
-
-  for (i = m_entries.begin (); i != m_entries.end (); ++i)
-    {
-      NS_LOG_LOGIC ("examine entry: " << Ipv6Address ((*i).addrLow) <<
-                    " to " << Ipv6Address ((*i).addrHigh));
-
-      if (!(Ipv6Address (addr) < Ipv6Address ((*i).addrLow))
-          && ((Ipv6Address (addr) < Ipv6Address ((*i).addrHigh))
-              || (Ipv6Address (addr) == Ipv6Address ((*i).addrHigh))))
-        {
-          NS_LOG_LOGIC ("Ipv6AddressGeneratorImpl::IsAddressAllocated(): Address Collision: " << Ipv6Address (addr));
-          return false;
-        }
-    }
-  return true;
-}
-
-bool
-Ipv6AddressGeneratorImpl::IsNetworkAllocated (const Ipv6Address address, const Ipv6Prefix prefix)
-{
-  NS_LOG_FUNCTION (this << address << prefix);
-
-  Ipv6Address addr = address;
-  NS_ABORT_MSG_UNLESS (address == addr.CombinePrefix (prefix),
-                       "Ipv6AddressGeneratorImpl::IsNetworkAllocated(): network address and mask don't match " << address << " " << prefix);
-
-  std::list<Entry>::iterator i;
-
-  for (i = m_entries.begin (); i != m_entries.end (); ++i)
-    {
-      NS_LOG_LOGIC ("examine entry: " << Ipv6Address ((*i).addrLow) << " to " << Ipv6Address ((*i).addrHigh));
-      Ipv6Address low = Ipv6Address ((*i).addrLow);
-      Ipv6Address high = Ipv6Address ((*i).addrHigh);
-
-      if (address == low.CombinePrefix (prefix) || address == high.CombinePrefix (prefix))
-        {
-          NS_LOG_LOGIC ("Ipv6AddressGeneratorImpl::IsNetworkAllocated(): Network already allocated: " <<
-                        address << " " << low << "-" << high);
-          return false;
-        }
-
-    }
-  return true;
-}
-
 
 void
 Ipv6AddressGeneratorImpl::TestMode (void)
@@ -746,24 +699,6 @@ Ipv6AddressGenerator::AddAllocated (const Ipv6Address addr)
 
   return SimulationSingleton<Ipv6AddressGeneratorImpl>::Get ()
          ->AddAllocated (addr);
-}
-
-bool
-Ipv6AddressGenerator::IsAddressAllocated (const Ipv6Address addr)
-{
-  NS_LOG_FUNCTION_NOARGS ();
-
-  return SimulationSingleton<Ipv6AddressGeneratorImpl>::Get ()
-         ->IsAddressAllocated (addr);
-}
-
-bool
-Ipv6AddressGenerator::IsNetworkAllocated (const Ipv6Address addr, const Ipv6Prefix prefix)
-{
-  NS_LOG_FUNCTION_NOARGS ();
-
-  return SimulationSingleton<Ipv6AddressGeneratorImpl>::Get ()
-         ->IsNetworkAllocated (addr, prefix);
 }
 
 void

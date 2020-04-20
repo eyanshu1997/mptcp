@@ -36,42 +36,22 @@ namespace ns3 {
 class BridgeChannel : public Channel
 {
 public:
-  /**
-   * \brief Get the type ID.
-   * \return the object TypeId
-   */
   static TypeId GetTypeId (void);
   BridgeChannel ();
   virtual ~BridgeChannel ();
 
-  /**
-   * Adds a channel to the bridged pool
-   * \param bridgedChannel  the channel to add to the pool
-   */
   void AddChannel (Ptr<Channel> bridgedChannel);
 
   // virtual methods implementation, from Channel
-  virtual std::size_t GetNDevices (void) const;
-  virtual Ptr<NetDevice> GetDevice (std::size_t i) const;
+  virtual uint32_t GetNDevices (void) const;
+  virtual Ptr<NetDevice> GetDevice (uint32_t i) const;
 
 private:
 
-  /**
-   * \brief Copy constructor
-   *
-   * Defined and unimplemented to avoid misuse
-   */
   BridgeChannel (const BridgeChannel &);
-
-  /**
-   * \brief Copy constructor
-   *
-   * Defined and unimplemented to avoid misuse
-   * \returns
-   */
   BridgeChannel &operator = (const BridgeChannel &);
 
-  std::vector< Ptr<Channel> > m_bridgedChannels; //!< pool of bridged channels
+  std::vector< Ptr<Channel> > m_bridgedChannels;
 
 };
 

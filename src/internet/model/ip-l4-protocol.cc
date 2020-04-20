@@ -22,26 +22,25 @@
 // George F. Riley, Georgia Tech, Spring 2007
 
 #include "ip-l4-protocol.h"
-#include "ns3/integer.h"
+#include "ns3/uinteger.h"
 #include "ns3/log.h"
-
-namespace ns3 {
 
 NS_LOG_COMPONENT_DEFINE ("IpL4Protocol");
 
-NS_OBJECT_ENSURE_REGISTERED (IpL4Protocol);
+namespace ns3 {
+
+NS_OBJECT_ENSURE_REGISTERED (IpL4Protocol)
+  ;
 
 TypeId 
 IpL4Protocol::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::IpL4Protocol")
     .SetParent<Object> ()
-    .SetGroupName ("Internet")
-    .AddAttribute ("ProtocolNumber", "The IP protocol number.",
-                   TypeId::ATTR_GET,
-                   IntegerValue (0),
-                   MakeIntegerAccessor (&IpL4Protocol::GetProtocolNumber),
-                   MakeIntegerChecker<int> (0,255))
+    .AddAttribute ("ProtocolNumber", "The Ip protocol number.",
+                   UintegerValue (0),
+                   MakeUintegerAccessor (&IpL4Protocol::GetProtocolNumber),
+                   MakeUintegerChecker<int> ())
   ;
   return tid;
 }

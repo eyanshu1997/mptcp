@@ -16,14 +16,12 @@
 
 #include "ns3/core-module.h"
 
-using namespace ns3;
-
 NS_LOG_COMPONENT_DEFINE ("ScratchSimulator");
+
+using namespace ns3;
 
 int 
 main (int argc, char *argv[])
 {
   NS_LOG_UNCOND ("Scratch Simulator");
-  CommandLine cmd;
-  cmd.Parse (argc, argv);
 }

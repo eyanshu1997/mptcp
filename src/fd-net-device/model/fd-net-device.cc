@@ -40,9 +40,9 @@
 #include <arpa/inet.h>
 #include <net/ethernet.h>
 
-namespace ns3 {
-
 NS_LOG_COMPONENT_DEFINE ("FdNetDevice");
+
+namespace ns3 {
 
 FdNetDeviceFdReader::FdNetDeviceFdReader ()
   : m_bufferSize (65536) // Defaults to maximum TCP window size
@@ -52,7 +52,6 @@ FdNetDeviceFdReader::FdNetDeviceFdReader ()
 void
 FdNetDeviceFdReader::SetBufferSize (uint32_t bufferSize)
 {
-  NS_LOG_FUNCTION (this << bufferSize);
   m_bufferSize = bufferSize;
 }
 
@@ -71,18 +70,18 @@ FdReader::Data FdNetDeviceFdReader::DoRead (void)
       buf = 0;
       len = 0;
     }
-  NS_LOG_LOGIC ("Read " << len << " bytes on fd " << m_fd);
+
   return FdReader::Data (buf, len);
 }
 
-NS_OBJECT_ENSURE_REGISTERED (FdNetDevice);
+NS_OBJECT_ENSURE_REGISTERED (FdNetDevice)
+  ;
 
 TypeId
 FdNetDevice::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::FdNetDevice")
     .SetParent<NetDevice> ()
-    .SetGroupName ("FdNetDevice")
     .AddConstructor<FdNetDevice> ()
     .AddAttribute ("Address",
                    "The MAC address of this device.",
@@ -90,14 +89,12 @@ FdNetDevice::GetTypeId (void)
                    MakeMac48AddressAccessor (&FdNetDevice::m_address),
                    MakeMac48AddressChecker ())
     .AddAttribute ("Start",
-                   "The simulation time at which to spin up "
-                   "the device thread.",
+                   "The simulation time at which to spin up the device thread.",
                    TimeValue (Seconds (0.)),
                    MakeTimeAccessor (&FdNetDevice::m_tStart),
                    MakeTimeChecker ())
     .AddAttribute ("Stop",
-                   "The simulation time at which to tear down "
-                   "the device thread.",
+                   "The simulation time at which to tear down the device thread.",
                    TimeValue (Seconds (0.)),
                    MakeTimeAccessor (&FdNetDevice::m_tStop),
                    MakeTimeChecker ())
@@ -119,48 +116,34 @@ FdNetDevice::GetTypeId (void)
     // Trace sources at the "top" of the net device, where packets transition
     // to/from higher layers.  These points do not really correspond to the
     // MAC layer of the underlying operating system, but exist to provide
-    // a consistent tracing environment.  These trace hooks should really be
+    // a consitent tracing environment.  These trace hooks should really be
     // interpreted as the points at which a packet leaves the ns-3 environment
     // destined for the underlying operating system or vice-versa.
     //
     .AddTraceSource ("MacTx",
-                     "Trace source indicating a packet has "
-                     "arrived for transmission by this device",
-                     MakeTraceSourceAccessor (&FdNetDevice::m_macTxTrace),
-                     "ns3::Packet::TracedCallback")
+                     "Trace source indicating a packet has arrived for transmission by this device",
+                     MakeTraceSourceAccessor (&FdNetDevice::m_macTxTrace))
     .AddTraceSource ("MacTxDrop",
-                     "Trace source indicating a packet has "
-                     "been dropped by the device before transmission",
-                     MakeTraceSourceAccessor (&FdNetDevice::m_macTxDropTrace),
-                     "ns3::Packet::TracedCallback")
+                     "Trace source indicating a packet has been dropped by the device before transmission",
+                     MakeTraceSourceAccessor (&FdNetDevice::m_macTxDropTrace))
     .AddTraceSource ("MacPromiscRx",
-                     "A packet has been received by this device, "
-                     "has been passed up from the physical layer "
-                     "and is being forwarded up the local protocol stack.  "
-                     "This is a promiscuous trace,",
-                     MakeTraceSourceAccessor (&FdNetDevice::m_macPromiscRxTrace),
-                     "ns3::Packet::TracedCallback")
+                     "A packet has been received by this device, has been passed up from the physical layer "
+                     "and is being forwarded up the local protocol stack.  This is a promiscuous trace,",
+                     MakeTraceSourceAccessor (&FdNetDevice::m_macPromiscRxTrace))
     .AddTraceSource ("MacRx",
-                     "A packet has been received by this device, "
-                     "has been passed up from the physical layer "
-                     "and is being forwarded up the local protocol stack.  "
-                     "This is a non-promiscuous trace,",
-                     MakeTraceSourceAccessor (&FdNetDevice::m_macRxTrace),
-                     "ns3::Packet::TracedCallback")
+                     "A packet has been received by this device, has been passed up from the physical layer "
+                     "and is being forwarded up the local protocol stack.  This is a non-promiscuous trace,",
+                     MakeTraceSourceAccessor (&FdNetDevice::m_macRxTrace))
 
     //
     // Trace sources designed to simulate a packet sniffer facility (tcpdump).
     //
     .AddTraceSource ("Sniffer",
-                     "Trace source simulating a non-promiscuous "
-                     "packet sniffer attached to the device",
-                     MakeTraceSourceAccessor (&FdNetDevice::m_snifferTrace),
-                     "ns3::Packet::TracedCallback")
+                     "Trace source simulating a non-promiscuous packet sniffer attached to the device",
+                     MakeTraceSourceAccessor (&FdNetDevice::m_snifferTrace))
     .AddTraceSource ("PromiscSniffer",
-                     "Trace source simulating a promiscuous "
-                     "packet sniffer attached to the device",
-                     MakeTraceSourceAccessor (&FdNetDevice::m_promiscSnifferTrace),
-                     "ns3::Packet::TracedCallback")
+                     "Trace source simulating a promiscuous packet sniffer attached to the device",
+                     MakeTraceSourceAccessor (&FdNetDevice::m_promiscSnifferTrace))
   ;
   return tid;
 }
@@ -168,12 +151,12 @@ FdNetDevice::GetTypeId (void)
 FdNetDevice::FdNetDevice ()
   : m_node (0),
     m_ifIndex (0),
-    // Defaults to Ethernet v2 MTU
-    m_mtu (1500),
+    m_mtu (1500), // Defaults to Ethernet v2 MTU 
     m_fd (-1),
     m_fdReader (0),
     m_isBroadcast (true),
     m_isMulticast (false),
+    m_pendingReadCount (0),
     m_startEvent (),
     m_stopEvent ()
 {
@@ -188,18 +171,6 @@ FdNetDevice::FdNetDevice (FdNetDevice const &)
 FdNetDevice::~FdNetDevice ()
 {
   NS_LOG_FUNCTION (this);
-
-  {
-    CriticalSection cs (m_pendingReadMutex);
-
-    while (!m_pendingQueue.empty ())
-      {
-        std::pair<uint8_t *, ssize_t> next = m_pendingQueue.front ();
-        m_pendingQueue.pop ();
-
-        free (next.first);
-      }
-  }
 }
 
 void
@@ -260,8 +231,7 @@ FdNetDevice::StartDevice (void)
   m_nodeId = GetNode ()->GetId ();
 
   m_fdReader = Create<FdNetDeviceFdReader> ();
-  // 22 bytes covers 14 bytes Ethernet header with possible 8 bytes LLC/SNAP
-  m_fdReader->SetBufferSize (m_mtu + 22);
+  m_fdReader->SetBufferSize(m_mtu);
   m_fdReader->Start (m_fd, MakeCallback (&FdNetDevice::ReceiveCallback, this));
 
   NotifyLinkUp ();
@@ -293,42 +263,33 @@ FdNetDevice::ReceiveCallback (uint8_t *buf, ssize_t len)
 
   {
     CriticalSection cs (m_pendingReadMutex);
-    if (m_pendingQueue.size () >= m_maxPendingReads)
+    if (m_pendingReadCount >= m_maxPendingReads)
       {
-        NS_LOG_WARN ("Packet dropped");
+        //XXX: Packet dropped!
         skip = true;
       }
     else
       {
-        m_pendingQueue.push (std::make_pair (buf, len));
+        ++m_pendingReadCount;
       }
   }
 
   if (skip)
     {
-      struct timespec time = {
-        0, 100000000L
-      };                                        // 100 ms
+      struct timespec time = { 0, 100000000L }; // 100 ms
       nanosleep (&time, NULL);
     }
   else
     {
-      Simulator::ScheduleWithContext (m_nodeId, Time (0), MakeEvent (&FdNetDevice::ForwardUp, this));
-    }
+      Simulator::ScheduleWithContext (m_nodeId, Time (0), MakeEvent (&FdNetDevice::ForwardUp, this, buf, len));
+   }
 }
 
-/**
- * \ingroup fd-net-device
- * \brief Synthesize PI header for the kernel
- * \param buf the buffer to add the header to
- * \param len the buffer length
- *
- * \todo Consider having a instance member m_packetBuffer and using memmove
- * instead of memcpy to add the PI header. It might be faster in this case
- * to use memmove and avoid the extra mallocs.
- */
+/// \todo Consider having a instance member m_packetBuffer and using memmove
+///  instead of memcpy to add the PI header.
+///  It might be faster in this case to use memmove and avoid the extra mallocs.
 static void
-AddPIHeader (uint8_t *&buf, size_t &len)
+AddPIHeader (uint8_t *&buf, ssize_t &len)
 {
   // Synthesize PI header for our friend the kernel
   uint8_t *buf2 = (uint8_t*)malloc (len + 4);
@@ -363,12 +324,6 @@ AddPIHeader (uint8_t *&buf, size_t &len)
   buf = buf2;
 }
 
-/**
- * \ingroup fd-net-device
- * \brief Removes PI header
- * \param buf the buffer to add the header to
- * \param len the buffer length
- */
 static void
 RemovePIHeader (uint8_t *&buf, ssize_t &len)
 {
@@ -382,22 +337,17 @@ RemovePIHeader (uint8_t *&buf, ssize_t &len)
 }
 
 void
-FdNetDevice::ForwardUp (void)
+FdNetDevice::ForwardUp (uint8_t *buf, ssize_t len)
 {
-
-  uint8_t *buf = 0; 
-  ssize_t len = 0;
-
-  {
-    CriticalSection cs (m_pendingReadMutex);
-    std::pair<uint8_t *, ssize_t> next = m_pendingQueue.front ();
-    m_pendingQueue.pop ();
-
-    buf = next.first;
-    len = next.second;
-  }
-
   NS_LOG_FUNCTION (this << buf << len);
+
+  if (m_pendingReadCount > 0)
+    {
+      {
+        CriticalSection cs (m_pendingReadMutex);
+        --m_pendingReadCount;
+      }
+    }
 
   // We need to remove the PI header and ignore it
   if (m_encapMode == DIXPI)
@@ -528,7 +478,8 @@ bool
 FdNetDevice::SendFrom (Ptr<Packet> packet, const Address& src, const Address& dest, uint16_t protocolNumber)
 {
   NS_LOG_FUNCTION (this << packet << src << dest << protocolNumber);
-  NS_LOG_LOGIC ("packet: " << packet << " UID: " << packet->GetUid ());
+  NS_LOG_LOGIC ("packet " << packet);
+  NS_LOG_LOGIC ("UID is " << packet->GetUid ());
 
   if (IsLinkUp () == false)
     {
@@ -546,8 +497,6 @@ FdNetDevice::SendFrom (Ptr<Packet> packet, const Address& src, const Address& de
   EthernetHeader header (false);
   header.SetSource (source);
   header.SetDestination (destination);
-
-  NS_ASSERT_MSG (packet->GetSize () <= m_mtu, "FdNetDevice::SendFrom(): Packet too big " << packet->GetSize ());
 
   if (m_encapMode == LLC)
     {
@@ -576,8 +525,9 @@ FdNetDevice::SendFrom (Ptr<Packet> packet, const Address& src, const Address& de
 
   NS_LOG_LOGIC ("calling write");
 
+  NS_ASSERT_MSG (packet->GetSize () <= m_mtu, "FdNetDevice::SendFrom(): Packet too big " << packet->GetSize ());
 
-  size_t len =  (size_t) packet->GetSize ();
+  ssize_t len =  (ssize_t) packet->GetSize ();
   uint8_t *buffer = (uint8_t*)malloc (len);
   packet->CopyData (buffer, len);
 
@@ -590,7 +540,7 @@ FdNetDevice::SendFrom (Ptr<Packet> packet, const Address& src, const Address& de
   ssize_t written = write (m_fd, buffer, len);
   free (buffer);
 
-  if (written == -1 || (size_t) written != len)
+  if (written == -1 || written != len)
     {
       m_macTxDropTrace (packet);
       return false;

@@ -8,27 +8,10 @@ import ns.csma
 import ns.applications
 
 
-## TestSimulator class
 class TestSimulator(unittest.TestCase):
-    ## @var _received_packet
-    #  received packet
-    ## @var _args_received
-    #  args
-    ## @var _cb_time
-    #  current time
-    ## @var _context_received
-    #  context
 
     def testScheduleNow(self):
-        """! Test schedule now
-        @param self this object
-        @return none
-        """
         def callback(args):
-            """! Callback function
-            @param args arguments
-            return none
-            """
             self._args_received = args
             self._cb_time = Simulator.Now()
         Simulator.Destroy()
@@ -40,15 +23,7 @@ class TestSimulator(unittest.TestCase):
         self.assertEqual(self._cb_time.GetSeconds(), 0.0)
 
     def testSchedule(self):
-        """! Test schedule
-        @param self this object
-        @return none
-        """
         def callback(args):
-            """! Callback function
-            @param args arguments
-            @return none
-            """
             self._args_received = args
             self._cb_time = Simulator.Now()
         Simulator.Destroy()
@@ -60,15 +35,7 @@ class TestSimulator(unittest.TestCase):
         self.assertEqual(self._cb_time.GetSeconds(), 123.0)
 
     def testScheduleDestroy(self):
-        """! Test schedule destroy
-        @param self this object
-        @return none
-        """
         def callback(args):
-            """! Callback function
-            @param args
-            @return none
-            """
             self._args_received = args
             self._cb_time = Simulator.Now()
         Simulator.Destroy()
@@ -83,16 +50,7 @@ class TestSimulator(unittest.TestCase):
         self.assertEqual(self._cb_time.GetSeconds(), 123.0)
 
     def testScheduleWithContext(self):
-        """! Test schedule with context
-        @param self this object
-        @return none
-        """
         def callback(context, args):
-            """! Callback
-            @param context the cntet
-            @param args the arguments
-            @return none
-            """
             self._context_received = context
             self._args_received = args
             self._cb_time = Simulator.Now()
@@ -107,10 +65,6 @@ class TestSimulator(unittest.TestCase):
         self.assertEqual(self._cb_time.GetSeconds(), 123.0)
 
     def testTimeComparison(self):
-        """! Test time comparison
-        @param self this object
-        @return none
-        """
         self.assert_(Seconds(123) == Seconds(123))
         self.assert_(Seconds(123) >= Seconds(123))
         self.assert_(Seconds(123) <= Seconds(123))
@@ -118,10 +72,6 @@ class TestSimulator(unittest.TestCase):
         self.assert_(Seconds(123) < Seconds(124))
 
     def testTimeNumericOperations(self):
-        """! Test numeric operations
-        @param self this object
-        @return none
-        """
         self.assertEqual(Seconds(10) + Seconds(5), Seconds(15))
         self.assertEqual(Seconds(10) - Seconds(5), Seconds(5))
         
@@ -129,28 +79,16 @@ class TestSimulator(unittest.TestCase):
         self.assertEqual(v1, int64x64_t(50))
 
     def testConfig(self):
-        """! Test configuration
-        @param self this object
-        @return none
-        """
         Config.SetDefault("ns3::OnOffApplication::PacketSize", ns.core.UintegerValue(123))
         # hm.. no Config.Get?
 
     def testSocket(self):
-        """! Test socket
-        @param self
-        @return none
-        """
         node = ns.network.Node()
         internet = ns.internet.InternetStackHelper()
         internet.Install(node)
         self._received_packet = None
 
         def rx_callback(socket):
-            """! Receive Callback
-            @param socket the socket to receive
-            @return none
-            """
             assert self._received_packet is None
             self._received_packet = socket.Recv()
 
@@ -167,10 +105,6 @@ class TestSimulator(unittest.TestCase):
 
 
     def testAttributes(self):
-        """! Test attributes function
-        @param self this object
-        @return none
-        """
         ##
         ## Yes, I know, the GetAttribute interface for Python is
         ## horrible, we should fix this soon, I hope.
@@ -197,10 +131,6 @@ class TestSimulator(unittest.TestCase):
         self.assert_(ptr.GetObject() is not None)
 
     def testIdentity(self):
-        """! Test identify
-        @param self this object
-        @return none
-        """
         csma = ns.csma.CsmaNetDevice()
         channel = ns.csma.CsmaChannel()
         csma.Attach(channel)
@@ -211,20 +141,12 @@ class TestSimulator(unittest.TestCase):
         self.assert_(c1 is c2)
 
     def testTypeId(self):
-        """! Test type ID
-        @param self this object
-        @return none
-        """
         typeId1 = ns.core.TypeId.LookupByNameFailSafe("ns3::UdpSocketFactory")
         self.assertEqual(typeId1.GetName (), "ns3::UdpSocketFactory")
         
         self.assertRaises(KeyError, ns.core.TypeId.LookupByNameFailSafe, "__InvalidTypeName__")
 
     def testCommandLine(self):
-        """! Test command line
-        @param self this object
-        @return none
-        """
         cmd = ns.core.CommandLine()
         cmd.AddValue("Test1", "this is a test option")
         cmd.AddValue("Test2", "this is a test option")
@@ -246,17 +168,8 @@ class TestSimulator(unittest.TestCase):
         self.assertEqual(foo.test_foo, "xpto")
 
     def testSubclass(self):
-        """! Test subclass
-        @param self this object
-        @return none
-        """
-        ## MyNode class
         class MyNode(ns.network.Node):
             def __init__(self):
-                """! Initializer
-                @param self this object
-                @return none
-                """
                 super(MyNode, self).__init__()
 
         node = MyNode()

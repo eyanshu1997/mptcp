@@ -18,15 +18,19 @@
  * Author: Federico Maguolo <maguolof@dei.unipd.it>
  */
 
-#include "ns3/log.h"
 #include "cara-wifi-manager.h"
-#include "wifi-tx-vector.h"
+#include "ns3/assert.h"
+#include "ns3/log.h"
+#include "ns3/double.h"
+#include "ns3/uinteger.h"
+#include "ns3/simulator.h"
 
 #define Min(a,b) ((a < b) ? a : b)
 
-namespace ns3 {
+NS_LOG_COMPONENT_DEFINE ("Cara");
 
-NS_LOG_COMPONENT_DEFINE ("CaraWifiManager");
+
+namespace ns3 {
 
 /**
  * \brief hold per-remote-station state for CARA Wifi manager.
@@ -36,20 +40,20 @@ NS_LOG_COMPONENT_DEFINE ("CaraWifiManager");
  */
 struct CaraWifiRemoteStation : public WifiRemoteStation
 {
-  uint32_t m_timer; ///< timer count
-  uint32_t m_success; ///< success count
-  uint32_t m_failed; ///< failed count
-  uint8_t m_rate; ///< rate
+  uint32_t m_timer;
+  uint32_t m_success;
+  uint32_t m_failed;
+  uint32_t m_rate;
 };
 
-NS_OBJECT_ENSURE_REGISTERED (CaraWifiManager);
+NS_OBJECT_ENSURE_REGISTERED (CaraWifiManager)
+  ;
 
 TypeId
 CaraWifiManager::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::CaraWifiManager")
     .SetParent<WifiRemoteStationManager> ()
-    .SetGroupName ("Wifi")
     .AddConstructor<CaraWifiManager> ()
     .AddAttribute ("ProbeThreshold",
                    "The number of consecutive transmissions failure to activate the RTS probe.",
@@ -62,7 +66,7 @@ CaraWifiManager::GetTypeId (void)
                    MakeUintegerAccessor (&CaraWifiManager::m_failureThreshold),
                    MakeUintegerChecker<uint32_t> ())
     .AddAttribute ("SuccessThreshold",
-                   "The minimum number of successful transmissions to try a new rate.",
+                   "The minimum number of sucessfull transmissions to try a new rate.",
                    UintegerValue (10),
                    MakeUintegerAccessor (&CaraWifiManager::m_successThreshold),
                    MakeUintegerChecker<uint32_t> ())
@@ -71,21 +75,15 @@ CaraWifiManager::GetTypeId (void)
                    UintegerValue (15),
                    MakeUintegerAccessor (&CaraWifiManager::m_timerTimeout),
                    MakeUintegerChecker<uint32_t> ())
-    .AddTraceSource ("Rate",
-                     "Traced value for rate changes (b/s)",
-                     MakeTraceSourceAccessor (&CaraWifiManager::m_currentRate),
-                     "ns3::TracedValueCallback::Uint64")
   ;
   return tid;
 }
 
 CaraWifiManager::CaraWifiManager ()
-  : WifiRemoteStationManager (),
-    m_currentRate (0)
+  : WifiRemoteStationManager ()
 {
   NS_LOG_FUNCTION (this);
 }
-
 CaraWifiManager::~CaraWifiManager ()
 {
   NS_LOG_FUNCTION (this);
@@ -128,21 +126,19 @@ CaraWifiManager::DoReportDataFailed (WifiRemoteStation *st)
       station->m_timer = 0;
     }
 }
-
 void
 CaraWifiManager::DoReportRxOk (WifiRemoteStation *st,
                                double rxSnr, WifiMode txMode)
 {
   NS_LOG_FUNCTION (this << st << rxSnr << txMode);
 }
-
 void
 CaraWifiManager::DoReportRtsOk (WifiRemoteStation *st,
                                 double ctsSnr, WifiMode ctsMode, double rtsSnr)
 {
   NS_LOG_FUNCTION (this << st << ctsSnr << ctsMode << rtsSnr);
+  NS_LOG_DEBUG ("self=" << st << " rts ok");
 }
-
 void
 CaraWifiManager::DoReportDataOk (WifiRemoteStation *st,
                                  double ackSnr, WifiMode ackMode, double dataSnr)
@@ -160,18 +156,16 @@ CaraWifiManager::DoReportDataOk (WifiRemoteStation *st,
         {
           station->m_rate++;
         }
-      NS_LOG_DEBUG ("self=" << station << " inc rate=" << +station->m_rate);
+      NS_LOG_DEBUG ("self=" << station << " inc rate=" << station->m_rate);
       station->m_timer = 0;
       station->m_success = 0;
     }
 }
-
 void
 CaraWifiManager::DoReportFinalRtsFailed (WifiRemoteStation *st)
 {
   NS_LOG_FUNCTION (this << st);
 }
-
 void
 CaraWifiManager::DoReportFinalDataFailed (WifiRemoteStation *st)
 {
@@ -179,50 +173,20 @@ CaraWifiManager::DoReportFinalDataFailed (WifiRemoteStation *st)
 }
 
 WifiTxVector
-CaraWifiManager::DoGetDataTxVector (WifiRemoteStation *st)
+CaraWifiManager::DoGetDataTxVector (WifiRemoteStation *st,
+                                    uint32_t size)
 {
-  NS_LOG_FUNCTION (this << st);
+  NS_LOG_FUNCTION (this << st << size);
   CaraWifiRemoteStation *station = (CaraWifiRemoteStation *) st;
-  uint16_t channelWidth = GetChannelWidth (station);
-  if (channelWidth > 20 && channelWidth != 22)
-    {
-      //avoid to use legacy rate adaptation algorithms for IEEE 802.11n/ac
-      channelWidth = 20;
-    }
-  WifiMode mode = GetSupported (station, station->m_rate);
-  if (m_currentRate != mode.GetDataRate (channelWidth))
-    {
-      NS_LOG_DEBUG ("New datarate: " << mode.GetDataRate (channelWidth));
-      m_currentRate = mode.GetDataRate (channelWidth);
-    }
-  return WifiTxVector (mode, GetDefaultTxPowerLevel (), GetPreambleForTransmission (mode, GetAddress (station)), 800, 1, 1, 0, channelWidth, GetAggregation (station), false);
+  return WifiTxVector (GetSupported (station, station->m_rate), GetDefaultTxPowerLevel (), GetLongRetryCount (station), GetShortGuardInterval (station), Min (GetNumberOfReceiveAntennas (station),GetNumberOfTransmitAntennas()), GetNumberOfTransmitAntennas (station), GetStbc (station));
 }
-
 WifiTxVector
 CaraWifiManager::DoGetRtsTxVector (WifiRemoteStation *st)
 {
   NS_LOG_FUNCTION (this << st);
-  CaraWifiRemoteStation *station = (CaraWifiRemoteStation *) st;
   /// \todo we could/should implement the Arf algorithm for
   /// RTS only by picking a single rate within the BasicRateSet.
-  uint16_t channelWidth = GetChannelWidth (station);
-  if (channelWidth > 20 && channelWidth != 22)
-    {
-      //avoid to use legacy rate adaptation algorithms for IEEE 802.11n/ac
-      channelWidth = 20;
-    }
-  WifiTxVector rtsTxVector;
-  WifiMode mode;
-  if (GetUseNonErpProtection () == false)
-    {
-      mode = GetSupported (station, 0);
-    }
-  else
-    {
-      mode = GetNonErpSupported (station, 0);
-    }
-  rtsTxVector = WifiTxVector (mode, GetDefaultTxPowerLevel (), GetPreambleForTransmission (mode, GetAddress (station)), 800, 1, 1, 0, channelWidth, GetAggregation (station), false);
-  return rtsTxVector;
+  return WifiTxVector (GetSupported (st, 0), GetDefaultTxPowerLevel (), GetLongRetryCount (st), GetShortGuardInterval (st), Min (GetNumberOfReceiveAntennas (st),GetNumberOfTransmitAntennas()), GetNumberOfTransmitAntennas (st), GetStbc (st));
 }
 
 bool
@@ -237,37 +201,8 @@ CaraWifiManager::DoNeedRts (WifiRemoteStation *st,
 bool
 CaraWifiManager::IsLowLatency (void) const
 {
+  NS_LOG_FUNCTION (this);
   return true;
 }
 
-void
-CaraWifiManager::SetHtSupported (bool enable)
-{
-  //HT is not supported by this algorithm.
-  if (enable)
-    {
-      NS_FATAL_ERROR ("WifiRemoteStationManager selected does not support HT rates");
-    }
-}
-
-void
-CaraWifiManager::SetVhtSupported (bool enable)
-{
-  //VHT is not supported by this algorithm.
-  if (enable)
-    {
-      NS_FATAL_ERROR ("WifiRemoteStationManager selected does not support VHT rates");
-    }
-}
-
-void
-CaraWifiManager::SetHeSupported (bool enable)
-{
-  //HE is not supported by this algorithm.
-  if (enable)
-    {
-      NS_FATAL_ERROR ("WifiRemoteStationManager selected does not support HE rates");
-    }
-}
-
-} //namespace ns3
+} // namespace ns3

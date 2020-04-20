@@ -17,8 +17,8 @@
  *
  * Author: Mathieu Lacage <mathieu.lacage@sophia.inria.fr>
  */
-
 #include "ssid.h"
+#include "ns3/assert.h"
 
 namespace ns3 {
 
@@ -30,7 +30,6 @@ Ssid::Ssid ()
       m_ssid[i] = 0;
     }
 }
-
 Ssid::Ssid (std::string s)
 {
   NS_ASSERT (s.size () < 32);
@@ -50,7 +49,22 @@ Ssid::Ssid (std::string s)
       len++;
     }
 }
-
+Ssid::Ssid (char const ssid[32], uint8_t length)
+{
+  NS_ASSERT (length <= 32);
+  uint8_t len = 0;
+  while (len < length)
+    {
+      m_ssid[len] = ssid[len];
+      len++;
+    }
+  m_length = length;
+  while (len < 33)
+    {
+      m_ssid[len] = 0;
+      len++;
+    }
+}
 bool
 Ssid::IsEqual (const Ssid& o) const
 {
@@ -67,7 +81,6 @@ Ssid::IsEqual (const Ssid& o) const
     }
   return true;
 }
-
 bool
 Ssid::IsBroadcast (void) const
 {
@@ -81,8 +94,8 @@ Ssid::IsBroadcast (void) const
 char *
 Ssid::PeekString (void) const
 {
-  //It is safe to return a pointer to the buffer because it is
-  //guaranteed to be zero-terminated.
+  // it is safe to return a pointer to the buffer because it is
+  // guaranteed to be zero-terminated.
   return (char *)m_ssid;
 }
 
@@ -104,7 +117,6 @@ Ssid::SerializeInformationField (Buffer::Iterator start) const
   NS_ASSERT (m_length <= 32);
   start.Write (m_ssid, m_length);
 }
-
 uint8_t
 Ssid::DeserializeInformationField (Buffer::Iterator start,
                                    uint8_t length)
@@ -122,7 +134,6 @@ ATTRIBUTE_HELPER_CPP (Ssid);
  *
  * \param os
  * \param ssid
- *
  * \return std::ostream
  */
 std::ostream &
@@ -137,7 +148,6 @@ operator << (std::ostream &os, const Ssid &ssid)
  *
  * \param is
  * \param ssid
- *
  * \return std::istream
  */
 std::istream &operator >> (std::istream &is, Ssid &ssid)
@@ -148,4 +158,5 @@ std::istream &operator >> (std::istream &is, Ssid &ssid)
   return is;
 }
 
-} //namespace ns3
+
+} // namespace ns3

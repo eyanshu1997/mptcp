@@ -21,9 +21,9 @@
 #include "ns3/net-device.h"
 #include "ns3/log.h"
 
-namespace ns3 {
-
 NS_LOG_COMPONENT_DEFINE ("PacketSocketAddress");
+
+namespace ns3 {
 
 PacketSocketAddress::PacketSocketAddress ()
 {

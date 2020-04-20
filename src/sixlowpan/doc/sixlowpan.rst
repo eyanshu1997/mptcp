@@ -46,7 +46,7 @@ with PointToPointNedevice, CsmaNetDevice and LrWpanNetDevice).
 
 For this reason, the module implements a virtual NetDevice, and all the calls are passed
 without modifications to the underlying NetDevice. The only important difference is in
-GetMtu behaviour. It will always return *at least* 1280 bytes, as is the minimum IPv6 MTU.
+GetMtu behaviour. It will always return *at least* 1280 bytes, as is the minumum IPv6 MTU.
 
 The module does provide some attributes and some tracesources.
 The attributes are:
@@ -55,15 +55,8 @@ The attributes are:
 * OmitUdpChecksum (boolean, default true), used to activate UDP checksum compression in IPHC.
 * FragmentReassemblyListSize (integer, default 0), indicating the number of packets that can be reassembled at the same time. If the limit is reached, the oldest packet is discarded. Zero means infinite.
 * FragmentExpirationTimeout (Time, default 60 seconds), being the timeout to wait for further fragments before discarding a partial packet.
-* CompressionThreshold (unsigned 32 bits integer, default 0), minimum compressed payload size. 
 * ForceEtherType (boolean, default false), and
 * EtherType (unsigned 16 bits integer, default 0xFFFF), to force a particular L2 EtherType.
-
-The CompressionThreshold attribute is similar to Contiki's SICSLOWPAN_CONF_MIN_MAC_PAYLOAD
-option. If a compressed packet size is less than the threshold, the uncompressed version is
-used (plus one byte for the correct dispatch header).
-This option is useful when a MAC requires a minimum frame size (e.g., ContikiMAC) and the 
-compression would violate the requirement.
 
 The last two attributes are needed to use the module with a NetDevice other than 802.15.4, as
 neither IANA or IEEE did reserve an EtherType for 6LoWPAN. As a consequence there might be a

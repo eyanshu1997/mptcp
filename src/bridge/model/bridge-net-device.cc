@@ -24,11 +24,12 @@
 #include "ns3/simulator.h"
 #include "ns3/uinteger.h"
 
-namespace ns3 {
-
 NS_LOG_COMPONENT_DEFINE ("BridgeNetDevice");
 
-NS_OBJECT_ENSURE_REGISTERED (BridgeNetDevice);
+namespace ns3 {
+
+NS_OBJECT_ENSURE_REGISTERED (BridgeNetDevice)
+  ;
 
 
 TypeId
@@ -36,7 +37,6 @@ BridgeNetDevice::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::BridgeNetDevice")
     .SetParent<NetDevice> ()
-    .SetGroupName("Bridge")
     .AddConstructor<BridgeNetDevice> ()
     .AddAttribute ("Mtu", "The MAC-level Maximum Transmission Unit",
                    UintegerValue (1500),
@@ -105,7 +105,6 @@ BridgeNetDevice::ReceiveFromDevice (Ptr<NetDevice> incomingPort, Ptr<const Packe
     case PACKET_HOST:
       if (dst48 == m_address)
         {
-          Learn (src48, incomingPort);
           m_rxCallback (this, packet, protocol, src);
         }
       break;
@@ -119,7 +118,6 @@ BridgeNetDevice::ReceiveFromDevice (Ptr<NetDevice> incomingPort, Ptr<const Packe
     case PACKET_OTHERHOST:
       if (dst48 == m_address)
         {
-          Learn (src48, incomingPort);
           m_rxCallback (this, packet, protocol, src);
         }
       else
@@ -401,13 +399,11 @@ BridgeNetDevice::SendFrom (Ptr<Packet> packet, const Address& src, const Address
 
   // data was not unicast or no state has been learned for that mac
   // address => flood through all ports.
-  Ptr<Packet> pktCopy;
   for (std::vector< Ptr<NetDevice> >::iterator iter = m_ports.begin ();
        iter != m_ports.end (); iter++)
     {
-      pktCopy = packet->Copy ();
       Ptr<NetDevice> port = *iter;
-      port->SendFrom (pktCopy, src, dest, protocolNumber);
+      port->SendFrom (packet, src, dest, protocolNumber);
     }
 
   return true;

@@ -30,11 +30,9 @@
 namespace ns3 {
 
 /**
- * \ingroup olsr
- *
  * \brief Helper class that adds OLSR routing to nodes.
  *
- * This class is expected to be used in conjunction with
+ * This class is expected to be used in conjunction with 
  * ns3::InternetStackHelper::SetRoutingHelper
  */
 class OlsrHelper : public Ipv4RoutingHelper
@@ -53,8 +51,9 @@ public:
   OlsrHelper (const OlsrHelper &);
 
   /**
-   * \returns pointer to clone of this OlsrHelper
-   *
+   * \internal
+   * \returns pointer to clone of this OlsrHelper 
+   * 
    * This method is mainly for internal use by the other helpers;
    * clients are expected to free the dynamic memory allocated by this method
    */
@@ -84,29 +83,29 @@ public:
    */
   void Set (std::string name, const AttributeValue &value);
 
-  /**
-   * Assign a fixed random variable stream number to the random variables
-   * used by this model.  Return the number of streams (possibly zero) that
-   * have been assigned.  The Install() method of the InternetStackHelper
-   * should have previously been called by the user.
-   *
-   * \param stream first stream index to use
-   * \param c NodeContainer of the set of nodes for which the OlsrRoutingProtocol
-   *          should be modified to use a fixed stream
-   * \return the number of stream indices assigned by this helper
-   */
+ /**
+  * Assign a fixed random variable stream number to the random variables
+  * used by this model.  Return the number of streams (possibly zero) that
+  * have been assigned.  The Install() method of the InternetStackHelper
+  * should have previously been called by the user.
+  *
+  * \param stream first stream index to use
+  * \param c NodeContainer of the set of nodes for which the OlsrRoutingProtocol
+  *          should be modified to use a fixed stream
+  * \return the number of stream indices assigned by this helper
+  */
   int64_t AssignStreams (NodeContainer c, int64_t stream);
 
 private:
   /**
+   * \internal
    * \brief Assignment operator declared private and not implemented to disallow
    * assignment and prevent the compiler from happily inserting its own.
-   * \return nothing
    */
-  OlsrHelper &operator = (const OlsrHelper &);
-  ObjectFactory m_agentFactory; //!< Object factory
+  OlsrHelper &operator = (const OlsrHelper &o);
+  ObjectFactory m_agentFactory;
 
-  std::map< Ptr<Node>, std::set<uint32_t> > m_interfaceExclusions; //!< container of interfaces excluded from OLSR operations
+  std::map< Ptr<Node>, std::set<uint32_t> > m_interfaceExclusions;
 };
 
 } // namespace ns3

@@ -27,9 +27,12 @@
 
 
 
+NS_LOG_COMPONENT_DEFINE ("SpectrumModel");
+
+
+
 namespace ns3 {
 
-NS_LOG_COMPONENT_DEFINE ("SpectrumModel");
 
 bool operator== (const SpectrumModel& lhs, const SpectrumModel& rhs)
 {
@@ -101,25 +104,6 @@ SpectrumModel::GetUid () const
   return m_uid;
 }
 
-bool
-SpectrumModel::IsOrthogonal (const SpectrumModel &other) const
-{
-  for (Bands::const_iterator myIt = Begin ();
-       myIt != End ();
-       ++myIt)
-    {
-      for (Bands::const_iterator otherIt = other.Begin ();
-           otherIt != other.End ();
-           ++otherIt)
-        {
-          if (std::max (myIt->fl, otherIt->fl) < std::min (myIt->fh, otherIt->fh))
-            {
-              return false;
-            }
-        }
-    }
-  return true;
-}
 
 
 } // namespace ns3

@@ -30,18 +30,6 @@
 
 using namespace ns3;
 
-/**
- * \ingroup internet
- * \defgroup internet-test internet module tests
- */
-
-
-/**
- * \ingroup internet-test
- * \ingroup tests
- *
- * \brief Global Route Manager Test
- */
 class GlobalRouteManagerImplTestCase : public TestCase
 {
 public:
@@ -226,23 +214,12 @@ GlobalRouteManagerImplTestCase::DoRun (void)
 }
 
 
-/**
- * \ingroup internet-test
- * \ingroup tests
- *
- * \brief Global Route Manager TestSuite
- */
-class GlobalRouteManagerImplTestSuite : public TestSuite
+static class GlobalRouteManagerImplTestSuite : public TestSuite
 {
 public:
-  GlobalRouteManagerImplTestSuite ();
-private:
-};
-
-GlobalRouteManagerImplTestSuite::GlobalRouteManagerImplTestSuite ()
-  : TestSuite ("global-route-manager-impl", UNIT)
-{
-  AddTestCase (new GlobalRouteManagerImplTestCase (), TestCase::QUICK);
-}
-
-static GlobalRouteManagerImplTestSuite g_globalRoutingManagerImplTestSuite; //!< Static variable for test initialization
+  GlobalRouteManagerImplTestSuite()
+    : TestSuite ("global-route-manager-impl", UNIT)
+  {
+    AddTestCase (new GlobalRouteManagerImplTestCase (), TestCase::QUICK);
+  }
+} g_globalRoutingManagerImplTestSuite;

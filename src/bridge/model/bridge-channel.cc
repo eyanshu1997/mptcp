@@ -19,18 +19,18 @@
 #include "ns3/log.h"
 #include "bridge-channel.h"
 
-namespace ns3 {
-
 NS_LOG_COMPONENT_DEFINE ("BridgeChannel");
 
-NS_OBJECT_ENSURE_REGISTERED (BridgeChannel);
+namespace ns3 {
+
+NS_OBJECT_ENSURE_REGISTERED (BridgeChannel)
+  ;
 
 TypeId 
 BridgeChannel::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::BridgeChannel")
     .SetParent<Channel> ()
-    .SetGroupName("Bridge")
     .AddConstructor<BridgeChannel> ()
   ;
   return tid;
@@ -61,7 +61,7 @@ BridgeChannel::AddChannel (Ptr<Channel> bridgedChannel)
   m_bridgedChannels.push_back (bridgedChannel);
 }
 
-std::size_t
+uint32_t
 BridgeChannel::GetNDevices (void) const
 {
   uint32_t ndevices = 0;
@@ -75,9 +75,9 @@ BridgeChannel::GetNDevices (void) const
 
 
 Ptr<NetDevice>
-BridgeChannel::GetDevice (std::size_t i) const
+BridgeChannel::GetDevice (uint32_t i) const
 {
-  std::size_t ndevices = 0;
+  uint32_t ndevices = 0;
   for (std::vector< Ptr<Channel> >::const_iterator iter = m_bridgedChannels.begin ();
        iter != m_bridgedChannels.end (); iter++)
     {

@@ -38,7 +38,6 @@
 
 namespace ns3 {
 
-/// Flag to enable / disable verbose log mode
 int gVerbose = 0;
 
 /**

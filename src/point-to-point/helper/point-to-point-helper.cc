@@ -34,13 +34,13 @@
 #include "ns3/trace-helper.h"
 #include "point-to-point-helper.h"
 
-namespace ns3 {
-
 NS_LOG_COMPONENT_DEFINE ("PointToPointHelper");
+
+namespace ns3 {
 
 PointToPointHelper::PointToPointHelper ()
 {
-  m_queueFactory.SetTypeId ("ns3::DropTailQueue<Packet>");
+  m_queueFactory.SetTypeId ("ns3::DropTailQueue");
   m_deviceFactory.SetTypeId ("ns3::PointToPointNetDevice");
   m_channelFactory.SetTypeId ("ns3::PointToPointChannel");
   m_remoteChannelFactory.SetTypeId ("ns3::PointToPointRemoteChannel");
@@ -53,8 +53,6 @@ PointToPointHelper::SetQueue (std::string type,
                               std::string n3, const AttributeValue &v3,
                               std::string n4, const AttributeValue &v4)
 {
-  QueueBase::AppendItemTypeIfNotPresent (type, "Packet");
-
   m_queueFactory.SetTypeId (type);
   m_queueFactory.Set (n1, v1);
   m_queueFactory.Set (n2, v2);
@@ -169,10 +167,10 @@ PointToPointHelper::EnableAsciiInternal (
       // The "+", '-', and 'd' events are driven by trace sources actually in the
       // transmit queue.
       //
-      Ptr<Queue<Packet> > queue = device->GetQueue ();
-      asciiTraceHelper.HookDefaultEnqueueSinkWithoutContext<Queue<Packet> > (queue, "Enqueue", theStream);
-      asciiTraceHelper.HookDefaultDropSinkWithoutContext<Queue<Packet> > (queue, "Drop", theStream);
-      asciiTraceHelper.HookDefaultDequeueSinkWithoutContext<Queue<Packet> > (queue, "Dequeue", theStream);
+      Ptr<Queue> queue = device->GetQueue ();
+      asciiTraceHelper.HookDefaultEnqueueSinkWithoutContext<Queue> (queue, "Enqueue", theStream);
+      asciiTraceHelper.HookDefaultDropSinkWithoutContext<Queue> (queue, "Drop", theStream);
+      asciiTraceHelper.HookDefaultDequeueSinkWithoutContext<Queue> (queue, "Dequeue", theStream);
 
       // PhyRxDrop trace source for "d" event
       asciiTraceHelper.HookDefaultDropSinkWithoutContext<PointToPointNetDevice> (device, "PhyRxDrop", theStream);
@@ -231,12 +229,12 @@ PointToPointHelper::Install (Ptr<Node> a, Ptr<Node> b)
   Ptr<PointToPointNetDevice> devA = m_deviceFactory.Create<PointToPointNetDevice> ();
   devA->SetAddress (Mac48Address::Allocate ());
   a->AddDevice (devA);
-  Ptr<Queue<Packet> > queueA = m_queueFactory.Create<Queue<Packet> > ();
+  Ptr<Queue> queueA = m_queueFactory.Create<Queue> ();
   devA->SetQueue (queueA);
   Ptr<PointToPointNetDevice> devB = m_deviceFactory.Create<PointToPointNetDevice> ();
   devB->SetAddress (Mac48Address::Allocate ());
   b->AddDevice (devB);
-  Ptr<Queue<Packet> > queueB = m_queueFactory.Create<Queue<Packet> > ();
+  Ptr<Queue> queueB = m_queueFactory.Create<Queue> ();
   devB->SetQueue (queueB);
   // If MPI is enabled, we need to see if both nodes have the same system id 
   // (rank), and the rank is the same as this instance.  If both are true, 

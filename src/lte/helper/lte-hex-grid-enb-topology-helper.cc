@@ -28,11 +28,12 @@
 #include <iostream>
 
 
-namespace ns3 {
-
 NS_LOG_COMPONENT_DEFINE ("LteHexGridEnbTopologyHelper");
 
-NS_OBJECT_ENSURE_REGISTERED (LteHexGridEnbTopologyHelper);
+namespace ns3 {
+
+NS_OBJECT_ENSURE_REGISTERED (LteHexGridEnbTopologyHelper)
+  ;
 
 LteHexGridEnbTopologyHelper::LteHexGridEnbTopologyHelper ()
 {
@@ -139,21 +140,18 @@ LteHexGridEnbTopologyHelper::SetPositionAndInstallEnbDevice (NodeContainer c)
 	case 0:
 	  antennaOrientation = 0;
 	  x += m_offset;
-	  m_lteHelper->SetFfrAlgorithmAttribute("FrCellTypeId", UintegerValue (1));
 	  break;
 	  
 	case 1:
 	  antennaOrientation = 120;
 	  x -= m_offset/2.0;
 	  y += m_offset*xydfactor;
-	  m_lteHelper->SetFfrAlgorithmAttribute("FrCellTypeId", UintegerValue (2));
 	  break;
 	  
 	case 2:
 	  antennaOrientation = -120;
 	  x -= m_offset/2.0;
 	  y -= m_offset*xydfactor;
-	  m_lteHelper->SetFfrAlgorithmAttribute("FrCellTypeId", UintegerValue (3));
 	  break;
 	
           // no default, n%3 = 0, 1, 2

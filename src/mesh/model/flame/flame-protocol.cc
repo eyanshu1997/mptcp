@@ -28,28 +28,25 @@
 #include "ns3/packet.h"
 #include "ns3/mesh-point-device.h"
 #include "ns3/wifi-net-device.h"
+#include "ns3/mesh-point-device.h"
 #include "ns3/mesh-wifi-interface-mac.h"
 
-namespace ns3 {
-
 NS_LOG_COMPONENT_DEFINE ("FlameProtocol");
-  
+
+namespace ns3 {
 namespace flame {
-  
 //-----------------------------------------------------------------------------
 // FlameTag
 //-----------------------------------------------------------------------------
-NS_OBJECT_ENSURE_REGISTERED (FlameTag);
-NS_OBJECT_ENSURE_REGISTERED (FlameProtocol);
+NS_OBJECT_ENSURE_REGISTERED (FlameTag)
+  ;
+NS_OBJECT_ENSURE_REGISTERED (FlameProtocol)
+  ;
 
 TypeId
 FlameTag::GetTypeId ()
 {
-  static TypeId tid = TypeId ("ns3::flame::FlameTag")
-    .SetParent<Tag> ()
-    .SetGroupName ("Mesh")
-    .AddConstructor<FlameTag> ()
-    ;
+  static TypeId tid = TypeId ("ns3::flame::FlameTag").SetParent<Tag> ().AddConstructor<FlameTag> ();
   return tid;
 }
 
@@ -113,7 +110,6 @@ FlameProtocol::GetTypeId ()
 {
   static TypeId tid = TypeId ("ns3::flame::FlameProtocol")
     .SetParent<MeshL2RoutingProtocol> ()
-    .SetGroupName ("Mesh")
     .AddConstructor<FlameProtocol> ()
     .AddAttribute ( "BroadcastInterval",
                     "How often we must send broadcast packets",

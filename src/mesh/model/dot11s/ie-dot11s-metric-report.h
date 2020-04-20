@@ -35,55 +35,23 @@ class IeLinkMetricReport : public WifiInformationElement
 {
 public:
   IeLinkMetricReport ();
-  /**
-   * Constructor
-   *
-   * \param metric the metric
-   */
   IeLinkMetricReport (uint32_t metric);
-  /**
-   * Set metric value
-   * \param metric the metric
-   */
   void SetMetric (uint32_t metric);
-  /**
-   * Get metric value
-   * \returns the metric
-   */
   uint32_t GetMetric ();
-
-  // Inherited from WifiInformationElement
+  /**
+   * \name Inherited from WifiInformationElement
+   * \{
+   */
   virtual WifiInformationElementId ElementId () const;
   virtual void SerializeInformationField (Buffer::Iterator i) const;
   virtual uint8_t DeserializeInformationField (Buffer::Iterator start, uint8_t length);
   virtual void Print (std::ostream& os) const;
   virtual uint8_t GetInformationFieldSize () const;
-
+  ///\}
 private:
-  uint32_t m_metric; ///< metric
-  /**
-   * equality operator
-   *
-   * \param a lhs
-   * \param b lhs
-   * \returns true if equal
-   */
+  uint32_t m_metric;
   friend bool operator== (const IeLinkMetricReport & a, const IeLinkMetricReport & b);
-  /**
-   * greater than operator
-   *
-   * \param a lhs
-   * \param b lhs
-   * \returns true if equal
-   */
   friend bool operator>  (const IeLinkMetricReport & a, const IeLinkMetricReport & b);
-  /**
-   * less than operator
-   *
-   * \param a lhs
-   * \param b lhs
-   * \returns true if equal
-   */
   friend bool operator<  (const IeLinkMetricReport & a, const IeLinkMetricReport & b);
 };
 

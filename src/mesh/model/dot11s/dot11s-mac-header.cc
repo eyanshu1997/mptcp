@@ -31,9 +31,8 @@ namespace dot11s {
 TypeId
 MeshHeader::GetTypeId ()
 {
-  static TypeId tid = TypeId ("ns3::dot11s::MeshHeader")
+  static TypeId tid = TypeId ("ns3::Dot11sMacHeader")
     .SetParent<Header> ()
-    .SetGroupName ("Mesh")
     .AddConstructor<MeshHeader> ();
   return tid;
 }
@@ -101,10 +100,10 @@ MeshHeader::GetMeshTtl () const
   return m_meshTtl;
 }
 void
-MeshHeader::SetAddressExt (uint8_t value)
+MeshHeader::SetAddressExt (uint8_t num_of_addresses)
 {
-  NS_ASSERT (value <= 3);
-  m_meshFlags |= 0x03 & value;
+  NS_ASSERT (num_of_addresses <= 3);
+  m_meshFlags |= 0x03 & num_of_addresses;
 }
 uint8_t
 MeshHeader::GetAddressExt () const
@@ -164,9 +163,9 @@ MeshHeader::Deserialize (Buffer::Iterator start)
 void
 MeshHeader::Print (std::ostream &os) const
 {
-  os << "flags=" << (uint16_t) m_meshFlags << ", ttl=" << (uint16_t) m_meshTtl 
-     << ", seqno=" << m_meshSeqno << ", addr4=" << m_addr4 
-     << ", addr5=" << m_addr5 << ", addr6=" << m_addr6;
+  os << "flags = " << (uint16_t) m_meshFlags << std::endl << "ttl = " << (uint16_t) m_meshTtl 
+     << std::endl << "seqno = " << m_meshSeqno << std::endl<< "addr4 = " << m_addr4 << std::endl
+     << "addr5 = " << m_addr5 << std::endl << "addr6 = " << m_addr6 << std::endl;
 }
 bool
 operator== (const MeshHeader & a, const MeshHeader & b)

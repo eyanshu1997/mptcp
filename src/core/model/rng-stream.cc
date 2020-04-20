@@ -26,68 +26,32 @@
 #include "fatal-error.h"
 #include "log.h"
 
-/**
- * \file
- * \ingroup rngimpl
- * ns3::RngStream and MRG32k3a implementations.
- */
-
-namespace ns3 {
-  
 // Note:  Logging in this file is largely avoided due to the
 // number of calls that are made to these functions and the possibility
 // of causing recursions leading to stack overflow
+
 NS_LOG_COMPONENT_DEFINE ("RngStream");
 
-} // namespace ns3
-
-
-/**
- * \ingroup rngimpl
- * @{
- */
-/** Namespace for MRG32k3a implementation details. */
-namespace MRG32k3a
+namespace
 {
-
-/** Type for 3x3 matrix of doubles. */
 typedef double Matrix[3][3];
 
-/** First component modulus, 2<sup>32</sup> - 209. */
 const double m1   =       4294967087.0;
-
-/** Second component modulus, 2<sup>32</sup> - 22853. */
 const double m2   =       4294944443.0;
-  
-/** Normalization to obtain randoms on [0,1). */
 const double norm =       1.0 / (m1 + 1.0);
-  
-/** First component multiplier of <i>n</i> - 2 value. */
 const double a12  =       1403580.0;
-  
-/** First component multiplier of <i>n</i> - 3 value. */
 const double a13n =       810728.0;
-  
-/** Second component multiplier of <i>n</i> - 1 value. */
 const double a21  =       527612.0;
-  
-/** Second component multiplier of <i>n</i> - 3 value. */
 const double a23n =       1370589.0;
-
-/** Decomposition factor for computing a*s in less than 53 bits, 2<sup>17</sup> */
 const double two17 =      131072.0;
-  
-/** IEEE-754 floating point precision, 2<sup>53</sup> */
 const double two53 =      9007199254740992.0;
-  
-/** First component transition matrix. */
+
 const Matrix A1p0 = {
   {       0.0,        1.0,       0.0 },
   {       0.0,        0.0,       1.0 },
   { -810728.0,  1403580.0,       0.0 }
 };
 
-/** Second component transition matrix. */
 const Matrix A2p0 = {
   {        0.0,        1.0,       0.0 },
   {        0.0,        0.0,       1.0 },
@@ -96,18 +60,8 @@ const Matrix A2p0 = {
 
 
 //-------------------------------------------------------------------------
-/**
- * Return (a*s + c) MOD m; a, s, c and m must be < 2^35
- *
- * This computes the result exactly, without exceeding the 53 bit
- * precision of doubles.
- *
- * \param [in] a First multiplicative argument.
- * \param [in] s Second multiplicative argument.
- * \param [in] c Additive argument.
- * \param [in] m Modulus.
- * \returns <tt>(a*s +c) MOD m</tt>
- */
+// Return (a*s + c) MOD m; a, s, c and m must be < 2^35
+//
 double MultModM (double a, double s, double c, double m)
 {
   double v;
@@ -139,15 +93,9 @@ double MultModM (double a, double s, double c, double m)
 
 
 //-------------------------------------------------------------------------
-/**
- * Compute the vector v = A*s MOD m. Assume that -m < s[i] < m.
- * Works also when v = s.
- *
- * \param [in] A Matrix argument, 3x3.
- * \param [in] s Three component input vector.
- * \param [out] v Three component output vector.
- * \param [in] m Modulus.
- */
+// Compute the vector v = A*s MOD m. Assume that -m < s[i] < m.
+// Works also when v = s.
+//
 void MatVecModM (const Matrix A, const double s[3], double v[3],
                  double m)
 {
@@ -168,15 +116,9 @@ void MatVecModM (const Matrix A, const double s[3], double v[3],
 
 
 //-------------------------------------------------------------------------
-/**
- * Compute the matrix C = A*B MOD m. Assume that -m < s[i] < m.
- * Note: works also if A = C or B = C or A = B = C.
- *
- * \param [in] A First matrix argument.
- * \param [in] B Second matrix argument.
- * \param [out] C Result matrix.
- * \param [in] m Modulus.
- */
+// Compute the matrix C = A*B MOD m. Assume that -m < s[i] < m.
+// Note: works also if A = C or B = C or A = B = C.
+//
 void MatMatModM (const Matrix A, const Matrix B,
                  Matrix C, double m)
 {
@@ -207,14 +149,8 @@ void MatMatModM (const Matrix A, const Matrix B,
 
 
 //-------------------------------------------------------------------------
-/**
- * Compute the matrix B = (A^(2^e) Mod m);  works also if A = B. 
- *
- * \param [in] src Matrix input argument \c A.
- * \param [out] dst Matrix output \c B.
- * \param [in] m Modulus.
- * \param [in] e The exponent.
- */
+// Compute the matrix B = (A^(2^e) Mod m);  works also if A = B. 
+//
 void MatTwoPowModM (const Matrix src, Matrix dst, double m, int32_t e)
 {
   int i, j;
@@ -236,16 +172,12 @@ void MatTwoPowModM (const Matrix src, Matrix dst, double m, int32_t e)
 
 
 //-------------------------------------------------------------------------
-/**
- * Compute the matrix B = (A^n Mod m);  works even if A = B.
- *
- * \param [in] A Matrix input argument.
- * \param [out] B Matrix output.
- * \param [in] m Modulus.
- * \param [in] n Exponent.
- */
+// Compute the matrix B = (A^n Mod m);  works even if A = B.
+//
+/*
 void MatPowModM (const double A[3][3], double B[3][3], double m, int32_t n)
 {
+  NS_LOG_FUNCTION (A << B << m << n);
   int i, j;
   double W[3][3];
 
@@ -274,23 +206,15 @@ void MatPowModM (const double A[3][3], double B[3][3], double m, int32_t n)
       n /= 2;
     }
 }
+*/
 
-/**
- * The transition matrices of the two MRG components
- * (in matrix form), raised to all powers of 2 from 1 to 191
- */
+// The following are the transition matrices of the two MRG components
+// (in matrix form), raised to all powers of 2 from 1 to 191
 struct Precalculated
 {
-  Matrix a1[190];  //!< First component transition matrix powers.
-  Matrix a2[190];  //!< Second component transition matrix powers.
+  Matrix a1[190];
+  Matrix a2[190];
 };
-
-/**
- * Compute the transition matrices of the two MRG components
- * raised to all powers of 2 from 1 to 191.
- *
- * \returns The precalculated powers of the transition matrices.
- */
 struct Precalculated PowerOfTwoConstants (void)
 {
   struct Precalculated precalculated;
@@ -302,13 +226,6 @@ struct Precalculated PowerOfTwoConstants (void)
     }
   return precalculated;
 }
-/**
- * Get the transition matrices raised to a power of 2.
- *
- * \param [in] n The power of 2.
- * \param [out] a1p The first transition matrix power.
- * \param [out] a2p The second transition matrix power.
- */
 void PowerOfTwoMatrix (int n, Matrix a1p, Matrix a2p)
 {
   static struct Precalculated constants = PowerOfTwoConstants ();
@@ -322,13 +239,13 @@ void PowerOfTwoMatrix (int n, Matrix a1p, Matrix a2p)
     }
 }
 
-} // namespace MRG32k3a
+} // end of anonymous namespace
 
 
 namespace ns3 {
-
-using namespace MRG32k3a;
-  
+//-------------------------------------------------------------------------
+// Generate the next random number.
+//
 double RngStream::RandU01 ()
 {
   int32_t k;
@@ -400,5 +317,3 @@ RngStream::AdvanceNthBy (uint64_t nth, int by, double state[6])
 }
 
 } // namespace ns3
-
-/**@}*/  // \ingroup rngimpl

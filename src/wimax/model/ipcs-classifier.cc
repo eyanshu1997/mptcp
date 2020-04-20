@@ -31,17 +31,17 @@
 #include "ns3/udp-l4-protocol.h"
 #include "ns3/tcp-l4-protocol.h"
 
-namespace ns3 {
-
 NS_LOG_COMPONENT_DEFINE ("IpcsClassifier");
 
-NS_OBJECT_ENSURE_REGISTERED (IpcsClassifier);
+namespace ns3 {
+
+NS_OBJECT_ENSURE_REGISTERED (IpcsClassifier)
+  ;
 
 TypeId IpcsClassifier::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::IpcsClassifier")
-    .SetParent<Object> ()
-    .SetGroupName("Wimax");
+    .SetParent<Object> ();
   return tid;
 }
 

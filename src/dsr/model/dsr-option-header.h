@@ -98,7 +98,7 @@ public:
    */
   uint8_t GetLength () const;
   /**
-   * \brief Print some information about the packet.
+   * \brief Print some informations about the packet.
    * \param os output stream
    * \return info about this packet
    */
@@ -169,7 +169,7 @@ public:
    */
   virtual ~DsrOptionPad1Header ();
   /**
-   * \brief Print some information about the packet.
+   * \brief Print some informations about the packet.
    * \param os output stream
    * \return info about this packet
    */
@@ -219,7 +219,7 @@ public:
    */
   virtual ~DsrOptionPadnHeader ();
   /**
-   * \brief Print some information about the packet.
+   * \brief Print some informations about the packet.
    * \param os output stream
    * \return info about this packet
    */
@@ -348,7 +348,7 @@ public:
    */
   uint16_t GetId () const;
   /**
-   * \brief Print some information about the packet.
+   * \brief Print some informations about the packet.
    * \param os output stream
    * \return info about this packet
    */
@@ -380,11 +380,11 @@ private:
    * \brief Identifier of the packet.
    */
   uint16_t m_identification;
-  /**
+  /*
    * Ipv4 address of target node
    */
   Ipv4Address m_target;
-  /**
+  /*
    * Ipv4 address to write when desearizing the packet
    */
   Ipv4Address m_address;
@@ -481,9 +481,8 @@ public:
    * \return the vector of ipv4 address
    */
   std::vector<Ipv4Address> GetNodesAddress () const;
-  /**
+  /*
    * \brief Get the target node Ip address
-   * \param ipv4Address target address
    * \return the target address
    */
   Ipv4Address GetTargetAddress (std::vector<Ipv4Address> ipv4Address) const;
@@ -500,7 +499,7 @@ public:
    */
   Ipv4Address GetNodeAddress (uint8_t index) const;
   /**
-   * \brief Print some information about the packet.
+   * \brief Print some informations about the packet.
    * \param os output stream
    * \return info about this packet
    */
@@ -528,7 +527,7 @@ public:
   virtual Alignment GetAlignment () const;
 
 private:
-  /**
+  /*
    * The Ip address to write to when deserialize the packet
    */
   Ipv4Address m_address;
@@ -588,12 +587,12 @@ public:
    * \brief Destructor.
    */
   virtual ~DsrOptionSRHeader ();
-  /**
+  /*
    * \brief Set the number of segments left to send
    * \param segmentsLeft The segments left
    */
   void SetSegmentsLeft (uint8_t segmentsLeft);
-  /**
+  /*
    * \brief Get the number of segments left to send
    * \return The segments left
    */
@@ -613,7 +612,7 @@ public:
    * \return the vector of ipv4 address
    */
   std::vector<Ipv4Address> GetNodesAddress () const;
-  /**
+  /*
    * \brief Get the node list size which is the number of ip address of the route
    * \return the node list size
    */
@@ -630,18 +629,18 @@ public:
    * \return the router IPv4 Address
    */
   Ipv4Address GetNodeAddress (uint8_t index) const;
-  /**
+  /*
    * \brief Set the salvage value for a packet
    * \param salvage The salvage value of the packet
    */
   void SetSalvage (uint8_t salvage);
-  /**
+  /*
    * \brief Get the salvage value for a packet
    * \return The salvage value of the packet
    */
   uint8_t GetSalvage () const;
   /**
-   * \brief Print some information about the packet.
+   * \brief Print some informations about the packet.
    * \param os output stream
    * \return info about this packet
    */
@@ -667,13 +666,6 @@ public:
    * \return The required alignment
    */
   virtual Alignment GetAlignment () const;
-
-  /**
-   * TracedCallback signature for DsrOptionSrHeader.
-   *
-   * \param [in] header The DsrOptionsSRHeader
-   */
-  typedef void (*TracedCallback)(const DsrOptionSRHeader & header);
 
 private:
   /**
@@ -774,7 +766,6 @@ public:
   virtual Ipv4Address GetErrorSrc () const;
   /**
    * \brief Set the salvage value of the packet
-   * \param salvage The salvage value of the packet
    */
   virtual void SetSalvage (uint8_t salvage);
   /**
@@ -793,7 +784,7 @@ public:
    */
   virtual Ipv4Address GetErrorDst () const;
   /**
-   * \brief Print some information about the packet.
+   * \brief Print some informations about the packet.
    * \param os output stream
    * \return info about this packet
    */
@@ -910,7 +901,6 @@ public:
   virtual Ipv4Address GetErrorSrc () const;
   /**
    * \brief Set the salvage value of the packet
-   * \param salvage The salvage value of the packet
    */
   virtual void SetSalvage (uint8_t salvage);
   /**
@@ -949,7 +939,7 @@ public:
    */
   Ipv4Address GetOriginalDst () const;
   /**
-   * \brief Print some information about the packet.
+   * \brief Print some informations about the packet.
    * \param os output stream
    * \return info about this packet
    */
@@ -1096,7 +1086,7 @@ public:
    */
   uint16_t GetUnsupported () const;
   /**
-   * \brief Print some information about the packet.
+   * \brief Print some informations about the packet.
    * \param os output stream
    * \return info about this packet
    */
@@ -1195,7 +1185,7 @@ public:
    */
   uint16_t GetAckId () const;
   /**
-   * \brief Print some information about the packet.
+   * \brief Print some informations about the packet.
    * \param os output stream
    * \return info about this packet
    */
@@ -1302,7 +1292,7 @@ public:
    */
   Ipv4Address GetRealDst () const;
   /**
-   * \brief Print some information about the packet.
+   * \brief Print some informations about the packet.
    * \param os output stream
    * \return info about this packet
    */

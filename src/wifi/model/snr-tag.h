@@ -17,15 +17,15 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * Authors: Mathieu Lacage <mathieu.lacage@sophia.inria.fr>
- *          Mirko Banchi <mk.banchi@gmail.com>
- *          Konstantinos Katsaros <dinos.katsaros@gmail.com>
+ * Author: Mathieu Lacage <mathieu.lacage@sophia.inria.fr>
+ * Author: Mirko Banchi <mk.banchi@gmail.com>
+ * Author: Konstantinos Katsaros <dinos.katsaros@gmail.com>
  */
 
 #ifndef SNR_TAG_H
 #define SNR_TAG_H
 
-#include "ns3/tag.h"
+#include "ns3/packet.h"
 
 namespace ns3 {
 
@@ -34,22 +34,24 @@ class Tag;
 class SnrTag : public Tag
 {
 public:
-  /**
-   * \brief Get the type ID.
-   * \return the object TypeId
-   */
   static TypeId GetTypeId (void);
-  TypeId GetInstanceTypeId (void) const;
+  virtual TypeId GetInstanceTypeId (void) const;
 
   /**
-   * Create a SnrTag with the default snr 0
+   * Create a SnrTag with the default snr 0 
    */
-  SnrTag ();
+  SnrTag();
 
-  uint32_t GetSerializedSize (void) const;
-  void Serialize (TagBuffer i) const;
-  void Deserialize (TagBuffer i);
-  void Print (std::ostream &os) const;
+  /**
+   * Create a SnrTag with the given snr value
+   * \param snr the given SNR value
+   */
+  SnrTag(double snr);
+
+  virtual uint32_t GetSerializedSize (void) const;
+  virtual void Serialize (TagBuffer i) const;
+  virtual void Deserialize (TagBuffer i);
+  virtual void Print (std::ostream &os) const;
 
   /**
    * Set the SNR to the given value.
@@ -63,12 +65,10 @@ public:
    * \return the SNR value
    */
   double Get (void) const;
-
-
 private:
   double m_snr;  //!< SNR value
 };
 
-}
 
+}
 #endif /* SNR_TAG_H */

@@ -17,83 +17,25 @@
  *
  * Author: Mirko Banchi <mk.banchi@gmail.com>
  */
-
 #include "ns3/log.h"
-#include "ns3/packet.h"
-#include "msdu-aggregator.h"
-#include "amsdu-subframe-header.h"
 
-namespace ns3 {
+#include "msdu-aggregator.h"
+#include "wifi-mac-header.h"
 
 NS_LOG_COMPONENT_DEFINE ("MsduAggregator");
 
-NS_OBJECT_ENSURE_REGISTERED (MsduAggregator);
+namespace ns3 {
+
+NS_OBJECT_ENSURE_REGISTERED (MsduAggregator)
+  ;
 
 TypeId
 MsduAggregator::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::MsduAggregator")
     .SetParent<Object> ()
-    .SetGroupName ("Wifi")
-    .AddConstructor<MsduAggregator> ()
   ;
   return tid;
-}
-
-MsduAggregator::MsduAggregator ()
-{
-}
-
-MsduAggregator::~MsduAggregator ()
-{
-}
-
-void
-MsduAggregator::SetMaxAmsduSize (uint16_t maxSize)
-{
-  m_maxAmsduLength = maxSize;
-}
-
-uint16_t
-MsduAggregator::GetMaxAmsduSize (void) const
-{
-  return m_maxAmsduLength;
-}
-
-bool
-MsduAggregator::Aggregate (Ptr<const Packet> packet, Ptr<Packet> aggregatedPacket,
-                           Mac48Address src, Mac48Address dest) const
-{
-  NS_LOG_FUNCTION (this);
-  Ptr<Packet> currentPacket;
-  AmsduSubframeHeader currentHdr;
-
-  uint8_t padding = CalculatePadding (aggregatedPacket);
-  uint32_t actualSize = aggregatedPacket->GetSize ();
-
-  if ((14 + packet->GetSize () + actualSize + padding) <= GetMaxAmsduSize ())
-    {
-      if (padding)
-        {
-          Ptr<Packet> pad = Create<Packet> (padding);
-          aggregatedPacket->AddAtEnd (pad);
-        }
-      currentHdr.SetDestinationAddr (dest);
-      currentHdr.SetSourceAddr (src);
-      currentHdr.SetLength (static_cast<uint16_t> (packet->GetSize ()));
-      currentPacket = packet->Copy ();
-
-      currentPacket->AddHeader (currentHdr);
-      aggregatedPacket->AddAtEnd (currentPacket);
-      return true;
-    }
-  return false;
-}
-
-uint8_t
-MsduAggregator::CalculatePadding (Ptr<const Packet> packet) const
-{
-  return (4 - (packet->GetSize () % 4 )) % 4;
 }
 
 MsduAggregator::DeaggregatedMsdus
@@ -106,7 +48,7 @@ MsduAggregator::Deaggregate (Ptr<Packet> aggregatedPacket)
   Ptr<Packet> extractedMsdu = Create<Packet> ();
   uint32_t maxSize = aggregatedPacket->GetSize ();
   uint16_t extractedLength;
-  uint8_t padding;
+  uint32_t padding;
   uint32_t deserialized = 0;
 
   while (deserialized < maxSize)
@@ -132,4 +74,4 @@ MsduAggregator::Deaggregate (Ptr<Packet> aggregatedPacket)
   return set;
 }
 
-} //namespace ns3
+} // namespace ns3

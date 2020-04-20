@@ -38,7 +38,7 @@ consisting of two methods:  RouteOutput () and RouteInput ().  For packets
 traveling outbound from a host, the transport protocol will query Ipv4 for the
 Ipv4RoutingProtocol object interface, and will request a route via
 Ipv4RoutingProtocol::RouteOutput ().  A Ptr to Ipv4Route object is returned.
-This is analogous to a dst_cache entry in Linux. The Ipv4Route is carried down
+This is analagous to a dst_cache entry in Linux. The Ipv4Route is carried down
 to the Ipv4L3Protocol to avoid a second lookup there. However, some cases (e.g.
 Ipv4 raw sockets) will require a call to RouteOutput()
 directly from Ipv4L3Protocol.
@@ -81,85 +81,10 @@ unicast routing capability that is intended to globally build routing
 tables at simulation time t=0 for simulation users who do not care
 about dynamic routing.
 
-.. _Unicast-routing:
-
-Unicast routing
-***************
-
-The following unicast routing protocols are defined for IPv4 and IPv6:
-
-* classes Ipv4ListRouting and Ipv6ListRouting (used to store a prioritized list of routing protocols)
-* classes Ipv4StaticRouting and Ipv6StaticRouting (covering both unicast and multicast)
-* class Ipv4GlobalRouting (used to store routes computed by the global route
-  manager, if that is used)
-* class Ipv4NixVectorRouting (a more efficient version of global routing that
-  stores source routes in a packet header field)
-* class Rip - the IPv4 RIPv2 protocol (:rfc:`2453`)
-* class RipNg - the IPv6 RIPng protocol (:rfc:`2080`)
-* IPv4 Optimized Link State Routing (OLSR) (a MANET protocol defined in 
-  :rfc:`3626`)
-* IPv4 Ad Hoc On Demand Distance Vector (AODV) (a MANET protocol defined in
-  :rfc:`3561`)
-* IPv4 Destination Sequenced Distance Vector (DSDV) (a MANET protocol)
-* IPv4 Dynamic Source Routing (DSR) (a MANET protocol)
-
-In the future, this architecture should also allow someone to implement a
-Linux-like implementation with routing cache, or a Click modular router, but
-those are out of scope for now.
-
-Ipv[4,6]ListRouting
-+++++++++++++++++++
-
-This section describes the current default |ns3| Ipv[4,6]RoutingProtocol. Typically,
-multiple routing protocols are supported in user space and coordinate to write a
-single forwarding table in the kernel. Presently in |ns3|, the implementation
-instead allows for multiple routing protocols to build/keep their own routing
-state, and the IP implementation will query each one of these routing
-protocols (in some order determined by the simulation author) until a route is
-found.  
-
-We chose this approach because it may better facilitate the integration of
-disparate routing approaches that may be difficult to coordinate the writing to
-a single table, approaches where more information than destination IP address
-(e.g., source routing) is used to determine the next hop, and on-demand routing
-approaches where packets must be cached.  
-
-Ipv[4,6]ListRouting::AddRoutingProtocol
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Classes Ipv4ListRouting and Ipv6ListRouting provides a pure virtual function declaration
-for the method that allows one to add a routing protocol::
-
-  void AddRoutingProtocol (Ptr<Ipv4RoutingProtocol> routingProtocol,
-                           int16_t priority);
-
-  void AddRoutingProtocol (Ptr<Ipv6RoutingProtocol> routingProtocol,
-                           int16_t priority);
-
-These methods are implemented respectively by class Ipv4ListRoutingImpl and by class 
-Ipv6ListRoutingImpl in the internet module.
-
-The priority variable above governs the priority in which the routing protocols
-are inserted. Notice that it is a signed int.  By default in |ns3|, the helper
-classes will instantiate a Ipv[4,6]ListRoutingImpl object, and add to it an
-Ipv[4,6]StaticRoutingImpl object at priority zero.  Internally, a list of
-Ipv[4,6]RoutingProtocols is stored, and and the routing protocols are each consulted
-in decreasing order of priority to see whether a match is found. Therefore, if
-you want your Ipv4RoutingProtocol to have priority lower than the static
-routing, insert it with priority less than 0; e.g.::
-
-  Ptr<MyRoutingProtocol> myRoutingProto = CreateObject<MyRoutingProtocol> ();
-  listRoutingPtr->AddRoutingProtocol (myRoutingProto, -10);
-
-Upon calls to RouteOutput() or RouteInput(), the list routing object will search
-the list of routing protocols, in priority order, until a route is found. Such
-routing protocol will invoke the appropriate callback and no further routing
-protocols will be searched.  
-
 .. _Global-centralized-routing:
 
 Global centralized routing
-++++++++++++++++++++++++++
+**************************
 
 Global centralized routing is sometimes called "God" routing; it is a special
 implementation that walks the simulation topology and runs a shortest path
@@ -184,7 +109,7 @@ users can insert routes via Ipv4StaticRouting API and they will take precedence
 over routes found by global routing).
 
 Global Unicast Routing API
-~~~~~~~~~~~~~~~~~~~~~~~~~~
+++++++++++++++++++++++++++
 
 The public API is very minimal. User scripts include the following::
 
@@ -227,7 +152,7 @@ user manually calls RecomputeRoutingTables() after such events. The default is
 set to false to preserve legacy |ns3| program behavior.
 
 Global Routing Implementation
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
++++++++++++++++++++++++++++++
 
 This section is for those readers who care about how this is implemented.  A
 singleton object (GlobalRouteManager) is responsible for populating the static
@@ -285,140 +210,125 @@ Advertisement for each router, and this link state database is
 fed into the OSPF shortest path computation logic. The Ipv4 API
 is finally used to populate the routes themselves. 
 
+.. _Unicast-routing:
 
-RIP and RIPng
-+++++++++++++
+Unicast routing
+***************
 
-The RIPv2 protocol for IPv4 is described in the :rfc:`2453`, and it consolidates
-a number of improvements over the base protocol defined in :rfc:`1058`.
+There are presently seven unicast routing protocols defined for IPv4 and two for
+IPv6:
 
-This IPv6 routing protocol (:rfc:`2080`) is the evolution of the well-known 
-RIPv1 (see :rfc:`1058` and :rfc:`1723`) routing protocol for IPv4.
+* class Ipv4StaticRouting (covering both unicast and multicast)
+* IPv4 Optimized Link State Routing (OLSR) (a MANET protocol defined in 
+  :rfc:`3626`)
+* IPv4 Ad Hoc On Demand Distance Vector (AODV) (a MANET protocol defined in
+  :rfc:`3561`)
+* IPv4 Destination Sequenced Distance Vector (DSDV) (a MANET protocol)
+* IPv4 Dynamic Source Routing (DSR) (a MANET protocol)
+* class Ipv4ListRouting (used to store a prioritized list of routing protocols)
+* class Ipv4GlobalRouting (used to store routes computed by the global route
+  manager, if that is used)
+* class Ipv4NixVectorRouting (a more efficient version of global routing that
+  stores source routes in a packet header field)
+* class Ipv6ListRouting (used to store a prioritized list of routing protocols)
+* class Ipv6StaticRouting 
 
-The protocols are very simple, and are normally suitable for flat, simple 
-network topologies.
+In the future, this architecture should also allow someone to implement a
+Linux-like implementation with routing cache, or a Click modular router, but
+those are out of scope for now.
 
-RIPv1, RIPv2, and RIPng have the very same goals and limitations. 
-In particular, RIP considers any route with a metric equal or greater 
-than 16 as unreachable. As a consequence, the maximum number of hops is the
-network must be less than 15 (the number of routers is not set).
-Users are encouraged to read :rfc:`2080` and :rfc:`1058` to fully understand
-RIP behaviour and limitations.
+Ipv4ListRouting
++++++++++++++++
 
+This section describes the current default |ns3| Ipv4RoutingProtocol. Typically,
+multiple routing protocols are supported in user space and coordinate to write a
+single forwarding table in the kernel. Presently in |ns3|, the implementation
+instead allows for multiple routing protocols to build/keep their own routing
+state, and the IPv4 implementation will query each one of these routing
+protocols (in some order determined by the simulation author) until a route is
+found.  
 
-Routing convergence
-~~~~~~~~~~~~~~~~~~~
+We chose this approach because it may better facilitate the integration of
+disparate routing approaches that may be difficult to coordinate the writing to
+a single table, approaches where more information than destination IP address
+(e.g., source routing) is used to determine the next hop, and on-demand routing
+approaches where packets must be cached.  
 
-RIP uses a Distance-Vector algorithm, and routes are updated according to
-the Bellman-Ford algorithm (sometimes known as Ford-Fulkerson algorithm).
-The algorithm has a convergence time of O(\|V\|*\|E\|) where \|V\| and \|E\| 
-are the number of vertices (routers) and edges (links) respectively.
-It should be stressed that the convergence time is the number of steps in
-the algorithm, and each step is triggered by a message.
-Since Triggered Updates (i.e., when a route is changed) have a 1-5 seconds 
-cooldown, the topology can require some time to be stabilized.
+Ipv4ListRouting::AddRoutingProtocol
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Users should be aware that, during routing tables construction, the routers 
-might drop packets. Data traffic should be sent only after a time long
-enough to allow RIP to build the network topology.
-Usually 80 seconds should be enough to have a suboptimal (but working)
-routing setup. This includes the time needed to propagate the routes to the
-most distant router (16 hops) with Triggered Updates.
+Class Ipv4ListRouting provides a pure virtual function declaration for the
+method that allows one to add a routing protocol::
 
-If the network topology is changed (e.g., a link is broken), the recovery 
-time might be quite high, and it might be even higher than the initial 
-setup time. Moreover, the network topology recovery is affected by
-the Split Horizoning strategy.
+  void AddRoutingProtocol (Ptr<Ipv4RoutingProtocol> routingProtocol,
+                           int16_t priority);
 
-The examples ``examples/routing/ripng-simple-network.cc`` and 
-``examples/routing/rip-simple-network.cc``
-shows both the network setup and network recovery phases.
+This method is implemented by class Ipv4ListRoutingImpl in the internet-stack
+module.
 
-Split Horizoning
-~~~~~~~~~~~~~~~~
+The priority variable above governs the priority in which the routing protocols
+are inserted. Notice that it is a signed int.  By default in |ns3|, the helper
+classes will instantiate a Ipv4ListRoutingImpl object, and add to it an
+Ipv4StaticRoutingImpl object at priority zero.  Internally, a list of
+Ipv4RoutingProtocols is stored, and and the routing protocols are each consulted
+in decreasing order of priority to see whether a match is found. Therefore, if
+you want your Ipv4RoutingProtocol to have priority lower than the static
+routing, insert it with priority less than 0; e.g.::
 
-Split Horizon is a strategy to prevent routing instability.
-Three options are possible:
+  Ptr<MyRoutingProtocol> myRoutingProto = CreateObject<MyRoutingProtocol> ();
+  listRoutingPtr->AddRoutingProtocol (myRoutingProto, -10);
 
-* No Split Horizon
-* Split Horizon
-* Poison Reverse
+Upon calls to RouteOutput() or RouteInput(), the list routing object will search
+the list of routing protocols, in priority order, until a route is found. Such
+routing protocol will invoke the appropriate callback and no further routing
+protocols will be searched.  
 
-In the first case, routes are advertised on all the router's interfaces.
-In the second case, routers will not advertise a route on the interface
-from which it was learned.
-Poison Reverse will advertise the route on the interface from which it 
-was learned, but with a metric of 16 (infinity).
-For a full analysis of the three techniques, see :rfc:`1058`, section 2.2.
+Optimized Link State Routing (OLSR)
++++++++++++++++++++++++++++++++++++
 
-The examples are based on the network topology
-described in the RFC, but it does not show the effect described there.
+This IPv4 routing protocol was originally ported from the OLSR-UM implementation
+for ns-2. The implementation is found in the src/olsr directory, and an
+example script is in examples/simple-point-to-point-olsr.cc.
 
-The reason are the Triggered Updates, together with the fact that when a 
-router invalidates a route, it will immediately propagate the route 
-unreachability, thus preventing most of the issues described in the RFC.
+Typically, OLSR is enabled in a main program by use of an OlsrHelper class that
+installs OLSR into an Ipv4ListRoutingProtocol object. The following sample
+commands will enable OLSR in a simulation using this helper class along with
+some other routing helper objects. The setting of priority value 10, ahead of
+the staticRouting priority of 0, means that OLSR will be consulted for a route
+before the node's static routing table.::
 
-However, with complex toplogies, it is still possible to have route 
-instability phenomena similar to the one described in the RFC after a 
-link failure. As a consequence, all the considerations about Split Horizon
-remanins valid.
+  NodeContainer c:
+  ...
+  // Enable OLSR
+  NS_LOG_INFO ("Enabling OLSR Routing.");
+  OlsrHelper olsr;
 
+  Ipv4StaticRoutingHelper staticRouting;
 
-Default routes
-~~~~~~~~~~~~~~
+  Ipv4ListRoutingHelper list;
+  list.Add (staticRouting, 0);
+  list.Add (olsr, 10);
 
-RIP protocol should be installed *only* on routers. As a consequence, 
-nodes will not know what is the default router.
+  InternetStackHelper internet;
+  internet.SetRoutingHelper (list);
+  internet.Install (c);
 
-To overcome this limitation, users should either install the default route
-manually (e.g., by resorting to Ipv4StaticRouting or Ipv6StaticRouting), or 
-by using RADVd (in case of IPv6).
-RADVd is available in |ns3| in the Applications module, and it is strongly 
-suggested.
- 
-Protocol parameters and options
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Once installed,the OLSR "main interface" can be set with the SetMainInterface()
+command. If the user does not specify a main address, the protocol will select
+the first primary IP address that it finds, starting first the loopback
+interface and then the next non-loopback interface found, in order of Ipv4
+interface index. The loopback address of 127.0.0.1 is not selected. In addition,
+a number of protocol constants are defined in olsr-routing-protocol.cc.
 
-The RIP |ns3| implementations allow to change all the timers associated 
-with route updates and routes lifetime.
+Olsr is started at time zero of the simulation, based on a call to
+Object::Start() that eventually calls OlsrRoutingProtocol::DoStart(). Note:  a
+patch to allow the user to start and stop the protocol at other times would be
+welcome.
 
-Moreover, users can change the interface metrics on a per-node basis.
-
-The type of Split Horizoning (to avoid routes back-propagation) can be 
-selected on a per-node basis, with the choices being "no split horizon", 
-"split horizon" and "poison reverse". See :rfc:`2080` for further details,
-and :rfc:`1058` for a complete discussion on the split horizoning strategies.
-
-Moreover, it is possible to use a non-standard value for Link Down Value (i.e.,
-the value after which a link is considered down). The defaul is value is 16. 
-
-Limitations
-~~~~~~~~~~~
-
-There is no support for the Next Hop option (:rfc:`2080`, Section 2.1.1).
-The Next Hop option is useful when RIP is not being run on all of the 
-routers on a network.
-Support for this option may be considered in the future.
-
-There is no support for CIDR prefix aggregation. As a result, both routing 
-tables and route advertisements may be larger than necessary. 
-Prefix aggregation may be added in the future.
-
-
-Other routing protocols
-+++++++++++++++++++++++
-
-Other routing protocols documentation can be found under the respective
-modules sections, e.g.:
-
-* AODV
-* Click
-* DSDV
-* DSR
-* NixVectorRouting
-* OLSR
-* etc.
-
+Presently, OLSR is limited to use with an Ipv4ListRouting object, and does not
+respond to dynamic changes to a device's IP address or link up/down
+notifications; i.e. the topology changes are due to loss/gain of connectivity
+over a wireless channel.
 
 .. _Multicast-routing:
 

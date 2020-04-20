@@ -16,14 +16,15 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * Authors: Mathieu Lacage <mathieu.lacage@sophia.inria.fr>
- *          Mirko Banchi <mk.banchi@gmail.com>
+ * Author: Mathieu Lacage <mathieu.lacage@sophia.inria.fr>
+ * Author: Mirko Banchi <mk.banchi@gmail.com>
  */
-
 #ifndef ADHOC_WIFI_MAC_H
 #define ADHOC_WIFI_MAC_H
 
 #include "regular-wifi-mac.h"
+
+#include "amsdu-subframe-header.h"
 
 namespace ns3 {
 
@@ -35,10 +36,6 @@ namespace ns3 {
 class AdhocWifiMac : public RegularWifiMac
 {
 public:
-  /**
-   * \brief Get the type ID.
-   * \return the object TypeId
-   */
   static TypeId GetTypeId (void);
 
   AdhocWifiMac ();
@@ -47,12 +44,12 @@ public:
   /**
    * \param address the current address of this MAC layer.
    */
-  void SetAddress (Mac48Address address);
+  virtual void SetAddress (Mac48Address address);
 
   /**
    * \param linkUp the callback to invoke when the link becomes up.
    */
-  void SetLinkUpCallback (Callback<void> linkUp);
+  virtual void SetLinkUpCallback (Callback<void> linkUp);
 
   /**
    * \param packet the packet to send.
@@ -62,13 +59,12 @@ public:
    * dequeued as soon as the channel access function determines that
    * access is granted to this MAC.
    */
-  void Enqueue (Ptr<const Packet> packet, Mac48Address to);
-
+  virtual void Enqueue (Ptr<const Packet> packet, Mac48Address to);
 
 private:
-  void Receive (Ptr<Packet> packet, const WifiMacHeader *hdr);
+  virtual void Receive (Ptr<Packet> packet, const WifiMacHeader *hdr);
 };
 
-} //namespace ns3
+} // namespace ns3
 
 #endif /* ADHOC_WIFI_MAC_H */

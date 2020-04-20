@@ -2,7 +2,7 @@
 /*
  * Copyright (c) 2007 Georgia Tech Research Corporation
  * Copyright (c) 2009 INRIA
- *
+ * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
  * published by the Free Software Foundation;
@@ -26,6 +26,7 @@
 #include "ns3/simulator.h"
 #include "ns3/simple-channel.h"
 #include "ns3/simple-net-device.h"
+#include "ns3/drop-tail-queue.h"
 #include "ns3/config.h"
 #include "ns3/ipv4-static-routing.h"
 #include "ns3/ipv4-list-routing.h"
@@ -37,6 +38,7 @@
 #include "ns3/uinteger.h"
 #include "ns3/log.h"
 
+#include "ns3/ipv4-end-point.h"
 #include "ns3/arp-l3-protocol.h"
 #include "ns3/ipv4-l3-protocol.h"
 #include "ns3/ipv6-l3-protocol.h"
@@ -44,33 +46,16 @@
 #include "ns3/icmpv6-l4-protocol.h"
 #include "ns3/udp-l4-protocol.h"
 #include "ns3/tcp-l4-protocol.h"
-#include "ns3/traffic-control-layer.h"
 
 #include <string>
 
-using namespace ns3;
-
 NS_LOG_COMPONENT_DEFINE ("TcpTestSuite");
 
-/**
- * \ingroup internet-test
- * \ingroup tests
- *
- * \brief TCP Test - send string data from client to server and back.
- */
+using namespace ns3;
+
 class TcpTestCase : public TestCase
 {
 public:
-
-  /**
-   * \brief Constructor.
-   * \param totalStreamSize Total stream size (in bytes).
-   * \param sourceWriteSize Client data size when sending.
-   * \param sourceReadSize Client data size when receiving.
-   * \param serverWriteSize Server data size when sending.
-   * \param serverReadSize Server data size when receiving.
-   * \param useIpv6 Use IPv6 instead of IPv4.
-   */
   TcpTestCase (uint32_t totalStreamSize,
                uint32_t sourceWriteSize,
                uint32_t sourceReadSize,
@@ -80,87 +65,33 @@ public:
 private:
   virtual void DoRun (void);
   virtual void DoTeardown (void);
-
-  /**
-   * \brief Setup the test (IPv4 version).
-   */
   void SetupDefaultSim (void);
-  /**
-   * \brief Setup the test (IPv6 version).
-   */
   void SetupDefaultSim6 (void);
 
-  /**
-   * \brief Create a node with the Internet stack (IPv4 version).
-   * \returns The new node.
-   */
   Ptr<Node> CreateInternetNode (void);
-  /**
-   * \brief Create a node with the Internet stack (IPv6 version).
-   * \returns The new node.
-   */
   Ptr<Node> CreateInternetNode6 (void);
-
-  /**
-   * \brief Add a SimpleNetDevice to a node (IPv4 version).
-   * \param node The target node.
-   * \param ipaddr the SimpleNetDevice IPv4 address.
-   * \param netmask the SimpleNetDevice IPv4 address netmask.
-   * \returns The new SimpleNetDevice.
-   */
   Ptr<SimpleNetDevice> AddSimpleNetDevice (Ptr<Node> node, const char* ipaddr, const char* netmask);
-  /**
-   * \brief Add a SimpleNetDevice to a node (IPv6 version).
-   * \param node The target node.
-   * \param ipaddr the SimpleNetDevice IPv6 address.
-   * \param prefix the SimpleNetDevice IP6 address prefix.
-   * \returns The new SimpleNetDevice.
-   */
   Ptr<SimpleNetDevice> AddSimpleNetDevice6 (Ptr<Node> node, Ipv6Address ipaddr, Ipv6Prefix prefix);
-
-  /**
-   * \brief Server: Handle connection created.
-   * \param s The socket.
-   * \param addr The other party address.
-   */
   void ServerHandleConnectionCreated (Ptr<Socket> s, const Address & addr);
-  /**
-   * \brief Server: Receive data.
-   * \param sock The socket.
-   */
   void ServerHandleRecv (Ptr<Socket> sock);
-  /**
-   * \brief Server: Send data.
-   * \param sock The socket.
-   * \param available Unused in the test.
-   */
   void ServerHandleSend (Ptr<Socket> sock, uint32_t available);
-  /**
-   * \brief Client: Send data.
-   * \param sock The socket.
-   * \param available Unused in the test.
-   */
   void SourceHandleSend (Ptr<Socket> sock, uint32_t available);
-  /**
-   * \brief Client: Receive data.
-   * \param sock The socket.
-   */
   void SourceHandleRecv (Ptr<Socket> sock);
 
-  uint32_t m_totalBytes;        //!< Total stream size (in bytes).
-  uint32_t m_sourceWriteSize;   //!< Client data size when sending.
-  uint32_t m_sourceReadSize;    //!< Client data size when receiving.
-  uint32_t m_serverWriteSize;   //!< Server data size when sending.
-  uint32_t m_serverReadSize;    //!< Server data size when receiving.
-  uint32_t m_currentSourceTxBytes;  //!< Client Tx bytes.
-  uint32_t m_currentSourceRxBytes;  //!< Client Rx bytes.
-  uint32_t m_currentServerRxBytes;  //!< Server Tx bytes.
-  uint32_t m_currentServerTxBytes;  //!< Server Rx bytes.
-  uint8_t *m_sourceTxPayload; //!< Client Tx payload.
-  uint8_t *m_sourceRxPayload; //!< Client Rx payload.
-  uint8_t* m_serverRxPayload; //!< Server Rx payload.
+  uint32_t m_totalBytes;
+  uint32_t m_sourceWriteSize;
+  uint32_t m_sourceReadSize;
+  uint32_t m_serverWriteSize;
+  uint32_t m_serverReadSize;
+  uint32_t m_currentSourceTxBytes;
+  uint32_t m_currentSourceRxBytes;
+  uint32_t m_currentServerRxBytes;
+  uint32_t m_currentServerTxBytes;
+  uint8_t *m_sourceTxPayload;
+  uint8_t *m_sourceRxPayload;
+  uint8_t* m_serverRxPayload;
 
-  bool m_useIpv6; //!< Use IPv6 instead of IPv4.
+  bool m_useIpv6;
 };
 
 static std::string Name (std::string str, uint32_t totalStreamSize,
@@ -171,18 +102,20 @@ static std::string Name (std::string str, uint32_t totalStreamSize,
                          bool useIpv6)
 {
   std::ostringstream oss;
-  oss << str << " total=" << totalStreamSize << " sourceWrite=" << sourceWriteSize
+  oss << str << " total=" << totalStreamSize << " sourceWrite=" << sourceWriteSize 
       << " sourceRead=" << sourceReadSize << " serverRead=" << serverReadSize
       << " serverWrite=" << serverWriteSize << " useIpv6=" << useIpv6;
   return oss.str ();
 }
 
-static inline std::string GetString (Ptr<Packet> p)
+#ifdef NS3_LOG_ENABLE
+static std::string GetString (Ptr<Packet> p)
 {
   std::ostringstream oss;
   p->CopyData (&oss, p->GetSize ());
   return oss.str ();
 }
+#endif /* NS3_LOG_ENABLE */
 
 TcpTestCase::TcpTestCase (uint32_t totalStreamSize,
                           uint32_t sourceWriteSize,
@@ -190,8 +123,8 @@ TcpTestCase::TcpTestCase (uint32_t totalStreamSize,
                           uint32_t serverWriteSize,
                           uint32_t serverReadSize,
                           bool useIpv6)
-  : TestCase (Name ("Send string data from client to server and back",
-                    totalStreamSize,
+  : TestCase (Name ("Send string data from client to server and back", 
+                    totalStreamSize, 
                     sourceWriteSize,
                     serverReadSize,
                     serverWriteSize,
@@ -238,9 +171,9 @@ TcpTestCase::DoRun (void)
   NS_TEST_EXPECT_MSG_EQ (m_currentSourceTxBytes, m_totalBytes, "Source sent all bytes");
   NS_TEST_EXPECT_MSG_EQ (m_currentServerRxBytes, m_totalBytes, "Server received all bytes");
   NS_TEST_EXPECT_MSG_EQ (m_currentSourceRxBytes, m_totalBytes, "Source received all bytes");
-  NS_TEST_EXPECT_MSG_EQ (memcmp (m_sourceTxPayload, m_serverRxPayload, m_totalBytes), 0,
+  NS_TEST_EXPECT_MSG_EQ (memcmp (m_sourceTxPayload, m_serverRxPayload, m_totalBytes), 0, 
                          "Server received expected data buffers");
-  NS_TEST_EXPECT_MSG_EQ (memcmp (m_sourceTxPayload, m_sourceRxPayload, m_totalBytes), 0,
+  NS_TEST_EXPECT_MSG_EQ (memcmp (m_sourceTxPayload, m_sourceRxPayload, m_totalBytes), 0, 
                          "Source received back expected data buffers");
 }
 void
@@ -270,7 +203,7 @@ TcpTestCase::ServerHandleRecv (Ptr<Socket> sock)
         {
           NS_FATAL_ERROR ("Server could not read stream at byte " << m_currentServerRxBytes);
         }
-      NS_TEST_EXPECT_MSG_EQ ((m_currentServerRxBytes + p->GetSize () <= m_totalBytes), true,
+      NS_TEST_EXPECT_MSG_EQ ((m_currentServerRxBytes + p->GetSize () <= m_totalBytes), true, 
                              "Server received too many bytes");
       NS_LOG_DEBUG ("Server recv data=\"" << GetString (p) << "\"");
       p->CopyData (&m_serverRxPayload[m_currentServerRxBytes], p->GetSize ());
@@ -326,7 +259,7 @@ TcpTestCase::SourceHandleRecv (Ptr<Socket> sock)
         {
           NS_FATAL_ERROR ("Source could not read stream at byte " << m_currentSourceRxBytes);
         }
-      NS_TEST_EXPECT_MSG_EQ ((m_currentSourceRxBytes + p->GetSize () <= m_totalBytes), true,
+      NS_TEST_EXPECT_MSG_EQ ((m_currentSourceRxBytes + p->GetSize () <= m_totalBytes), true, 
                              "Source received too many bytes");
       NS_LOG_DEBUG ("Source recv data=\"" << GetString (p) << "\"");
       p->CopyData (&m_sourceRxPayload[m_currentSourceRxBytes], p->GetSize ());
@@ -342,13 +275,9 @@ Ptr<Node>
 TcpTestCase::CreateInternetNode ()
 {
   Ptr<Node> node = CreateObject<Node> ();
-  // Traffic Control
-  Ptr<TrafficControlLayer> tc = CreateObject<TrafficControlLayer> ();
-  node->AggregateObject (tc);
   //ARP
   Ptr<ArpL3Protocol> arp = CreateObject<ArpL3Protocol> ();
   node->AggregateObject (arp);
-  arp->SetTrafficControl (tc);
   //IPV4
   Ptr<Ipv4L3Protocol> ipv4 = CreateObject<Ipv4L3Protocol> ();
   //Routing for Ipv4
@@ -416,17 +345,7 @@ TcpTestCase::SetupDefaultSim (void)
   source->SetRecvCallback (MakeCallback (&TcpTestCase::SourceHandleRecv, this));
   source->SetSendCallback (MakeCallback (&TcpTestCase::SourceHandleSend, this));
 
-  Address peerAddress;
-  int err = source->GetPeerName (peerAddress);
-  NS_TEST_EXPECT_MSG_EQ (err, -1, "socket GetPeerName() should fail when socket is not connected");
-  NS_TEST_EXPECT_MSG_EQ (source->GetErrno (), Socket::ERROR_NOTCONN, "socket error code should be ERROR_NOTCONN");
-
-  err = source->Connect (serverremoteaddr);
-  NS_TEST_EXPECT_MSG_EQ (err, 0, "socket Connect() should succeed");
-
-  err = source->GetPeerName (peerAddress);
-  NS_TEST_EXPECT_MSG_EQ (err, 0, "socket GetPeerName() should succeed when socket is connected");
-  NS_TEST_EXPECT_MSG_EQ (peerAddress, serverremoteaddr, "address from socket GetPeerName() should equal the connected address");
+  source->Connect (serverremoteaddr);
 }
 
 void
@@ -462,17 +381,7 @@ TcpTestCase::SetupDefaultSim6 (void)
   source->SetRecvCallback (MakeCallback (&TcpTestCase::SourceHandleRecv, this));
   source->SetSendCallback (MakeCallback (&TcpTestCase::SourceHandleSend, this));
 
-  Address peerAddress;
-  int err = source->GetPeerName (peerAddress);
-  NS_TEST_EXPECT_MSG_EQ (err, -1, "socket GetPeerName() should fail when socket is not connected");
-  NS_TEST_EXPECT_MSG_EQ (source->GetErrno (), Socket::ERROR_NOTCONN, "socket error code should be ERROR_NOTCONN");
-
-  err = source->Connect (serverremoteaddr);
-  NS_TEST_EXPECT_MSG_EQ (err, 0, "socket Connect() should succeed");
-
-  err = source->GetPeerName (peerAddress);
-  NS_TEST_EXPECT_MSG_EQ (err, 0, "socket GetPeerName() should succeed when socket is connected");
-  NS_TEST_EXPECT_MSG_EQ (peerAddress, serverremoteaddr, "address from socket GetPeerName() should equal the connected address");
+  source->Connect (serverremoteaddr);
 }
 
 Ptr<Node>
@@ -499,9 +408,6 @@ TcpTestCase::CreateInternetNode6 ()
   //TCP
   Ptr<TcpL4Protocol> tcp = CreateObject<TcpL4Protocol> ();
   node->AggregateObject (tcp);
-  // Traffic Control
-  Ptr<TrafficControlLayer> tc = CreateObject<TrafficControlLayer> ();
-  node->AggregateObject (tc);
   return node;
 }
 
@@ -519,13 +425,7 @@ TcpTestCase::AddSimpleNetDevice6 (Ptr<Node> node, Ipv6Address ipaddr, Ipv6Prefix
   return dev;
 }
 
-/**
- * \ingroup internet-test
- * \ingroup tests
- *
- * \brief TCP TestSuite - send string data from client to server and back.
- */
-class TcpTestSuite : public TestSuite
+static class TcpTestSuite : public TestSuite
 {
 public:
   TcpTestSuite ()
@@ -544,6 +444,4 @@ public:
     AddTestCase (new TcpTestCase (100000, 100, 50, 100, 20, true), TestCase::QUICK);
   }
 
-};
-
-static TcpTestSuite g_tcpTestSuite; //!< Static variable for test initialization
+} g_tcpTestSuite;

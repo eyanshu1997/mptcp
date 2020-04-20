@@ -28,20 +28,18 @@
 
 #include "ipv4-nix-vector-routing.h"
 
-namespace ns3 {
-
 NS_LOG_COMPONENT_DEFINE ("Ipv4NixVectorRouting");
 
-NS_OBJECT_ENSURE_REGISTERED (Ipv4NixVectorRouting);
+namespace ns3 {
 
-bool Ipv4NixVectorRouting::g_isCacheDirty = false;
+NS_OBJECT_ENSURE_REGISTERED (Ipv4NixVectorRouting)
+  ;
 
 TypeId 
 Ipv4NixVectorRouting::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::Ipv4NixVectorRouting")
     .SetParent<Ipv4RoutingProtocol> ()
-    .SetGroupName ("NixVectorRouting")
     .AddConstructor<Ipv4NixVectorRouting> ()
   ;
   return tid;
@@ -89,7 +87,7 @@ Ipv4NixVectorRouting::SetNode (Ptr<Node> node)
 }
 
 void
-Ipv4NixVectorRouting::FlushGlobalNixRoutingCache (void) const
+Ipv4NixVectorRouting::FlushGlobalNixRoutingCache ()
 {
   NS_LOG_FUNCTION_NOARGS ();
   NodeList::Iterator listEnd = NodeList::End ();
@@ -108,14 +106,14 @@ Ipv4NixVectorRouting::FlushGlobalNixRoutingCache (void) const
 }
 
 void
-Ipv4NixVectorRouting::FlushNixCache (void) const
+Ipv4NixVectorRouting::FlushNixCache ()
 {
   NS_LOG_FUNCTION_NOARGS ();
   m_nixCache.clear ();
 }
 
 void
-Ipv4NixVectorRouting::FlushIpv4RouteCache (void) const
+Ipv4NixVectorRouting::FlushIpv4RouteCache ()
 {
   NS_LOG_FUNCTION_NOARGS ();
   m_ipv4RouteCache.clear ();
@@ -143,7 +141,7 @@ Ipv4NixVectorRouting::GetNixVector (Ptr<Node> source, Ipv4Address dest, Ptr<NetD
   /// Do not process packets to self (see \bugid{1308})
   if (source == destNode)
     {
-      NS_LOG_DEBUG ("Do not process packets to self");
+      NS_LOG_DEBUG ("Do not processs packets to self");
       return 0;
     }
   else
@@ -171,8 +169,6 @@ Ipv4NixVectorRouting::GetNixVectorInCache (Ipv4Address address)
 {
   NS_LOG_FUNCTION_NOARGS ();
 
-  CheckCacheStateAndFlush ();
-
   NixMap_t::iterator iter = m_nixCache.find (address);
   if (iter != m_nixCache.end ())
     {
@@ -188,8 +184,6 @@ Ptr<Ipv4Route>
 Ipv4NixVectorRouting::GetIpv4RouteInCache (Ipv4Address address)
 {
   NS_LOG_FUNCTION_NOARGS ();
-
-  CheckCacheStateAndFlush ();
 
   Ipv4RouteMap_t::iterator iter = m_ipv4RouteCache.find (address);
   if (iter != m_ipv4RouteCache.end ())
@@ -268,7 +262,7 @@ Ipv4NixVectorRouting::BuildNixVector (const std::vector< Ptr<Node> > & parentVec
           continue;
         }
 
-      // this function takes in the local net dev, and channel, and
+      // this function takes in the local net dev, and channnel, and
       // writes to the netDeviceContainer the adjacent net devs
       NetDeviceContainer netDeviceContainer;
       GetAdjacentNetDevices (localNetDevice, channel, netDeviceContainer);
@@ -307,7 +301,7 @@ Ipv4NixVectorRouting::GetAdjacentNetDevices (Ptr<NetDevice> netDevice, Ptr<Chann
 {
   NS_LOG_FUNCTION_NOARGS ();
 
-  for (std::size_t i = 0; i < channel->GetNDevices (); i++)
+  for (uint32_t i = 0; i < channel->GetNDevices (); i++)
     {
       Ptr<NetDevice> remoteDevice = channel->GetDevice (i);
       if (remoteDevice != netDevice)
@@ -371,7 +365,7 @@ Ipv4NixVectorRouting::GetNodeByIp (Ipv4Address dest)
 }
 
 uint32_t
-Ipv4NixVectorRouting::FindTotalNeighbors (void)
+Ipv4NixVectorRouting::FindTotalNeighbors ()
 {
   uint32_t numberOfDevices = m_node->GetNDevices ();
   uint32_t totalNeighbors = 0;
@@ -390,7 +384,7 @@ Ipv4NixVectorRouting::FindTotalNeighbors (void)
           continue;
         }
 
-      // this function takes in the local net dev, and channel, and
+      // this function takes in the local net dev, and channnel, and
       // writes to the netDeviceContainer the adjacent net devs
       NetDeviceContainer netDeviceContainer;
       GetAdjacentNetDevices (localNetDevice, channel, netDeviceContainer);
@@ -462,7 +456,7 @@ Ipv4NixVectorRouting::FindNetDeviceForNixIndex (uint32_t nodeIndex, Ipv4Address 
           continue;
         }
 
-      // this function takes in the local net dev, and channel, and
+      // this function takes in the local net dev, and channnel, and
       // writes to the netDeviceContainer the adjacent net devs
       NetDeviceContainer netDeviceContainer;
       GetAdjacentNetDevices (localNetDevice, channel, netDeviceContainer);
@@ -494,8 +488,6 @@ Ipv4NixVectorRouting::RouteOutput (Ptr<Packet> p, const Ipv4Header &header, Ptr<
   Ptr<Ipv4Route> rtentry;
   Ptr<NixVector> nixVectorInCache;
   Ptr<NixVector> nixVectorForPacket;
-
-  CheckCacheStateAndFlush ();
 
   NS_LOG_DEBUG ("Dest IP from header: " << header.GetDestination ());
   // check if cache
@@ -617,33 +609,6 @@ Ipv4NixVectorRouting::RouteInput (Ptr<const Packet> p, const Ipv4Header &header,
 {
   NS_LOG_FUNCTION_NOARGS ();
 
-  CheckCacheStateAndFlush ();
-
-  NS_ASSERT (m_ipv4 != 0);
-  // Check if input device supports IP
-  NS_ASSERT (m_ipv4->GetInterfaceForDevice (idev) >= 0);
-  uint32_t iif = m_ipv4->GetInterfaceForDevice (idev);
-
-  // Local delivery
-  if (m_ipv4->IsDestinationAddress (header.GetDestination (), iif))
-    {
-      if (!lcb.IsNull ())
-        {
-          NS_LOG_LOGIC ("Local delivery to " << header.GetDestination ());
-          lcb (p, header, iif);
-          return true;
-        }
-      else
-        {
-          // The local delivery callback is null.  This may be a multicast
-          // or broadcast packet, so return false so that another
-          // multicast routing protocol can handle it.  It should be possible
-          // to extend this to explicitly check whether it is a unicast
-          // packet, and invoke the error callback if so
-          return false;
-        }
-    }
-
   Ptr<Ipv4Route> rtentry;
 
   // Get the nix-vector from the packet
@@ -696,18 +661,10 @@ Ipv4NixVectorRouting::RouteInput (Ptr<const Packet> p, const Ipv4Header &header,
 }
 
 void
-Ipv4NixVectorRouting::PrintRoutingTable (Ptr<OutputStreamWrapper> stream, Time::Unit unit) const
+Ipv4NixVectorRouting::PrintRoutingTable (Ptr<OutputStreamWrapper> stream) const
 {
 
-  CheckCacheStateAndFlush ();
-
   std::ostream* os = stream->GetStream ();
-
-  *os << "Node: " << m_ipv4->GetObject<Node> ()->GetId ()
-      << ", Time: " << Now().As (unit)
-      << ", Local time: " << GetObject<Node> ()->GetLocalTime ().As (unit)
-      << ", Nix Routing" << std::endl;
-
   *os << "NixCache:" << std::endl;
   if (m_nixCache.size () > 0)
     {
@@ -745,29 +702,28 @@ Ipv4NixVectorRouting::PrintRoutingTable (Ptr<OutputStreamWrapper> stream, Time::
           *os << std::endl;
         }
     }
-  *os << std::endl;
 }
 
 // virtual functions from Ipv4RoutingProtocol 
 void
 Ipv4NixVectorRouting::NotifyInterfaceUp (uint32_t i)
 {
-  g_isCacheDirty = true;
+  FlushGlobalNixRoutingCache ();
 }
 void
 Ipv4NixVectorRouting::NotifyInterfaceDown (uint32_t i)
 {
-  g_isCacheDirty = true;
+  FlushGlobalNixRoutingCache ();
 }
 void
 Ipv4NixVectorRouting::NotifyAddAddress (uint32_t interface, Ipv4InterfaceAddress address)
 {
-  g_isCacheDirty = true;
+  FlushGlobalNixRoutingCache ();
 }
 void
 Ipv4NixVectorRouting::NotifyRemoveAddress (uint32_t interface, Ipv4InterfaceAddress address)
 {
-  g_isCacheDirty = true;
+  FlushGlobalNixRoutingCache ();
 }
 
 bool
@@ -827,7 +783,7 @@ Ipv4NixVectorRouting::BFS (uint32_t numberOfNodes, Ptr<Node> source,
               return false;
             }
 
-          // this function takes in the local net dev, and channel, and
+          // this function takes in the local net dev, and channnel, and
           // writes to the netDeviceContainer the adjacent net devs
           NetDeviceContainer netDeviceContainer;
           GetAdjacentNetDevices (oif, channel, netDeviceContainer);
@@ -883,7 +839,7 @@ Ipv4NixVectorRouting::BFS (uint32_t numberOfNodes, Ptr<Node> source,
                   continue;
                 }
 
-              // this function takes in the local net dev, and channel, and
+              // this function takes in the local net dev, and channnel, and
               // writes to the netDeviceContainer the adjacent net devs
               NetDeviceContainer netDeviceContainer;
               GetAdjacentNetDevices (localNetDevice, channel, netDeviceContainer);
@@ -916,16 +872,6 @@ Ipv4NixVectorRouting::BFS (uint32_t numberOfNodes, Ptr<Node> source,
 
   // Didn't find the dest...
   return false;
-}
-
-void 
-Ipv4NixVectorRouting::CheckCacheStateAndFlush (void) const
-{
-  if (g_isCacheDirty)
-    {
-      FlushGlobalNixRoutingCache ();
-      g_isCacheDirty = false;
-    }
 }
 
 } // namespace ns3

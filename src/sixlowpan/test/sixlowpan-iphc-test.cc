@@ -24,13 +24,19 @@
 #include "ns3/simulator.h"
 #include "ns3/simple-channel.h"
 #include "ns3/simple-net-device.h"
+#include "ns3/drop-tail-queue.h"
 #include "ns3/socket.h"
 #include "ns3/boolean.h"
 
 #include "ns3/log.h"
 #include "ns3/node.h"
 #include "ns3/inet6-socket-address.h"
-#include "ns3/internet-stack-helper.h"
+
+#include "ns3/ipv6-l3-protocol.h"
+#include "ns3/icmpv6-l4-protocol.h"
+#include "ns3/udp-l4-protocol.h"
+#include "ns3/ipv6-list-routing.h"
+#include "ns3/ipv6-static-routing.h"
 
 #include "ns3/sixlowpan-net-device.h"
 
@@ -39,55 +45,40 @@
 
 using namespace ns3;
 
-/**
- * \ingroup sixlowpan
- * \defgroup sixlowpan-test 6LoWPAN module tests
- */
+static void
+AddInternetStack6 (Ptr<Node> node)
+{
+  //IPV6
+  Ptr<Ipv6L3Protocol> ipv6 = CreateObject<Ipv6L3Protocol> ();
+  //Routing for Ipv6
+  Ptr<Ipv6ListRouting> ipv6Routing = CreateObject<Ipv6ListRouting> ();
+  ipv6->SetRoutingProtocol (ipv6Routing);
+  Ptr<Ipv6StaticRouting> ipv6staticRouting = CreateObject<Ipv6StaticRouting> ();
+  ipv6Routing->AddRoutingProtocol (ipv6staticRouting, 0);
+  node->AggregateObject (ipv6);
+  //ICMP
+  Ptr<Icmpv6L4Protocol> icmp = CreateObject<Icmpv6L4Protocol> ();
+  node->AggregateObject (icmp);
+  //Ipv6 Extensions
+  ipv6->RegisterExtensions ();
+  ipv6->RegisterOptions ();
+  //UDP
+  Ptr<UdpL4Protocol> udp = CreateObject<UdpL4Protocol> ();
+  node->AggregateObject (udp);
+}
 
 
-/**
- * \ingroup sixlowpan-test
- * \ingroup tests
- *
- * \brief 6LoWPAN IPHC Test
- */
 class SixlowpanIphcImplTest : public TestCase
 {
-  Ptr<Packet> m_receivedPacket; //!< received packet
-
-  /**
-   * Send data function.
-   *
-   * \param socket The sending socket.
-   * \param to The destination.
-   */
+  Ptr<Packet> m_receivedPacket;
   void DoSendData (Ptr<Socket> socket, std::string to);
-
-  /**
-   * Send data function.
-   *
-   * \param socket The sending socket.
-   * \param to The destination.
-   */
   void SendData (Ptr<Socket> socket, std::string to);
 
 public:
   virtual void DoRun (void);
   SixlowpanIphcImplTest ();
 
-  /**
-   * Packet receive function.
-   *
-   * \param socket The receiving socket.
-   * \param packet The received packet.
-   * \param from The sender.
-   */
   void ReceivePacket (Ptr<Socket> socket, Ptr<Packet> packet, const Address &from);
-  /**
-   * Packet receive function.
-   *
-   * \param socket The receiving socket.
-   */
   void ReceivePkt (Ptr<Socket> socket);
 };
 
@@ -136,12 +127,10 @@ void
 SixlowpanIphcImplTest::DoRun (void)
 {
   // Create topology
-  InternetStackHelper internet;
-  internet.SetIpv4StackInstall (false);
 
   // Receiver Node
   Ptr<Node> rxNode = CreateObject<Node> ();
-  internet.Install (rxNode);
+  AddInternetStack6 (rxNode);
   Ptr<SimpleNetDevice> rxDev;
   { // first interface
     rxDev = CreateObject<SimpleNetDevice> ();
@@ -163,7 +152,7 @@ SixlowpanIphcImplTest::DoRun (void)
 
   // Sender Node
   Ptr<Node> txNode = CreateObject<Node> ();
-  internet.Install (txNode);
+  AddInternetStack6 (txNode);
   Ptr<SimpleNetDevice> txDev;
   {
     txDev = CreateObject<SimpleNetDevice> ();
@@ -214,23 +203,12 @@ SixlowpanIphcImplTest::DoRun (void)
 }
 
 
-/**
- * \ingroup sixlowpan-test
- * \ingroup tests
- *
- * \brief 6LoWPAN IPHC TestSuite
- */
+//-----------------------------------------------------------------------------
 class SixlowpanIphcTestSuite : public TestSuite
 {
 public:
-  SixlowpanIphcTestSuite ();
-private:
-};
-
-SixlowpanIphcTestSuite::SixlowpanIphcTestSuite ()
-  : TestSuite ("sixlowpan-iphc", UNIT)
-{
-  AddTestCase (new SixlowpanIphcImplTest (), TestCase::QUICK);
-}
-
-static SixlowpanIphcTestSuite g_sixlowpanIphcTestSuite; //!< Static variable for test initialization
+  SixlowpanIphcTestSuite () : TestSuite ("sixlowpan-iphc", UNIT)
+  {
+    AddTestCase (new SixlowpanIphcImplTest, TestCase::QUICK);
+  }
+} g_sixlowpanIphcTestSuite;

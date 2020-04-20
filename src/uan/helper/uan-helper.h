@@ -1,4 +1,3 @@
-/* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
  * Copyright (c) 2008 University of Washington
  *
@@ -40,7 +39,7 @@ class UanChannel;
 class UanHelper
 {
 public:
-  UanHelper ();           //!< Default constructor.
+  UanHelper ();           //!< Defalt constructor.
   virtual ~UanHelper ();  //!< Destructor.
 
   /**

@@ -28,9 +28,9 @@
 #include "null-message-mpi-interface.h"
 #include "granted-time-window-mpi-interface.h"
 
-namespace ns3 {
-
 NS_LOG_COMPONENT_DEFINE ("MpiInterface");
+
+namespace ns3 {
 
 ParallelCommunicationInterface* MpiInterface::g_parallelCommunicationInterface = 0;
 

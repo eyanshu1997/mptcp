@@ -43,30 +43,21 @@
 #include "sim_errno.h"
 
 
-namespace ns3 {
-
 NS_LOG_COMPONENT_DEFINE ("NscTcpSocketImpl");
 
-NS_OBJECT_ENSURE_REGISTERED (NscTcpSocketImpl);
+namespace ns3 {
+
+NS_OBJECT_ENSURE_REGISTERED (NscTcpSocketImpl)
+  ;
 
 TypeId
 NscTcpSocketImpl::GetTypeId ()
 {
   static TypeId tid = TypeId ("ns3::NscTcpSocketImpl")
     .SetParent<TcpSocket> ()
-    .SetGroupName ("Internet")
     .AddTraceSource ("CongestionWindow",
                      "The TCP connection's congestion window",
-                     MakeTraceSourceAccessor (&NscTcpSocketImpl::m_cWnd),
-                     "ns3::TracedValueCallback::Uint32")
-    .AddTraceSource ("SlowStartThreshold",
-                     "TCP slow start threshold (bytes)",
-                     MakeTraceSourceAccessor (&NscTcpSocketImpl::m_ssThresh),
-                     "ns3::TracedValueCallback::Uint32")
-    .AddTraceSource ("State",
-                     "TCP state",
-                     MakeTraceSourceAccessor (&NscTcpSocketImpl::m_state),
-                     "ns3::TcpStatesTracedValueCallback")
+                     MakeTraceSourceAccessor (&NscTcpSocketImpl::m_cWnd))
   ;
   return tid;
 }
@@ -116,10 +107,9 @@ NscTcpSocketImpl::NscTcpSocketImpl(const NscTcpSocketImpl& sock)
     m_cWnd (sock.m_cWnd),
     m_ssThresh (sock.m_ssThresh),
     m_initialCWnd (sock.m_initialCWnd),
-    m_initialSsThresh (sock.m_initialSsThresh),
     m_lastMeasuredRtt (Seconds (0.0)),
     m_cnTimeout (sock.m_cnTimeout),
-    m_synRetries (sock.m_synRetries),
+    m_cnCount (sock.m_cnCount),
     m_rxAvailable (0),
     m_nscTcpSocket (0),
     m_sndBufSize (sock.m_sndBufSize)
@@ -163,7 +153,6 @@ NscTcpSocketImpl::SetNode (Ptr<Node> node)
   m_node = node;
   // Initialize some variables 
   m_cWnd = m_initialCWnd * m_segmentSize;
-  m_ssThresh = m_initialSsThresh;
   m_rxWindowSize = m_advertisedWindowSize;
 }
 
@@ -250,7 +239,7 @@ NscTcpSocketImpl::Bind (const Address &address)
     }
   else if (ipv4 == Ipv4Address::GetAny () && port != 0)
     {
-      m_endPoint = m_tcp->Allocate (GetBoundNetDevice (), port);
+      m_endPoint = m_tcp->Allocate (port);
       NS_LOG_LOGIC ("NscTcpSocketImpl "<<this<<" got an endpoint: "<<m_endPoint);
     }
   else if (ipv4 != Ipv4Address::GetAny () && port == 0)
@@ -260,25 +249,12 @@ NscTcpSocketImpl::Bind (const Address &address)
     }
   else if (ipv4 != Ipv4Address::GetAny () && port != 0)
     {
-      m_endPoint = m_tcp->Allocate (GetBoundNetDevice (), ipv4, port);
+      m_endPoint = m_tcp->Allocate (ipv4, port);
       NS_LOG_LOGIC ("NscTcpSocketImpl "<<this<<" got an endpoint: "<<m_endPoint);
     }
 
   m_localPort = port;
   return FinishBind ();
-}
-
-/* Inherit from Socket class: Bind this socket to the specified NetDevice */
-void
-NscTcpSocketImpl::BindToNetDevice (Ptr<NetDevice> netdevice)
-{
-  NS_LOG_FUNCTION (this << netdevice);
-  Socket::BindToNetDevice (netdevice); // Includes sanity check
-  if (m_endPoint != 0)
-    {
-      m_endPoint->BindToNetDevice (netdevice);
-    }
-  return;
 }
 
 int 
@@ -424,7 +400,6 @@ NscTcpSocketImpl::Listen (void)
 void
 NscTcpSocketImpl::NSCWakeup ()
 {
-  NS_LOG_FUNCTION (this);
   switch (m_state) {
     case SYN_SENT:
       if (!m_nscTcpSocket->is_connected ())
@@ -434,16 +409,7 @@ NscTcpSocketImpl::NSCWakeup ()
     // fall through to schedule read/write events
     case ESTABLISHED:
       if (!m_txBuffer.empty ())
-        {
-          Simulator::ScheduleNow (&NscTcpSocketImpl::SendPendingData, this);
-        }
-      else
-        {
-          if (GetTxAvailable ())
-            {
-              NotifySend (GetTxAvailable ());
-            }
-        }
+        Simulator::ScheduleNow (&NscTcpSocketImpl::SendPendingData, this);
       Simulator::ScheduleNow (&NscTcpSocketImpl::ReadPendingData, this);
       break;
     case LISTEN:
@@ -484,7 +450,14 @@ NscTcpSocketImpl::RecvFrom (uint32_t maxSize, uint32_t flags,
 {
   NS_LOG_FUNCTION (this << maxSize << flags);
   Ptr<Packet> packet = Recv (maxSize, flags);
-  GetPeerName (fromAddress);
+  if (packet != 0)
+    {
+      SocketAddressTag tag;
+      bool found;
+      found = packet->PeekPacketTag (tag);
+      NS_ASSERT (found);
+      fromAddress = tag.GetAddress ();
+    }
   return packet;
 }
 
@@ -493,21 +466,6 @@ NscTcpSocketImpl::GetSockName (Address &address) const
 {
   NS_LOG_FUNCTION_NOARGS ();
   address = InetSocketAddress (m_localAddress, m_localPort);
-  return 0;
-}
-
-int
-NscTcpSocketImpl::GetPeerName (Address &address) const
-{
-  NS_LOG_FUNCTION (this << address);
-
-  if (!m_endPoint)
-    {
-      m_errno = ERROR_NOTCONN;
-      return -1;
-    }
-  address = InetSocketAddress (m_endPoint->GetPeerAddress (),
-                               m_endPoint->GetPeerPort ());
   return 0;
 }
 
@@ -646,6 +604,10 @@ bool NscTcpSocketImpl::ReadPendingData (void)
 
   Ptr<Packet> p =  Create<Packet> (buffer, len);
 
+  SocketAddressTag tag;
+
+  tag.SetAddress (m_peerAddress);
+  p->AddPacketTag (tag);
   m_deliveryQueue.push (p);
   m_rxAvailable += p->GetSize ();
 
@@ -709,13 +671,8 @@ bool NscTcpSocketImpl::SendPendingData (void)
 
   if (written > 0)
     {
-      NS_LOG_DEBUG ("Notifying data sent, remaining txbuffer size: " << m_txBufferSize);
       Simulator::ScheduleNow (&NscTcpSocketImpl::NotifyDataSent, this, ret);
       return true;
-    }
-  else
-    {
-      NS_LOG_DEBUG ("Not notifying data sent, return value " << ret);
     }
   return false;
 }
@@ -774,15 +731,15 @@ NscTcpSocketImpl::GetAdvWin (void) const
 }
 
 void
-NscTcpSocketImpl::SetInitialSSThresh (uint32_t threshold)
+NscTcpSocketImpl::SetSSThresh (uint32_t threshold)
 {
-  m_initialSsThresh = threshold;
+  m_ssThresh = threshold;
 }
 
 uint32_t
-NscTcpSocketImpl::GetInitialSSThresh (void) const
+NscTcpSocketImpl::GetSSThresh (void) const
 {
-  return m_initialSsThresh;
+  return m_ssThresh;
 }
 
 void
@@ -810,35 +767,21 @@ NscTcpSocketImpl::GetConnTimeout (void) const
 }
 
 void 
-NscTcpSocketImpl::SetSynRetries (uint32_t count)
+NscTcpSocketImpl::SetConnCount (uint32_t count)
 {
-  m_synRetries = count;
+  m_cnCount = count;
 }
 
 uint32_t 
-NscTcpSocketImpl::GetSynRetries (void) const
+NscTcpSocketImpl::GetConnCount (void) const
 {
-  return m_synRetries;
+  return m_cnCount;
 }
 
 void 
 NscTcpSocketImpl::SetDelAckTimeout (Time timeout)
 {
   m_delAckTimeout = timeout;
-}
-
-void
-NscTcpSocketImpl::SetDataRetries (uint32_t retries)
-{
-  NS_LOG_FUNCTION (this << retries);
-  m_dataRetries = retries;
-}
-
-uint32_t
-NscTcpSocketImpl::GetDataRetries (void) const
-{
-  NS_LOG_FUNCTION (this);
-  return m_dataRetries;
 }
 
 Time
@@ -897,7 +840,7 @@ NscTcpSocketImpl::GetNativeNs3Errno (int error) const
     {
     case NSC_EADDRINUSE:   // fallthrough
     case NSC_EADDRNOTAVAIL: return ERROR_AFNOSUPPORT;
-    case NSC_EINPROGRESS:   // Although nsc sockets are nonblocking, we pretend they're not.
+    case NSC_EINPROGRESS:   // Altough nsc sockets are nonblocking, we pretend they're not.
     case NSC_EAGAIN: return ERROR_AGAIN;
     case NSC_EISCONN:   // fallthrough
     case NSC_EALREADY: return ERROR_ISCONN;

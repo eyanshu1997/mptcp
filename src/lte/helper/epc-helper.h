@@ -25,7 +25,6 @@
 
 #include <ns3/object.h>
 #include <ns3/ipv4-address-helper.h>
-#include <ns3/ipv6-address-helper.h>
 #include <ns3/data-rate.h>
 #include <ns3/epc-tft.h>
 #include <ns3/eps-bearer.h>
@@ -40,8 +39,6 @@ class EpcX2;
 class EpcMme;
 
 /**
- * \ingroup lte
- *
  * \brief Base helper class to handle the creation of the EPC entities.
  *
  * This class provides the API for the implementation of helpers that
@@ -63,10 +60,6 @@ public:
   virtual ~EpcHelper ();
   
   // inherited from Object
-  /**
-   *  Register this type.
-   *  \return The object TypeId.
-   */
   static TypeId GetTypeId (void);
   virtual void DoDispose ();
 
@@ -74,7 +67,7 @@ public:
   /** 
    * Add an eNB to the EPC
    * 
-   * \param enbNode the previously created eNB node which is to be
+   * \param enbNode the previosuly created eNB node which is to be
    * added to the EPC
    * \param lteEnbNetDevice the LteEnbNetDevice of the eNB node
    * \param cellId ID of the eNB
@@ -82,7 +75,7 @@ public:
   virtual void AddEnb (Ptr<Node> enbNode, Ptr<NetDevice> lteEnbNetDevice, uint16_t cellId) = 0;
 
   /** 
-   * Notify the EPC of the existence of a new UE which might attach at a later time
+   * Notify the EPC of the existance of a new UE which might attach at a later time
    * 
    * \param ueLteDevice the UE device to be attached
    * \param imsi the unique identifier of the UE
@@ -107,9 +100,8 @@ public:
    * \param imsi the unique identifier of the UE
    * \param tft the Traffic Flow Template of the new bearer
    * \param bearer struct describing the characteristics of the EPS bearer to be activated
-   * \return bearer ID
    */
-  virtual uint8_t ActivateEpsBearer (Ptr<NetDevice> ueLteDevice, uint64_t imsi, Ptr<EpcTft> tft, EpsBearer bearer) = 0;
+  virtual void ActivateEpsBearer (Ptr<NetDevice> ueLteDevice, uint64_t imsi, Ptr<EpcTft> tft, EpsBearer bearer) = 0;
 
 
   /** 
@@ -134,7 +126,7 @@ public:
 
   /** 
    * 
-   * \return the IPv4 address of the Default Gateway to be used by UEs to reach the internet
+   * \return the address of the Default Gateway to be used by UEs to reach the internet
    */
   virtual Ipv4Address GetUeDefaultGatewayAddress () = 0;
 

@@ -27,17 +27,17 @@
 #include "ns3/log.h"
 #include "mac-messages.h"
 
-namespace ns3 {
-
 NS_LOG_COMPONENT_DEFINE ("BurstProfileManager");
 
-NS_OBJECT_ENSURE_REGISTERED (BurstProfileManager);
+namespace ns3 {
+
+NS_OBJECT_ENSURE_REGISTERED (BurstProfileManager)
+  ;
 
 TypeId BurstProfileManager::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::BurstProfileManager")
-    .SetParent<Object> ()
-    .SetGroupName("Wimax");
+    .SetParent<Object> ();
   return tid;
 }
 

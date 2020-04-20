@@ -18,10 +18,8 @@
  * Authors: Pavel Boyko <boyko@iitp.ru>
  */
 
-#include "ns3/test.h"
+#include "loopback.h"
 #include "ns3/simulator.h"
-#include "ns3/socket-factory.h"
-#include "ns3/udp-socket-factory.h"
 #include "ns3/mobility-helper.h"
 #include "ns3/double.h"
 #include "ns3/uinteger.h"
@@ -36,87 +34,23 @@
 #include "ns3/pcap-file.h"
 #include "ns3/aodv-helper.h"
 #include "ns3/v4ping.h"
+#include "ns3/nqos-wifi-mac-helper.h"
 #include "ns3/config.h"
 #include "ns3/constant-position-mobility-model.h"
 #include "ns3/names.h"
 #include <sstream>
 
-namespace ns3 {
-namespace aodv {
-
-/**
- * \ingroup aodv
- *
- * \brief AODV loopback UDP echo test case
- */
-class LoopbackTestCase : public TestCase
+namespace ns3
 {
-  uint32_t m_count; //!< number of packet received;
-  Ptr<Socket> m_txSocket; //!< transmit socket;
-  Ptr<Socket> m_echoSocket; //!< echo socket;
-  Ptr<Socket> m_rxSocket; //!< receive socket;
-  uint16_t m_echoSendPort; //!< echo send port;
-  uint16_t m_echoReplyPort; //!< echo reply port;
-
-  /**
-   * Send data function
-   * \param socket The socket to send data
-   */
-  void SendData (Ptr<Socket> socket);
-  /**
-   * Receive packet function
-   * \param socket The socket to receive data
-   */
-  void ReceivePkt (Ptr<Socket> socket);
-  /**
-   * Echo data function
-   * \param socket The socket to echo data
-   */
-  void EchoData (Ptr<Socket> socket);
-
-public:
-  LoopbackTestCase ();
-  void DoRun ();
-};
-
-LoopbackTestCase::LoopbackTestCase ()
-  : TestCase ("UDP Echo 127.0.0.1 test"),
-    m_count (0)
+namespace aodv
 {
-  m_echoSendPort = 1233;
-  m_echoReplyPort = 1234;
-}
 
-void LoopbackTestCase::ReceivePkt (Ptr<Socket> socket)
+static uint32_t g_count (0);
+
+static void 
+PingRtt (std::string context, Time rtt)
 {
-  Ptr<Packet> receivedPacket = socket->Recv (std::numeric_limits<uint32_t>::max (), 0);
-
-  m_count++;
-}
-
-void
-LoopbackTestCase::EchoData (Ptr<Socket> socket)
-{
-  Address from;
-  Ptr<Packet> receivedPacket = socket->RecvFrom (std::numeric_limits<uint32_t>::max (), 0, from);
-
-  Ipv4Address src = InetSocketAddress::ConvertFrom (from).GetIpv4 ();
-  Address to = InetSocketAddress (src, m_echoReplyPort);
-
-  receivedPacket->RemoveAllPacketTags ();
-  receivedPacket->RemoveAllByteTags ();
-
-  socket->SendTo (receivedPacket, 0, to);
-}
-
-void
-LoopbackTestCase::SendData (Ptr<Socket> socket)
-{
-  Address realTo = InetSocketAddress (Ipv4Address::GetLoopback (), m_echoSendPort);
-  socket->SendTo (Create<Packet> (123), 0, realTo);
-
-  Simulator::ScheduleWithContext (socket->GetNode ()->GetId (), Seconds (1.0),
-                                  &LoopbackTestCase::SendData, this, socket);
+  g_count++;
 }
 
 void
@@ -128,14 +62,14 @@ LoopbackTestCase::DoRun ()
   m->SetPosition (Vector (0, 0, 0));
   nodes.Get (0)->AggregateObject (m);
   // Setup WiFi
-  WifiMacHelper wifiMac;
+  NqosWifiMacHelper wifiMac = NqosWifiMacHelper::Default ();
   wifiMac.SetType ("ns3::AdhocWifiMac");
   YansWifiPhyHelper wifiPhy = YansWifiPhyHelper::Default ();
   YansWifiChannelHelper wifiChannel = YansWifiChannelHelper::Default ();
   wifiPhy.SetChannel (wifiChannel.Create ());
-  WifiHelper wifi;
+  WifiHelper wifi = WifiHelper::Default ();
   wifi.SetRemoteStationManager ("ns3::ConstantRateWifiManager", "DataMode", StringValue ("OfdmRate6Mbps"), "RtsCtsThreshold", StringValue ("2200"));
-  NetDeviceContainer devices = wifi.Install (wifiPhy, wifiMac, nodes);
+  NetDeviceContainer devices = wifi.Install (wifiPhy, wifiMac, nodes); 
 
   // Setup TCP/IP & AODV
   AodvHelper aodv; // Use default parameters here
@@ -146,52 +80,23 @@ LoopbackTestCase::DoRun ()
   address.SetBase ("10.1.1.0", "255.255.255.0");
   Ipv4InterfaceContainer interfaces = address.Assign (devices);
 
-  // Setup echos
-  Ptr<SocketFactory> socketFactory = nodes.Get (0)->GetObject<UdpSocketFactory> ();
-  m_rxSocket = socketFactory->CreateSocket ();
-  m_rxSocket->Bind (InetSocketAddress (Ipv4Address::GetLoopback (), m_echoReplyPort));
-  m_rxSocket->SetRecvCallback (MakeCallback (&LoopbackTestCase::ReceivePkt, this));
+  // Setup ping
+  Ptr<V4Ping> ping = CreateObject<V4Ping> ();
+  ping->SetAttribute ("Remote", Ipv4AddressValue (Ipv4Address::GetLoopback ()));
+  nodes.Get (0)->AddApplication (ping);
+  ping->SetStartTime (Seconds (0));
+  ping->SetStopTime (Seconds (4));
+  Names::Add ("ping", ping);
+  Config::Connect ("/Names/ping/Rtt", MakeCallback (&PingRtt));
 
-  m_echoSocket = socketFactory->CreateSocket ();
-  m_echoSocket->Bind (InetSocketAddress (Ipv4Address::GetLoopback (), m_echoSendPort));
-  m_echoSocket->SetRecvCallback (MakeCallback (&LoopbackTestCase::EchoData, this));
-
-  m_txSocket = socketFactory->CreateSocket ();
-
-  Simulator::ScheduleWithContext (m_txSocket->GetNode ()->GetId (), Seconds (1.0),
-                                  &LoopbackTestCase::SendData, this, m_txSocket);
-
-  // Run
+  // Run 
   Simulator::Stop (Seconds (5));
   Simulator::Run ();
-
-  m_txSocket->Close ();
-  m_echoSocket->Close ();
-  m_rxSocket->Close ();
-
   Simulator::Destroy ();
 
   // Check that 4 packets delivered
-  NS_TEST_ASSERT_MSG_EQ (m_count, 4, "Exactly 4 echo replies must be delivered.");
+  NS_TEST_ASSERT_MSG_EQ (g_count, 4, "Exactly 4 ping replies must be delivered.");
 }
 
-/**
- * \ingroup aodv-test
- * \ingroup tests
- *
- * \brief AODV Loopback test suite
- */
-class AodvLoopbackTestSuite : public TestSuite
-{
-public:
-  AodvLoopbackTestSuite () : TestSuite ("routing-aodv-loopback", SYSTEM)
-  {
-    SetDataDir (NS_TEST_SOURCEDIR);
-    // UDP Echo loopback test case
-    AddTestCase (new LoopbackTestCase (), TestCase::QUICK);
-  }
-} g_aodvLoopbackTestSuite; ///< the test suite
-
-
-}  // namespace aodv
-}  // namespace ns3
+}
+}

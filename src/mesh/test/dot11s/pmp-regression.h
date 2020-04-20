@@ -26,8 +26,7 @@
 
 using namespace ns3;
 /**
- * \ingroup dot11s-test
- * \ingroup tests
+ * \ingroup dot11s
  * 
  * \brief Peering Management Protocol regression test
  * 
@@ -55,11 +54,8 @@ private:
   /// Simulation time
   Time m_time;
 
-  /// Create nodes function
   void CreateNodes ();
-  /// Create devices function
   void CreateDevices ();
-  /// Check results function
   void CheckResults ();
   void DoRun ();
 };

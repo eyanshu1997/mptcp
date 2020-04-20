@@ -36,24 +36,23 @@
 #include "ns3/socket.h"
 #include "ns3/log.h"
 
-namespace ns3 {
-
 NS_LOG_COMPONENT_DEFINE ("DsrMaintainBuffer");
 
+namespace ns3 {
 namespace dsr {
 
 uint32_t
-DsrMaintainBuffer::GetSize ()
+MaintainBuffer::GetSize ()
 {
   Purge ();
   return m_maintainBuffer.size ();
 }
 
 bool
-DsrMaintainBuffer::Enqueue (DsrMaintainBuffEntry & entry)
+MaintainBuffer::Enqueue (MaintainBuffEntry & entry)
 {
   Purge ();
-  for (std::vector<DsrMaintainBuffEntry>::const_iterator i = m_maintainBuffer.begin (); i
+  for (std::vector<MaintainBuffEntry>::const_iterator i = m_maintainBuffer.begin (); i
        != m_maintainBuffer.end (); ++i)
     {
 //      NS_LOG_INFO ("nexthop " << i->GetNextHop () << " " << entry.GetNextHop () << " our add " << i->GetOurAdd () << " " << entry.GetOurAdd ()
@@ -80,25 +79,25 @@ DsrMaintainBuffer::Enqueue (DsrMaintainBuffEntry & entry)
 }
 
 void
-DsrMaintainBuffer::DropPacketWithNextHop (Ipv4Address nextHop)
+MaintainBuffer::DropPacketWithNextHop (Ipv4Address nextHop)
 {
   NS_LOG_FUNCTION (this << nextHop);
   Purge ();
   NS_LOG_INFO ("Drop Packet With next hop " << nextHop);
   m_maintainBuffer.erase (std::remove_if (m_maintainBuffer.begin (), m_maintainBuffer.end (),
-                                          std::bind2nd (std::ptr_fun (DsrMaintainBuffer::IsEqual), nextHop)), m_maintainBuffer.end ());
+                                          std::bind2nd (std::ptr_fun (MaintainBuffer::IsEqual), nextHop)), m_maintainBuffer.end ());
 }
 
 bool
-DsrMaintainBuffer::Dequeue (Ipv4Address nextHop, DsrMaintainBuffEntry & entry)
+MaintainBuffer::Dequeue (Ipv4Address nextHop, MaintainBuffEntry & entry)
 {
   Purge ();
-  for (std::vector<DsrMaintainBuffEntry>::iterator i = m_maintainBuffer.begin (); i != m_maintainBuffer.end (); ++i)
+  for (std::vector<MaintainBuffEntry>::iterator i = m_maintainBuffer.begin (); i != m_maintainBuffer.end (); ++i)
     {
       if (i->GetNextHop () == nextHop)
         {
           entry = *i;
-          i = m_maintainBuffer.erase (i);
+          m_maintainBuffer.erase (i);
           NS_LOG_DEBUG ("Packet size while dequeuing " << entry.GetPacket ()->GetSize ());
           return true;
         }
@@ -107,9 +106,9 @@ DsrMaintainBuffer::Dequeue (Ipv4Address nextHop, DsrMaintainBuffEntry & entry)
 }
 
 bool
-DsrMaintainBuffer::Find (Ipv4Address nextHop)
+MaintainBuffer::Find (Ipv4Address nextHop)
 {
-  for (std::vector<DsrMaintainBuffEntry>::const_iterator i = m_maintainBuffer.begin (); i
+  for (std::vector<MaintainBuffEntry>::const_iterator i = m_maintainBuffer.begin (); i
        != m_maintainBuffer.end (); ++i)
     {
       if (i->GetNextHop () == nextHop)
@@ -122,9 +121,9 @@ DsrMaintainBuffer::Find (Ipv4Address nextHop)
 }
 
 bool
-DsrMaintainBuffer::AllEqual (DsrMaintainBuffEntry & entry)
+MaintainBuffer::AllEqual (MaintainBuffEntry & entry)
 {
-  for (std::vector<DsrMaintainBuffEntry>::iterator i = m_maintainBuffer.begin (); i
+  for (std::vector<MaintainBuffEntry>::iterator i = m_maintainBuffer.begin (); i
        != m_maintainBuffer.end (); ++i)
     {
 //      NS_LOG_DEBUG ("nexthop " << i->GetNextHop () << " " << entry.GetNextHop () << " our address " << i->GetOurAdd () << " " << entry.GetOurAdd ()
@@ -135,7 +134,7 @@ DsrMaintainBuffer::AllEqual (DsrMaintainBuffEntry & entry)
           && (i->GetSrc () == entry.GetSrc ()) && (i->GetDst () == entry.GetDst ())
           && (i->GetAckId () == entry.GetAckId ()) && (i->GetSegsLeft () == entry.GetSegsLeft ()))
         {
-          i = m_maintainBuffer.erase (i);   // Erase the same maintain buffer entry for the received packet
+          m_maintainBuffer.erase (i);   // Erase the same maintain buffer entry for the received packet
           return true;
         }
     }
@@ -143,9 +142,9 @@ DsrMaintainBuffer::AllEqual (DsrMaintainBuffEntry & entry)
 }
 
 bool
-DsrMaintainBuffer::NetworkEqual (DsrMaintainBuffEntry & entry)
+MaintainBuffer::NetworkEqual (MaintainBuffEntry & entry)
 {
-  for (std::vector<DsrMaintainBuffEntry>::iterator i = m_maintainBuffer.begin (); i
+  for (std::vector<MaintainBuffEntry>::iterator i = m_maintainBuffer.begin (); i
        != m_maintainBuffer.end (); ++i)
     {
 //      NS_LOG_DEBUG ("nexthop " << i->GetNextHop () << " " << entry.GetNextHop () << " our address " << i->GetOurAdd () << " " << entry.GetOurAdd ()
@@ -156,7 +155,7 @@ DsrMaintainBuffer::NetworkEqual (DsrMaintainBuffEntry & entry)
           && (i->GetSrc () == entry.GetSrc ()) && (i->GetDst () == entry.GetDst ())
           && (i->GetAckId () == entry.GetAckId ()))
         {
-          i = m_maintainBuffer.erase (i);   // Erase the same maintain buffer entry for the received packet
+          m_maintainBuffer.erase (i);   // Erase the same maintain buffer entry for the received packet
           return true;
         }
     }
@@ -164,10 +163,10 @@ DsrMaintainBuffer::NetworkEqual (DsrMaintainBuffEntry & entry)
 }
 
 bool
-DsrMaintainBuffer::PromiscEqual (DsrMaintainBuffEntry & entry)
+MaintainBuffer::PromiscEqual (MaintainBuffEntry & entry)
 {
   NS_LOG_DEBUG ("The maintenance buffer size " << m_maintainBuffer.size ());
-  for (std::vector<DsrMaintainBuffEntry>::iterator i = m_maintainBuffer.begin (); i
+  for (std::vector<MaintainBuffEntry>::iterator i = m_maintainBuffer.begin (); i
        != m_maintainBuffer.end (); ++i)
     {
 //      NS_LOG_DEBUG ("src " << i->GetSrc () << " " << entry.GetSrc () << " dst " << i->GetDst () << " " << entry.GetDst ()
@@ -179,7 +178,7 @@ DsrMaintainBuffer::PromiscEqual (DsrMaintainBuffEntry & entry)
           && (i->GetSegsLeft () == entry.GetSegsLeft ()) && (i->GetAckId () == entry.GetAckId ())
           )
         {
-          i = m_maintainBuffer.erase (i);   // Erase the same maintain buffer entry for the promisc received packet
+          m_maintainBuffer.erase (i);   // Erase the same maintain buffer entry for the promisc received packet
           return true;
         }
     }
@@ -187,10 +186,10 @@ DsrMaintainBuffer::PromiscEqual (DsrMaintainBuffEntry & entry)
 }
 
 bool
-DsrMaintainBuffer::LinkEqual (DsrMaintainBuffEntry & entry)
+MaintainBuffer::LinkEqual (MaintainBuffEntry & entry)
 {
   NS_LOG_DEBUG ("The maintenance buffer size " << m_maintainBuffer.size ());
-  for (std::vector<DsrMaintainBuffEntry>::iterator i = m_maintainBuffer.begin (); i
+  for (std::vector<MaintainBuffEntry>::iterator i = m_maintainBuffer.begin (); i
        != m_maintainBuffer.end (); ++i)
     {
 //      NS_LOG_DEBUG ("src " << i->GetSrc () << " " << entry.GetSrc () << " dst " << i->GetDst () << " " << entry.GetDst ()
@@ -202,23 +201,17 @@ DsrMaintainBuffer::LinkEqual (DsrMaintainBuffEntry & entry)
           && (i->GetNextHop () == entry.GetNextHop ())
           )
         {
-          i = m_maintainBuffer.erase (i);   // Erase the same maintain buffer entry for the promisc received packet
+          m_maintainBuffer.erase (i);   // Erase the same maintain buffer entry for the promisc received packet
           return true;
         }
     }
   return false;
 }
 
-/// IsExpired structure
 struct IsExpired
 {
-  /**
-   * \brief comparison operator
-   * \param e maintain buffer entry
-   * \return true if the entry is expired
-   */
   bool
-  operator() (DsrMaintainBuffEntry const & e) const
+  operator() (MaintainBuffEntry const & e) const
   {
     // NS_LOG_DEBUG("Expire time for packet in req queue: "<<e.GetExpireTime ());
     return (e.GetExpireTime () < Seconds (0));
@@ -226,7 +219,7 @@ struct IsExpired
 };
 
 void
-DsrMaintainBuffer::Purge ()
+MaintainBuffer::Purge ()
 {
   NS_LOG_DEBUG ("Purging Maintenance Buffer");
   IsExpired pred;

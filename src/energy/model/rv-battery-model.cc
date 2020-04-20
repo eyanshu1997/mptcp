@@ -26,18 +26,18 @@
 #include "ns3/simulator.h"
 #include <cmath>
 
-namespace ns3 {
-
 NS_LOG_COMPONENT_DEFINE ("RvBatteryModel");
 
-NS_OBJECT_ENSURE_REGISTERED (RvBatteryModel);
+namespace ns3 {
+
+NS_OBJECT_ENSURE_REGISTERED (RvBatteryModel)
+  ;
 
 TypeId
 RvBatteryModel::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::RvBatteryModel")
     .SetParent<EnergySource> ()
-    .SetGroupName ("Energy")
     .AddConstructor<RvBatteryModel> ()
     .AddAttribute ("RvBatteryModelPeriodicEnergyUpdateInterval",
                    "RV battery model sampling interval.",
@@ -45,11 +45,6 @@ RvBatteryModel::GetTypeId (void)
                    MakeTimeAccessor (&RvBatteryModel::SetSamplingInterval,
                                      &RvBatteryModel::GetSamplingInterval),
                    MakeTimeChecker ())
-    .AddAttribute ("RvBatteryModelLowBatteryThreshold",
-                   "Low battery threshold.",
-                   DoubleValue (0.10), // as a fraction of the initial energy
-                   MakeDoubleAccessor (&RvBatteryModel::m_lowBatteryTh),
-                   MakeDoubleChecker<double> ())
     .AddAttribute ("RvBatteryModelOpenCircuitVoltage",
                    "RV battery model open circuit voltage.",
                    DoubleValue (4.1),
@@ -82,12 +77,10 @@ RvBatteryModel::GetTypeId (void)
                    MakeIntegerChecker<int> ())
     .AddTraceSource ("RvBatteryModelBatteryLevel",
                      "RV battery model battery level.",
-                     MakeTraceSourceAccessor (&RvBatteryModel::m_batteryLevel),
-                     "ns3::TracedValueCallback::Double")
+                     MakeTraceSourceAccessor (&RvBatteryModel::m_batteryLevel))
     .AddTraceSource ("RvBatteryModelBatteryLifetime",
                      "RV battery model battery lifetime.",
-                     MakeTraceSourceAccessor (&RvBatteryModel::m_lifetime),
-                     "ns3::TracedValueCallback::Time")
+                     MakeTraceSourceAccessor (&RvBatteryModel::m_lifetime))
   ;
   return tid;
 }
@@ -95,9 +88,8 @@ RvBatteryModel::GetTypeId (void)
 RvBatteryModel::RvBatteryModel ()
 {
   NS_LOG_FUNCTION (this);
-  m_lastSampleTime = Simulator::Now ();
-  m_timeStamps.push_back (m_lastSampleTime);
-  m_previousLoad = -1.0;
+  m_lastSampleTime = Seconds (0.0);
+  m_previousLoad = 0.0;
   m_batteryLevel = 1; // fully charged
   m_lifetime = Seconds (0.0);
 }
@@ -172,12 +164,13 @@ RvBatteryModel::UpdateEnergySource (void)
       m_batteryLevel = 0;
     }
 
-  // check if battery level is below the low battery threshold.
-  if (m_batteryLevel <= m_lowBatteryTh)
+  // check if battery is dead.
+  if (calculatedAlpha >= m_alpha)
     {
-      m_lifetime = Simulator::Now () - m_timeStamps[0];
-      NS_LOG_DEBUG ("RvBatteryModel:Battery level below threshold!");
+      m_lifetime = Simulator::Now ();
+      NS_LOG_DEBUG ("RvBatteryModel:Battery is dead!");
       HandleEnergyDrainedEvent ();
+      return; // stop periodic sampling
     }
 
   m_previousLoad = currentLoad;
@@ -327,15 +320,19 @@ RvBatteryModel::Discharge (double load, Time t)
     {
       m_load.push_back (load);
       m_previousLoad = load;
-      m_timeStamps[m_timeStamps.size () - 1] = m_lastSampleTime;
+      if (t != Seconds (0.0))
+        {
+          m_timeStamps[m_timeStamps.size () - 1] = m_lastSampleTime;
+        }
+      else
+        {
+          m_timeStamps.push_back (Seconds (0.0));
+        }
       m_timeStamps.push_back (t);
     }
   else
     {
-      if  (!m_timeStamps.empty())
-      {
-        m_timeStamps[m_timeStamps.size () - 1] = t;
-      }
+      m_timeStamps[m_timeStamps.size () - 1] = t;
     }
 
   m_lastSampleTime = t;

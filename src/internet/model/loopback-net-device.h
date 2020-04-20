@@ -31,13 +31,9 @@ class Node;
 
 /**
  * \ingroup netdevice
- * \ingroup internet
  * 
  * \brief Virtual network interface that loops back any data sent to it to
- * be immediately received on the same interface.
- *
- * This NetDevice is automatically added to any node as soon as the Internet
- * stack is initialized.
+ *        be immediately received on the same interface
  */
 class LoopbackNetDevice : public NetDevice
 {

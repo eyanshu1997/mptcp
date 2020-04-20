@@ -29,13 +29,13 @@
 
 #include "ns3/ipv6.h"
 #include "ns3/ipv6-address.h"
+#include "ns3/deprecated.h"
 
 namespace ns3
 {
 
 /**
- * \ingroup ipv6
- *
+ * \class Ipv6InterfaceContainer
  * \brief Keep track of a set of IPv6 interfaces.
  */
 class Ipv6InterfaceContainer
@@ -157,7 +157,7 @@ public:
    * \brief Fusion with another Ipv6InterfaceContainer.
    * \param c container
    */
-  void Add (const Ipv6InterfaceContainer& c);
+  void Add (Ipv6InterfaceContainer& c);
 
   /**
    * \brief Add a couple of name/interface.
@@ -165,6 +165,13 @@ public:
    * \param interface interface index to add
    */
   void Add (std::string ipv6Name, uint32_t interface);
+
+  /**
+   * \brief Set the state of the stack (act as a router or not) for the specified index.
+   * \param i index
+   * \param router true : is a router, false : is an host
+   */
+  void SetRouter (uint32_t i, bool router) NS_DEPRECATED;
 
   /**
    * \brief Set the state of the stack (act as a router or as an host) for the specified index.
@@ -204,11 +211,13 @@ public:
 
 private:
   /**
+   * \internal
    * \brief Container for pairs of Ipv6 smart pointer / Interface Index.
    */
   typedef std::vector<std::pair<Ptr<Ipv6>, uint32_t> > InterfaceVector;
 
   /**
+   * \internal
    * \brief List of IPv6 stack and interfaces index.
    */
   InterfaceVector m_interfaces;

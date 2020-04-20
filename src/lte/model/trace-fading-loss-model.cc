@@ -30,11 +30,12 @@
 #include <fstream>
 #include <ns3/simulator.h>
 
-namespace ns3 {
-
 NS_LOG_COMPONENT_DEFINE ("TraceFadingLossModel");
 
-NS_OBJECT_ENSURE_REGISTERED (TraceFadingLossModel);
+namespace ns3 {
+
+NS_OBJECT_ENSURE_REGISTERED (TraceFadingLossModel)
+  ;
   
 
 
@@ -59,7 +60,6 @@ TraceFadingLossModel::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::TraceFadingLossModel")
     .SetParent<SpectrumPropagationLossModel> ()
-    .SetGroupName("Lte")
     .AddConstructor<TraceFadingLossModel> ()
     .AddAttribute ("TraceFilename",
                    "Name of file to load a trace from.",
@@ -188,7 +188,7 @@ TraceFadingLossModel::DoCalcRxPowerSpectralDensity (
         }
       ChannelRealizationId_t mobilityPair = std::make_pair (a,b);
       m_startVariableMap.insert (std::pair<ChannelRealizationId_t,Ptr<UniformRandomVariable> > (mobilityPair, startV));
-      itOff = m_windowOffsetsMap.insert (std::pair<ChannelRealizationId_t,int> (mobilityPair, startV->GetValue ())).first;
+      m_windowOffsetsMap.insert (std::pair<ChannelRealizationId_t,int> (mobilityPair, startV->GetValue ()));
     }
 
   

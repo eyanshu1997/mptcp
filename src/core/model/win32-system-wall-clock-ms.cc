@@ -22,38 +22,21 @@
 
 #include <ctime>
 
-/**
- * \file
- * \ingroup system
- * ns3::SystemWallClockMs and ns3::SystemWallClockMsPrivate implementation.
- */
-
 namespace ns3 {
 
-NS_LOG_COMPONENT_DEFINE ("SystemWallClockMs");
-
-/**
- * \ingroup system
- * \brief System-dependent implementation for SystemWallClockMs
- */
 class SystemWallClockMsPrivate {
 public:
-  /** \copydoc SystemWallClockMs::Start() */
   void Start (void);
-  /** \copydoc SystemWallClockMs::End() */
   int64_t End (void);
-  /** \copydoc SystemWallClockMs::GetElapsedReal() */
   int64_t GetElapsedReal (void) const;
-  /** \copydoc SystemWallClockMs::GetElapsedUser() */
   int64_t GetElapsedUser (void) const;
-  /** \copydoc SystemWallClockMs::GetElapsedSystem() */
   int64_t GetElapsedSystem (void) const;
 
 private:
-  clock_t m_startTime;      //!< The wall clock start time.
-  int64_t m_elapsedReal;    //!< Elapsed real time, in ms.  
-  int64_t m_elapsedUser;    //!< Elapsed user time, in ms.  
-  int64_t m_elapsedSystem;  //!< Elapsed system time, in ms.
+  clock_t m_startTime;
+  int64_t m_elapsedReal;
+  int64_t m_elapsedUser;
+  int64_t m_elapsedSystem;
 };
 
 void 
@@ -88,7 +71,7 @@ SystemWallClockMsPrivate::End (void)
   // internally?  Works fine, lasts a long time.
   //
   // If millisecondsPerTick becomes fractional, and an elapsed time greater than 
-  // a millisecond is measured, the function will work as expected.  If an elapsed 
+  // a milliscond is measured, the function will work as expected.  If an elapsed 
   // time is measured that turns out to be less than a millisecond, we'll just 
   // return zero which would, I think, also will be expected.
   //

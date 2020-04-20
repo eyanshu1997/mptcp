@@ -24,9 +24,9 @@
 #include <string>
 #include <cstdarg>
 
-namespace ns3 {
-
 NS_LOG_COMPONENT_DEFINE ("Packet");
+
+namespace ns3 {
 
 uint32_t Packet::m_globalUid = 0;
 
@@ -113,7 +113,8 @@ PacketTagIterator::Item::GetTag (Tag &tag) const
 {
   NS_ASSERT (tag.GetInstanceTypeId () == m_data->tid);
   tag.Deserialize (TagBuffer ((uint8_t*)m_data->data,
-                              (uint8_t*)m_data->data + m_data->size));
+                              (uint8_t*)m_data->data
+                              + PacketTagList::TagData::MAX_SIZE));
 }
 
 
@@ -228,16 +229,12 @@ Packet::CreateFragment (uint32_t start, uint32_t length) const
 {
   NS_LOG_FUNCTION (this << start << length);
   Buffer buffer = m_buffer.CreateFragment (start, length);
-  ByteTagList byteTagList = m_byteTagList;
-  byteTagList.Adjust (-start);
   NS_ASSERT (m_buffer.GetSize () >= start + length);
   uint32_t end = m_buffer.GetSize () - (start + length);
   PacketMetadata metadata = m_metadata.CreateFragment (start, end);
   // again, call the constructor directly rather than
   // through Create because it is private.
-  Ptr<Packet> ret = Ptr<Packet> (new Packet (buffer, byteTagList, m_packetTagList, metadata), false);
-  ret->SetNixVector (GetNixVector ());
-  return ret;
+  return Ptr<Packet> (new Packet (buffer, m_byteTagList, m_packetTagList, metadata), false);
 }
 
 void
@@ -257,24 +254,15 @@ Packet::AddHeader (const Header &header)
 {
   uint32_t size = header.GetSerializedSize ();
   NS_LOG_FUNCTION (this << header.GetInstanceTypeId ().GetName () << size);
-  m_buffer.AddAtStart (size);
-  m_byteTagList.Adjust (size);
-  m_byteTagList.AddAtStart (size);
+  uint32_t orgStart = m_buffer.GetCurrentStartOffset ();
+  bool resized = m_buffer.AddAtStart (size);
+  if (resized)
+    {
+      m_byteTagList.AddAtStart (m_buffer.GetCurrentStartOffset () + size - orgStart,
+                                m_buffer.GetCurrentStartOffset () + size);
+    }
   header.Serialize (m_buffer.Begin ());
   m_metadata.AddHeader (header, size);
-}
-uint32_t
-Packet::RemoveHeader (Header &header, uint32_t size)
-{
-  Buffer::Iterator end;
-  end = m_buffer.Begin ();
-  end.Next (size);
-  uint32_t deserialized = header.Deserialize (m_buffer.Begin (), end);
-  NS_LOG_FUNCTION (this << header.GetInstanceTypeId ().GetName () << deserialized);
-  m_buffer.RemoveAtStart (deserialized);
-  m_byteTagList.Adjust (-deserialized);
-  m_metadata.RemoveHeader (header, deserialized);
-  return deserialized;
 }
 uint32_t
 Packet::RemoveHeader (Header &header)
@@ -282,7 +270,6 @@ Packet::RemoveHeader (Header &header)
   uint32_t deserialized = header.Deserialize (m_buffer.Begin ());
   NS_LOG_FUNCTION (this << header.GetInstanceTypeId ().GetName () << deserialized);
   m_buffer.RemoveAtStart (deserialized);
-  m_byteTagList.Adjust (-deserialized);
   m_metadata.RemoveHeader (header, deserialized);
   return deserialized;
 }
@@ -293,23 +280,18 @@ Packet::PeekHeader (Header &header) const
   NS_LOG_FUNCTION (this << header.GetInstanceTypeId ().GetName () << deserialized);
   return deserialized;
 }
-uint32_t
-Packet::PeekHeader (Header &header, uint32_t size) const
-{
-  Buffer::Iterator end;
-  end = m_buffer.Begin ();
-  end.Next (size);
-  uint32_t deserialized = header.Deserialize (m_buffer.Begin (), end);
-  NS_LOG_FUNCTION (this << header.GetInstanceTypeId ().GetName () << deserialized);
-  return deserialized;
-}
 void
 Packet::AddTrailer (const Trailer &trailer)
 {
   uint32_t size = trailer.GetSerializedSize ();
   NS_LOG_FUNCTION (this << trailer.GetInstanceTypeId ().GetName () << size);
-  m_byteTagList.AddAtEnd (GetSize ());
-  m_buffer.AddAtEnd (size);
+  uint32_t orgStart = m_buffer.GetCurrentStartOffset ();
+  bool resized = m_buffer.AddAtEnd (size);
+  if (resized)
+    {
+      m_byteTagList.AddAtEnd (m_buffer.GetCurrentStartOffset () - orgStart,
+                              m_buffer.GetCurrentEndOffset () - size);
+    }
   Buffer::Iterator end = m_buffer.End ();
   trailer.Serialize (end);
   m_metadata.AddTrailer (trailer, size);
@@ -335,20 +317,29 @@ void
 Packet::AddAtEnd (Ptr<const Packet> packet)
 {
   NS_LOG_FUNCTION (this << packet << packet->GetSize ());
-  m_byteTagList.AddAtEnd (GetSize ());
-  ByteTagList copy = packet->m_byteTagList;
-  copy.AddAtStart (0);
-  copy.Adjust (GetSize ());
-  m_byteTagList.Add (copy);
+  uint32_t aStart = m_buffer.GetCurrentStartOffset ();
+  uint32_t bEnd = packet->m_buffer.GetCurrentEndOffset ();
   m_buffer.AddAtEnd (packet->m_buffer);
+  uint32_t appendPrependOffset = m_buffer.GetCurrentEndOffset () - packet->m_buffer.GetSize ();
+  m_byteTagList.AddAtEnd (m_buffer.GetCurrentStartOffset () - aStart, 
+                          appendPrependOffset);
+  ByteTagList copy = packet->m_byteTagList;
+  copy.AddAtStart (m_buffer.GetCurrentEndOffset () - bEnd,
+                   appendPrependOffset);
+  m_byteTagList.Add (copy);
   m_metadata.AddAtEnd (packet->m_metadata);
 }
 void
 Packet::AddPaddingAtEnd (uint32_t size)
 {
   NS_LOG_FUNCTION (this << size);
-  m_byteTagList.AddAtEnd (GetSize ());
-  m_buffer.AddAtEnd (size);
+  uint32_t orgEnd = m_buffer.GetCurrentEndOffset ();
+  bool resized = m_buffer.AddAtEnd (size);
+  if (resized)
+    {
+      m_byteTagList.AddAtEnd (m_buffer.GetCurrentEndOffset () - orgEnd,
+                              m_buffer.GetCurrentEndOffset () - size);
+    }
   m_metadata.AddPaddingAtEnd (size);
 }
 void 
@@ -363,7 +354,6 @@ Packet::RemoveAtStart (uint32_t size)
 {
   NS_LOG_FUNCTION (this << size);
   m_buffer.RemoveAtStart (size);
-  m_byteTagList.Adjust (-size);
   m_metadata.RemoveAtStart (size);
 }
 
@@ -372,6 +362,19 @@ Packet::RemoveAllByteTags (void)
 {
   NS_LOG_FUNCTION (this);
   m_byteTagList.RemoveAll ();
+}
+
+uint8_t const *
+Packet::PeekData (void) const
+{
+  NS_LOG_FUNCTION (this);
+  uint32_t oldStart = m_buffer.GetCurrentStartOffset ();
+  uint8_t const * data = m_buffer.PeekData ();
+  uint32_t newStart = m_buffer.GetCurrentStartOffset ();
+ 
+  // Update tag offsets if buffer offsets were changed
+  const_cast<ByteTagList &>(m_byteTagList).AddAtStart (newStart - oldStart, newStart);
+  return data;
 }
 
 uint32_t 
@@ -422,14 +425,6 @@ Packet::PrintByteTags (std::ostream &os) const
     }
 }
 
-std::string
-Packet::ToString() const
-{
-  std::ostringstream oss;
-  Print (oss);
-  return oss.str();
-}
-
 void 
 Packet::Print (std::ostream &os) const
 {
@@ -468,22 +463,7 @@ Packet::Print (std::ostream &os) const
                 NS_ASSERT (instance != 0);
                 Chunk *chunk = dynamic_cast<Chunk *> (instance);
                 NS_ASSERT (chunk != 0);
-                if (item.type == PacketMetadata::Item::HEADER)
-                  {
-                    Buffer::Iterator end = item.current;
-                    end.Next (item.currentSize); // move from start 
-                    chunk->Deserialize (item.current, end);
-                  }
-                else if (item.type == PacketMetadata::Item::TRAILER)
-                  {
-                    Buffer::Iterator start = item.current;
-                    start.Prev (item.currentSize); // move from end
-                    chunk->Deserialize (start, item.current);
-                  }
-                else
-                  {
-                    chunk->Deserialize (item.current);
-                  }    
+                chunk->Deserialize (item.current);
                 chunk->Print (os);
                 delete chunk;
               }
@@ -691,7 +671,8 @@ Packet::Serialize (uint8_t* buffer, uint32_t maxSize) const
       size += metaSize;
 
       // serialize the metadata
-      uint32_t serialized = m_metadata.Serialize (reinterpret_cast<uint8_t *> (p), metaSize);
+      uint32_t serialized = 
+        m_metadata.Serialize (reinterpret_cast<uint8_t *> (p), metaSize); 
       if (serialized)
         {
           // increment p by metaSize bytes
@@ -716,10 +697,18 @@ Packet::Serialize (uint8_t* buffer, uint32_t maxSize) const
       // buffer. this includes 4-bytes for total 
       // length itself
       *p++ = bufSize + 4;
+      size += bufSize;
 
       // serialize the buffer
-      uint32_t serialized = m_buffer.Serialize (reinterpret_cast<uint8_t *> (p), bufSize);
-      if (!serialized)
+      uint32_t serialized = 
+        m_buffer.Serialize (reinterpret_cast<uint8_t *> (p), bufSize);
+      if (serialized)
+        {
+          // increment p by bufSize bytes
+          // ensuring 4-byte boundary
+          p += ((bufSize+3) & (~3)) / 4;
+        }
+      else 
         {
           return 0;
         }
@@ -821,14 +810,14 @@ Packet::AddByteTag (const Tag &tag) const
   NS_LOG_FUNCTION (this << tag.GetInstanceTypeId ().GetName () << tag.GetSerializedSize ());
   ByteTagList *list = const_cast<ByteTagList *> (&m_byteTagList);
   TagBuffer buffer = list->Add (tag.GetInstanceTypeId (), tag.GetSerializedSize (), 
-                                0,
-                                GetSize ());
+                                m_buffer.GetCurrentStartOffset (),
+                                m_buffer.GetCurrentEndOffset ());
   tag.Serialize (buffer);
 }
 ByteTagIterator 
 Packet::GetByteTagIterator (void) const
 {
-  return ByteTagIterator (m_byteTagList.Begin (0, GetSize ()));
+  return ByteTagIterator (m_byteTagList.Begin (m_buffer.GetCurrentStartOffset (), m_buffer.GetCurrentEndOffset ()));
 }
 
 bool 

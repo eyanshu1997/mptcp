@@ -18,22 +18,19 @@
  *
  * Author: Mirko Banchi <mk.banchi@gmail.com>
  */
-
 #ifndef QOS_BLOCKED_DESTINATIONS_H
 #define QOS_BLOCKED_DESTINATIONS_H
 
-#include <set>
-#include "ns3/simple-ref-count.h"
+#include <list>
+#include "ns3/mac48-address.h"
 
 namespace ns3 {
-
-class Mac48Address;
 
 /**
  * Keep track of destination address - TID pairs that are waiting
  * for a block ACK response.
  */
-class QosBlockedDestinations : public SimpleRefCount<QosBlockedDestinations>
+class QosBlockedDestinations
 {
 public:
   QosBlockedDestinations ();
@@ -61,17 +58,27 @@ public:
    *
    * \param dest
    * \param tid
-   *
-   * \return true if the given destination address and TID are blocked from sending,
-   *         false otherwise
+   * \return true if the given destination address and TID are blocked
+   *         from sending, false otherwise
    */
   bool IsBlocked (Mac48Address dest, uint8_t tid) const;
 
-
 private:
-  std::set < std::pair < Mac48Address, uint8_t >> m_blockedQosPackets; ///< blocked QOS packets
+  /**
+   * typedef for a list of <Mac48Address, TID> pair.
+   */
+  typedef std::list<std::pair<Mac48Address, uint8_t> > BlockedPackets;
+  /**
+   * typedef for an iterator of BlockedPackets
+   */
+  typedef std::list<std::pair<Mac48Address, uint8_t> >::iterator BlockedPacketsI;
+  /**
+   * typedef for a constan iterator of BlockedPackets
+   */
+  typedef std::list<std::pair<Mac48Address, uint8_t> >::const_iterator BlockedPacketsCI;
+  BlockedPackets m_blockedQosPackets;
 };
 
-} //namespace ns3
+} // namespace ns3
 
 #endif /* QOS_BLOCKED_DESTINATIONS_H */

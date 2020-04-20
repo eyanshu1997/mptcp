@@ -83,29 +83,29 @@ struct RreqTableEntry
  * The request entry for intermediate nodes to check if they have received this request or not
  * This is used to control the duplication request from being processed
  */
-class DsrReceivedRreqEntry
+class ReceivedRreqEntry
 {
 public:
   /**
-   * Construct a DsrReceivedRreqEntry with the given parameters
+   * Construct a ReceivedRreqEntry with the given parameters
    *
    * \param d IPv4 address of the destination
    * \param i identification
    */
-  DsrReceivedRreqEntry (Ipv4Address d = Ipv4Address (), uint16_t i = 0)
+  ReceivedRreqEntry (Ipv4Address d = Ipv4Address (), uint16_t i = 0)
     : m_destination (d),
       m_identification (i)
   {
   }
   /**
    * \brief Compare send buffer entries (destination address and identification)
-   * \param o another DsrReceivedRreqEntry
+   * \param o another ReceivedRreqEntry
    * \return true if equal
    */
-  bool operator== (DsrReceivedRreqEntry const & o) const
+  bool operator== (ReceivedRreqEntry const & o) const
   {
     return ((m_destination == o.m_destination) && (m_identification == o.m_identification)
-            );
+           );
   }
 
   /**
@@ -194,19 +194,16 @@ private:
 
 /**
  * \ingroup dsr
- * \brief maintain list of DsrRreqTable entry
+ * \brief maintain list of RreqTable entry
  */
-class DsrRreqTable  : public Object
+class RreqTable  : public Object
 {
 public:
-  /**
-   * \brief Get the type ID.
-   * \return the object TypeId
-   */
+
   static TypeId GetTypeId ();
 
-  DsrRreqTable ();
-  virtual ~DsrRreqTable ();
+  RreqTable ();
+  virtual ~RreqTable ();
 
   /**
    * Set the initial discovert hop limit
@@ -288,16 +285,12 @@ public:
   }
 
   /// Remove the least used entry
-  void RemoveLeastExpire ();
+  void RemoveLeastExpire (std::map<Ipv4Address, RreqTableEntry > & rreqDstMap);
   /// Find the entry in the route request queue to see if already exists
-  /// \param dst Destination IP
   void FindAndUpdate (Ipv4Address dst);
   /// Remove route request entry for dst
-  /// \param dst Destination IP
   void RemoveRreqEntry (Ipv4Address dst);
   /// Get the request count number for one destination address
-  /// \param dst Destination IP
-  /// \return the route request counter
   uint32_t GetRreqCnt (Ipv4Address dst);
 
   /**
@@ -366,13 +359,13 @@ private:
   /// The state of the unidirectional link
   LinkStates m_linkStates;
   /// Map of entries
-  std::list<DsrReceivedRreqEntry> m_sourceRequests;
+  std::list<ReceivedRreqEntry> m_sourceRequests;
   /// The id cache to ensure all the ids are unique, it is used when sending out route request
   std::map<Ipv4Address, uint32_t> m_rreqIdCache;
   /// The cache to save route request table entries indexed with destination address
   std::map<Ipv4Address, RreqTableEntry > m_rreqDstMap;
   /// The cache to ensure all the route request from unique source
-  std::map<Ipv4Address, std::list<DsrReceivedRreqEntry> > m_sourceRreqMap;
+  std::map<Ipv4Address, std::list<ReceivedRreqEntry> > m_sourceRreqMap;
 
   /// The Black list
   std::vector<BlackList> m_blackList;

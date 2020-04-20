@@ -15,23 +15,18 @@ def build(bld):
     if 'test' in bld.env['MODULES_NOT_BUILT']:
         return
 
-    test = bld.create_ns3_module('test',
-                                 ['applications', 'bridge', 'config-store',
-                                  'csma', 'csma-layout', 'dsr',
-                                  'flow-monitor', 'internet', 'lr-wpan',
-                                  'lte', 'mesh', 'mobility', 'olsr',
-                                  'point-to-point', 'sixlowpan', 'stats',
-                                  'uan', 'wifi', 'internet-apps',
-                                  'point-to-point-layout', 'traffic-control'])
-
+    test = bld.create_ns3_module('test', ['internet', 'mobility', 'applications', 'csma', 'bridge', 'config-store', 'point-to-point', 'csma-layout', 'flow-monitor', 'wifi'])
     headers = bld(features='ns3header')
     headers.module = 'test'
 
     test_test = bld.create_ns3_module_test_library('test')
     test_test.source = [
         'csma-system-test-suite.cc',
-        'ns3tc/fq-codel-queue-disc-test-suite.cc',
-        'ns3tc/pfifo-fast-queue-disc-test-suite.cc',
+        'global-routing-test-suite.cc',
+        'static-routing-test-suite.cc',
+        'mobility-test-suite.cc',
+        'ns3wifi/wifi-interference-test-suite.cc',
+        'ns3wifi/wifi-msdu-aggregator-test-suite.cc',
         'ns3tcp/ns3tcp-cwnd-test-suite.cc',
         'ns3tcp/ns3tcp-interop-test-suite.cc',
         'ns3tcp/ns3tcp-loss-test-suite.cc',
@@ -40,10 +35,5 @@ def build(bld):
         'ns3tcp/ns3tcp-state-test-suite.cc',
         'ns3tcp/nsctcp-loss-test-suite.cc',
         'ns3tcp/ns3tcp-socket-writer.cc',
-        'ns3wifi/wifi-interference-test-suite.cc',
-        'ns3wifi/wifi-msdu-aggregator-test-suite.cc',
-        'ns3wifi/wifi-ac-mapping-test-suite.cc',
-        'traced/traced-callback-typedef-test-suite.cc',
-        'traced/traced-value-callback-typedef-test-suite.cc',
         ]
 

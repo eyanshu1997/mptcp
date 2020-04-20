@@ -30,7 +30,6 @@
 #include "ipv6-interface-address.h"
 #include "ipv6.h"
 #include "ns3/output-stream-wrapper.h"
-#include "ns3/nstime.h"
 
 namespace ns3 {
 
@@ -40,22 +39,18 @@ class NetDevice;
 
 /**
  * \ingroup internet 
- * \defgroup ipv6Routing IPv6 Routing Protocols.
- *
- * The classes in this group implement different routing protocols
- * for IPv6. Other modules could implement further protocols.
+ * \defgroup ipv6Routing Ipv6RoutingProtocol
  */
 
 /**
  * \ingroup ipv6Routing
- * \brief Abstract base class for IPv6 routing protocols.
+ * \brief Abstract base class for Ipv6 routing protocols.
  * 
  * Defines two virtual functions for packet routing and forwarding.  The first, 
  * RouteOutput (), is used for locally originated packets, and the second,
  * RouteInput (), is used for forwarding and/or delivering received packets. 
  * Also defines the signatures of four callbacks used in RouteInput ().
  */
-
 class Ipv6RoutingProtocol : public Object
 {
 public:
@@ -192,11 +187,9 @@ public:
   /**
    * \brief Print the Routing Table entries
    *
-   * \param stream The ostream the Routing table is printed to
-   * \param unit The time unit to be used in the report
+   * \param stream the ostream the Routing table is printed to
    */
-  virtual void PrintRoutingTable (Ptr<OutputStreamWrapper> stream, Time::Unit unit = Time::S) const = 0;
-
+  virtual void PrintRoutingTable (Ptr<OutputStreamWrapper> stream) const = 0;
 };
 
 } // namespace ns3

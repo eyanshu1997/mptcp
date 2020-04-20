@@ -20,17 +20,21 @@
 
 
 #include "uan-header-rc.h"
-#include "ns3/mac8-address.h"
 
 #include <set>
 
 namespace ns3 {
 
-NS_OBJECT_ENSURE_REGISTERED (UanHeaderRcData);
-NS_OBJECT_ENSURE_REGISTERED (UanHeaderRcRts);
-NS_OBJECT_ENSURE_REGISTERED (UanHeaderRcCtsGlobal);
-NS_OBJECT_ENSURE_REGISTERED (UanHeaderRcCts);
-NS_OBJECT_ENSURE_REGISTERED (UanHeaderRcAck);
+NS_OBJECT_ENSURE_REGISTERED (UanHeaderRcData)
+  ;
+NS_OBJECT_ENSURE_REGISTERED (UanHeaderRcRts)
+  ;
+NS_OBJECT_ENSURE_REGISTERED (UanHeaderRcCtsGlobal)
+  ;
+NS_OBJECT_ENSURE_REGISTERED (UanHeaderRcCts)
+  ;
+NS_OBJECT_ENSURE_REGISTERED (UanHeaderRcAck)
+  ;
 
 UanHeaderRcData::UanHeaderRcData ()
   : Header (),
@@ -56,7 +60,6 @@ UanHeaderRcData::GetTypeId ()
 {
   static TypeId tid = TypeId ("ns3::UanHeaderRcData")
     .SetParent<Header> ()
-    .SetGroupName ("Uan")
     .AddConstructor<UanHeaderRcData> ()
   ;
   return tid;
@@ -154,7 +157,6 @@ UanHeaderRcRts::GetTypeId ()
 {
   static TypeId tid = TypeId ("ns3::UanHeaderRcRts")
     .SetParent<Header> ()
-    .SetGroupName ("Uan")
     .AddConstructor<UanHeaderRcRts> ()
   ;
   return tid;
@@ -292,7 +294,6 @@ UanHeaderRcCtsGlobal::GetTypeId ()
 {
   static TypeId tid = TypeId ("ns3::UanHeaderRcCtsGlobal")
     .SetParent<Header> ()
-    .SetGroupName ("Uan")
     .AddConstructor<UanHeaderRcCtsGlobal> ()
   ;
   return tid;
@@ -392,12 +393,12 @@ UanHeaderRcCts::UanHeaderRcCts ()
     m_timeStampRts (Seconds (0)),
     m_retryNo (0),
     m_delay (Seconds (0)),
-    m_address (Mac8Address::GetBroadcast ())
+    m_address (UanAddress::GetBroadcast ())
 {
 
 }
 
-UanHeaderRcCts::UanHeaderRcCts (uint8_t frameNo, uint8_t retryNo, Time ts, Time delay, Mac8Address addr)
+UanHeaderRcCts::UanHeaderRcCts (uint8_t frameNo, uint8_t retryNo, Time ts, Time delay, UanAddress addr)
   : Header (),
     m_frameNo (frameNo),
     m_timeStampRts (ts),
@@ -418,7 +419,6 @@ UanHeaderRcCts::GetTypeId ()
 {
   static TypeId tid = TypeId ("ns3::UanHeaderRcCts")
     .SetParent<Header> ()
-    .SetGroupName ("Uan")
     .AddConstructor<UanHeaderRcCts> ()
   ;
   return tid;
@@ -451,7 +451,7 @@ UanHeaderRcCts::SetRetryNo (uint8_t no)
 }
 
 void
-UanHeaderRcCts::SetAddress (Mac8Address addr)
+UanHeaderRcCts::SetAddress (UanAddress addr)
 {
   m_address = addr;
 }
@@ -479,7 +479,7 @@ UanHeaderRcCts::GetRetryNo () const
   return m_retryNo;
 }
 
-Mac8Address
+UanAddress
 UanHeaderRcCts::GetAddress () const
 {
   return m_address;
@@ -495,9 +495,7 @@ UanHeaderRcCts::GetSerializedSize (void) const
 void
 UanHeaderRcCts::Serialize (Buffer::Iterator start) const
 {
-  uint8_t address = 0;
-  m_address.CopyTo (&address);
-  start.WriteU8 (address);
+  start.WriteU8 (m_address.GetAsInt ());
   start.WriteU8 (m_frameNo);
   start.WriteU8 (m_retryNo);
   start.WriteU32 ((uint32_t)(m_timeStampRts.GetSeconds () * 1000.0 + 0.5));
@@ -508,7 +506,7 @@ uint32_t
 UanHeaderRcCts::Deserialize (Buffer::Iterator start)
 {
   Buffer::Iterator rbuf = start;
-  m_address = Mac8Address (rbuf.ReadU8 ());
+  m_address = UanAddress (rbuf.ReadU8 ());
   m_frameNo = rbuf.ReadU8 ();
   m_retryNo = rbuf.ReadU8 ();
   m_timeStampRts = Seconds ( ( (double) rbuf.ReadU32 ()) / 1000.0 );
@@ -544,7 +542,6 @@ UanHeaderRcAck::GetTypeId ()
 {
   static TypeId tid = TypeId ("ns3::UanHeaderRcAck")
     .SetParent<Header> ()
-    .SetGroupName ("Uan")
     .AddConstructor<UanHeaderRcAck> ()
   ;
   return tid;
@@ -577,7 +574,7 @@ UanHeaderRcAck::GetFrameNo (void) const
 uint8_t
 UanHeaderRcAck::GetNoNacks (void) const
 {
-  return static_cast<uint8_t> (m_nackedFrames.size ());
+  return m_nackedFrames.size ();
 }
 
 uint32_t

@@ -43,64 +43,52 @@
  *  parameters.
  */
 
-#include <iostream>
-#include <sstream>
-#include <fstream>
+
 #include "ns3/core-module.h"
 #include "ns3/internet-module.h"
 #include "ns3/network-module.h"
 #include "ns3/applications-module.h"
+#include "ns3/wifi-module.h"
 #include "ns3/mesh-module.h"
 #include "ns3/mobility-module.h"
 #include "ns3/mesh-helper.h"
-#include "ns3/yans-wifi-helper.h"
+
+#include <iostream>
+#include <sstream>
+#include <fstream>
 
 using namespace ns3;
 
 NS_LOG_COMPONENT_DEFINE ("TestMeshScript");
-
-/**
- * \ingroup mesh
- * \brief MeshTest class
- */
 class MeshTest
 {
 public:
   /// Init test
   MeshTest ();
-  /**
-   * Configure test from command line arguments
-   *
-   * \param argc command line argument count
-   * \param argv command line arguments
-   */
+  /// Configure test from command line arguments
   void Configure (int argc, char ** argv);
-  /**
-   * Run test
-   * \returns the test status
-   */
+  /// Run test
   int Run ();
 private:
-  int       m_xSize; ///< X size
-  int       m_ySize; ///< Y size
-  double    m_step; ///< step
-  double    m_randomStart; ///< random start
-  double    m_totalTime; ///< total time
-  double    m_packetInterval; ///< packet interval
-  uint16_t  m_packetSize; ///< packet size
-  uint32_t  m_nIfaces; ///< number interfaces
-  bool      m_chan; ///< channel
-  bool      m_pcap; ///< PCAP
-  bool      m_ascii; ///< ASCII
-  std::string m_stack; ///< stack
-  std::string m_root; ///< root
+  int       m_xSize;
+  int       m_ySize;
+  double    m_step;
+  double    m_randomStart;
+  double    m_totalTime;
+  double    m_packetInterval;
+  uint16_t  m_packetSize;
+  uint32_t  m_nIfaces;
+  bool      m_chan;
+  bool      m_pcap;
+  std::string m_stack;
+  std::string m_root;
   /// List of network nodes
   NodeContainer nodes;
   /// List of all mesh point devices
   NetDeviceContainer meshDevices;
-  /// Addresses of interfaces:
+  //Addresses of interfaces:
   Ipv4InterfaceContainer interfaces;
-  /// MeshHelper. Report is not static methods
+  // MeshHelper. Report is not static methods
   MeshHelper mesh;
 private:
   /// Create nodes and setup their mobility
@@ -123,7 +111,6 @@ MeshTest::MeshTest () :
   m_nIfaces (1),
   m_chan (true),
   m_pcap (false),
-  m_ascii (false),
   m_stack ("ns3::Dot11sStack"),
   m_root ("ff:ff:ff:ff:ff:ff")
 {
@@ -132,28 +119,26 @@ void
 MeshTest::Configure (int argc, char *argv[])
 {
   CommandLine cmd;
-  cmd.AddValue ("x-size", "Number of nodes in a row grid", m_xSize);
-  cmd.AddValue ("y-size", "Number of rows in a grid", m_ySize);
-  cmd.AddValue ("step",   "Size of edge in our grid (meters)", m_step);
-  // Avoid starting all mesh nodes at the same time (beacons may collide)
-  cmd.AddValue ("start",  "Maximum random start delay for beacon jitter (sec)", m_randomStart);
-  cmd.AddValue ("time",  "Simulation time (sec)", m_totalTime);
-  cmd.AddValue ("packet-interval",  "Interval between packets in UDP ping (sec)", m_packetInterval);
-  cmd.AddValue ("packet-size",  "Size of packets in UDP ping (bytes)", m_packetSize);
-  cmd.AddValue ("interfaces", "Number of radio interfaces used by each mesh point", m_nIfaces);
-  cmd.AddValue ("channels",   "Use different frequency channels for different interfaces", m_chan);
-  cmd.AddValue ("pcap",   "Enable PCAP traces on interfaces", m_pcap);
-  cmd.AddValue ("ascii",   "Enable Ascii traces on interfaces", m_ascii);
+  cmd.AddValue ("x-size", "Number of nodes in a row grid. [6]", m_xSize);
+  cmd.AddValue ("y-size", "Number of rows in a grid. [6]", m_ySize);
+  cmd.AddValue ("step",   "Size of edge in our grid, meters. [100 m]", m_step);
+  /*
+   * As soon as starting node means that it sends a beacon,
+   * simultaneous start is not good.
+   */
+  cmd.AddValue ("start",  "Maximum random start delay, seconds. [0.1 s]", m_randomStart);
+  cmd.AddValue ("time",  "Simulation time, seconds [100 s]", m_totalTime);
+  cmd.AddValue ("packet-interval",  "Interval between packets in UDP ping, seconds [0.001 s]", m_packetInterval);
+  cmd.AddValue ("packet-size",  "Size of packets in UDP ping", m_packetSize);
+  cmd.AddValue ("interfaces", "Number of radio interfaces used by each mesh point. [1]", m_nIfaces);
+  cmd.AddValue ("channels",   "Use different frequency channels for different interfaces. [0]", m_chan);
+  cmd.AddValue ("pcap",   "Enable PCAP traces on interfaces. [0]", m_pcap);
   cmd.AddValue ("stack",  "Type of protocol stack. ns3::Dot11sStack by default", m_stack);
   cmd.AddValue ("root", "Mac address of root mesh point in HWMP", m_root);
 
   cmd.Parse (argc, argv);
   NS_LOG_DEBUG ("Grid:" << m_xSize << "*" << m_ySize);
   NS_LOG_DEBUG ("Simulation time: " << m_totalTime << " s");
-  if (m_ascii)
-    {
-      PacketMetadata::Enable ();
-    }
 }
 void
 MeshTest::CreateNodes ()
@@ -208,11 +193,6 @@ MeshTest::CreateNodes ()
   mobility.Install (nodes);
   if (m_pcap)
     wifiPhy.EnablePcapAll (std::string ("mp-"));
-  if (m_ascii)
-    {
-      AsciiTraceHelper ascii;
-      wifiPhy.EnableAsciiAll (ascii.CreateFileStream ("mesh.tr"));
-    }
 }
 void
 MeshTest::InstallInternetStack ()

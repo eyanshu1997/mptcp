@@ -17,11 +17,12 @@
  *
  */
 
+// 
 // This script configures two nodes on an 802.11b physical layer, with
-// 802.11b NICs in adhoc mode, and by default, sends one packet of 1000
+// 802.11b NICs in adhoc mode, and by default, sends one packet of 1000 
 // (application) bytes to the other node.  The physical layer is configured
 // to receive at a fixed RSS (regardless of the distance and transmit
-// power); therefore, changing position of the nodes has no effect.
+// power); therefore, changing position of the nodes has no effect. 
 //
 // There are a number of command-line options available to control
 // the default behavior.  The list of available command-line options
@@ -41,7 +42,7 @@
 //
 // This script can also be helpful to put the Wifi layer into verbose
 // logging mode; this command will turn on all wifi logging:
-//
+// 
 // ./waf --run "wifi-simple-adhoc --verbose=1"
 //
 // When you are done, you will notice two pcap trace files in your directory.
@@ -50,44 +51,42 @@
 // tcpdump -r wifi-simple-adhoc-0-0.pcap -nn -tt
 //
 
-#include "ns3/command-line.h"
-#include "ns3/config.h"
-#include "ns3/double.h"
-#include "ns3/string.h"
-#include "ns3/log.h"
-#include "ns3/yans-wifi-helper.h"
-#include "ns3/mobility-helper.h"
-#include "ns3/ipv4-address-helper.h"
-#include "ns3/yans-wifi-channel.h"
-#include "ns3/mobility-model.h"
-#include "ns3/internet-stack-helper.h"
+#include "ns3/core-module.h"
+#include "ns3/network-module.h"
+#include "ns3/mobility-module.h"
+#include "ns3/config-store-module.h"
+#include "ns3/wifi-module.h"
+#include "ns3/internet-module.h"
 
-using namespace ns3;
+#include <iostream>
+#include <fstream>
+#include <vector>
+#include <string>
 
 NS_LOG_COMPONENT_DEFINE ("WifiSimpleAdhoc");
 
+using namespace ns3;
+
 void ReceivePacket (Ptr<Socket> socket)
 {
-  while (socket->Recv ())
-    {
-      NS_LOG_UNCOND ("Received one packet!");
-    }
+  NS_LOG_UNCOND ("Received one packet!");
 }
 
-static void GenerateTraffic (Ptr<Socket> socket, uint32_t pktSize,
+static void GenerateTraffic (Ptr<Socket> socket, uint32_t pktSize, 
                              uint32_t pktCount, Time pktInterval )
 {
   if (pktCount > 0)
     {
       socket->Send (Create<Packet> (pktSize));
-      Simulator::Schedule (pktInterval, &GenerateTraffic,
-                           socket, pktSize,pktCount - 1, pktInterval);
+      Simulator::Schedule (pktInterval, &GenerateTraffic, 
+                           socket, pktSize,pktCount-1, pktInterval);
     }
   else
     {
       socket->Close ();
     }
 }
+
 
 int main (int argc, char *argv[])
 {
@@ -99,18 +98,24 @@ int main (int argc, char *argv[])
   bool verbose = false;
 
   CommandLine cmd;
+
   cmd.AddValue ("phyMode", "Wifi Phy mode", phyMode);
   cmd.AddValue ("rss", "received signal strength", rss);
   cmd.AddValue ("packetSize", "size of application packet sent", packetSize);
   cmd.AddValue ("numPackets", "number of packets generated", numPackets);
   cmd.AddValue ("interval", "interval (seconds) between packets", interval);
   cmd.AddValue ("verbose", "turn on all WifiNetDevice log components", verbose);
+
   cmd.Parse (argc, argv);
   // Convert to time object
   Time interPacketInterval = Seconds (interval);
 
+  // disable fragmentation for frames below 2200 bytes
+  Config::SetDefault ("ns3::WifiRemoteStationManager::FragmentationThreshold", StringValue ("2200"));
+  // turn off RTS/CTS for frames below 2200 bytes
+  Config::SetDefault ("ns3::WifiRemoteStationManager::RtsCtsThreshold", StringValue ("2200"));
   // Fix non-unicast data rate to be the same as that of unicast
-  Config::SetDefault ("ns3::WifiRemoteStationManager::NonUnicastMode",
+  Config::SetDefault ("ns3::WifiRemoteStationManager::NonUnicastMode", 
                       StringValue (phyMode));
 
   NodeContainer c;
@@ -127,9 +132,9 @@ int main (int argc, char *argv[])
   YansWifiPhyHelper wifiPhy =  YansWifiPhyHelper::Default ();
   // This is one parameter that matters when using FixedRssLossModel
   // set it to zero; otherwise, gain will be added
-  wifiPhy.Set ("RxGain", DoubleValue (0) );
+  wifiPhy.Set ("RxGain", DoubleValue (0) ); 
   // ns-3 supports RadioTap and Prism tracing extensions for 802.11b
-  wifiPhy.SetPcapDataLinkType (WifiPhyHelper::DLT_IEEE802_11_RADIO);
+  wifiPhy.SetPcapDataLinkType (YansWifiPhyHelper::DLT_IEEE802_11_RADIO); 
 
   YansWifiChannelHelper wifiChannel;
   wifiChannel.SetPropagationDelay ("ns3::ConstantSpeedPropagationDelayModel");
@@ -138,8 +143,8 @@ int main (int argc, char *argv[])
   wifiChannel.AddPropagationLoss ("ns3::FixedRssLossModel","Rss",DoubleValue (rss));
   wifiPhy.SetChannel (wifiChannel.Create ());
 
-  // Add a mac and disable rate control
-  WifiMacHelper wifiMac;
+  // Add a non-QoS upper mac, and disable rate control
+  NqosWifiMacHelper wifiMac = NqosWifiMacHelper::Default ();
   wifi.SetRemoteStationManager ("ns3::ConstantRateWifiManager",
                                 "DataMode",StringValue (phyMode),
                                 "ControlMode",StringValue (phyMode));
@@ -147,8 +152,8 @@ int main (int argc, char *argv[])
   wifiMac.SetType ("ns3::AdhocWifiMac");
   NetDeviceContainer devices = wifi.Install (wifiPhy, wifiMac, c);
 
-  // Note that with FixedRssLossModel, the positions below are not
-  // used for received signal strength.
+  // Note that with FixedRssLossModel, the positions below are not 
+  // used for received signal strength. 
   MobilityHelper mobility;
   Ptr<ListPositionAllocator> positionAlloc = CreateObject<ListPositionAllocator> ();
   positionAlloc->Add (Vector (0.0, 0.0, 0.0));
@@ -183,7 +188,7 @@ int main (int argc, char *argv[])
   NS_LOG_UNCOND ("Testing " << numPackets  << " packets sent with receiver rss " << rss );
 
   Simulator::ScheduleWithContext (source->GetNode ()->GetId (),
-                                  Seconds (1.0), &GenerateTraffic,
+                                  Seconds (1.0), &GenerateTraffic, 
                                   source, packetSize, numPackets, interPacketInterval);
 
   Simulator::Run ();
@@ -191,3 +196,4 @@ int main (int argc, char *argv[])
 
   return 0;
 }
+

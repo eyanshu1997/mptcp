@@ -21,14 +21,14 @@
 
 namespace ns3 {
 
-NS_OBJECT_ENSURE_REGISTERED (Tag);
+NS_OBJECT_ENSURE_REGISTERED (Tag)
+  ;
 
 TypeId 
 Tag::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::Tag")
     .SetParent<ObjectBase> ()
-    .SetGroupName("Network")
   ;
   return tid;
 }

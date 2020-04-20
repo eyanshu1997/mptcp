@@ -27,12 +27,12 @@
 #include "ns3/ipv6-address.h"
 #include "ns3/net-device-container.h"
 #include "ipv6-interface-container.h"
+#include "ns3/deprecated.h"
 
 namespace ns3 {
 
 /**
- * \ingroup ipv6Helpers
- *
+ * \class Ipv6AddressHelper
  * \brief Helper class to auto-assign global IPv6 unicast addresses
  *
  * Assign global unicast IPv6 addresses based on \RFC{4291} definition.
@@ -109,6 +109,19 @@ public:
   /**
    * \brief Allocate a new network.
    *
+   * This method will reset the network for future
+   * network IDs, and resets the interface ID to the previously used
+   * base.
+   *  
+   * \param network The IPv6 network
+   * \param prefix The prefix
+   * \deprecated
+   */
+  void NewNetwork (Ipv6Address network, Ipv6Prefix prefix) NS_DEPRECATED;
+
+  /**
+   * \brief Allocate a new network.
+   *
    * This method will cause the subnet prefix to increment, for future
    * network IDs, and resets the interface ID to the previously used
    * base.
@@ -167,11 +180,6 @@ public:
    */
   Ipv6InterfaceContainer AssignWithoutAddress (const NetDeviceContainer &c);
 
-private:
-  Ipv6Address m_network; //!< network address
-  Ipv6Prefix m_prefix;   //!< prefix length
-  Ipv6Address m_address; //!< host address
-  Ipv6Address m_base;    //!< host base address
 };
 
 } /* namespace ns3 */

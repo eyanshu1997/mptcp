@@ -21,17 +21,21 @@
 #ifndef NS_ASSERT_H
 #define NS_ASSERT_H
 
-/**
- * \file
- * \ingroup assert
- * NS_ASSERT() and NS_ASSERT_MSG() macro definitions
- */
+#ifdef NS3_ASSERT_ENABLE
+
+#include <iostream>
+
+#include "fatal-error.h"
 
 /**
+ * \ingroup core
+ * \defgroup debugging Debugging
+ */
+/**
  * \ingroup debugging
- * \defgroup assert Assertions
+ * \defgroup assert Assert
  *
- * \brief Assert functions and macros
+ * \brief assert functions and macros
  *
  * The assert macros are used to verify
  * at runtime that a certain condition is true. If it is
@@ -49,20 +53,13 @@
  * builds, use NS_ABORT_UNLESS and NS_ABORT_MSG_UNLESS.
  */
 
-#ifdef NS3_ASSERT_ENABLE
-
-#include <iostream>
-
-#include "fatal-error.h"
-
 /**
  * \ingroup assert
+ * \param condition condition to verify.
  *
  * At runtime, in debugging builds, if this condition is not
  * true, the program prints the source file, line number and 
  * unverified condition and halts by calling std::terminate
- *
- * \param [in] condition Condition to verify.
  */
 #define NS_ASSERT(condition)                                    \
   do                                                            \
@@ -79,13 +76,12 @@
 
 /**
  * \ingroup assert
+ * \param condition condition to verify.
+ * \param message message to output
  *
  * At runtime, in debugging builds, if this condition is not
  * true, the program prints the message to output and
  * halts by calling std::terminate.
- *
- * \param [in] condition Condition to verify.
- * \param [in] message Message to output
  */
 #define NS_ASSERT_MSG(condition, message)             \
   do                                                  \

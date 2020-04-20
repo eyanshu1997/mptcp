@@ -34,27 +34,21 @@
 
 namespace ns3 {
 
-NS_LOG_COMPONENT_DEFINE ("UdpEchoServerApplication");
-
-NS_OBJECT_ENSURE_REGISTERED (UdpEchoServer);
+NS_LOG_COMPONENT_DEFINE ("UdpEchoServerApplication")
+  ;
+NS_OBJECT_ENSURE_REGISTERED (UdpEchoServer)
+  ;
 
 TypeId
 UdpEchoServer::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::UdpEchoServer")
     .SetParent<Application> ()
-    .SetGroupName("Applications")
     .AddConstructor<UdpEchoServer> ()
     .AddAttribute ("Port", "Port on which we listen for incoming packets.",
                    UintegerValue (9),
                    MakeUintegerAccessor (&UdpEchoServer::m_port),
                    MakeUintegerChecker<uint16_t> ())
-    .AddTraceSource ("Rx", "A packet has been received",
-                     MakeTraceSourceAccessor (&UdpEchoServer::m_rxTrace),
-                     "ns3::Packet::TracedCallback")
-    .AddTraceSource ("RxWithAddresses", "A packet has been received",
-                     MakeTraceSourceAccessor (&UdpEchoServer::m_rxTraceWithAddresses),
-                     "ns3::Packet::TwoAddressTracedCallback")
   ;
   return tid;
 }
@@ -88,10 +82,7 @@ UdpEchoServer::StartApplication (void)
       TypeId tid = TypeId::LookupByName ("ns3::UdpSocketFactory");
       m_socket = Socket::CreateSocket (GetNode (), tid);
       InetSocketAddress local = InetSocketAddress (Ipv4Address::GetAny (), m_port);
-      if (m_socket->Bind (local) == -1)
-        {
-          NS_FATAL_ERROR ("Failed to bind socket");
-        }
+      m_socket->Bind (local);
       if (addressUtils::IsMulticast (m_local))
         {
           Ptr<UdpSocket> udpSocket = DynamicCast<UdpSocket> (m_socket);
@@ -112,10 +103,7 @@ UdpEchoServer::StartApplication (void)
       TypeId tid = TypeId::LookupByName ("ns3::UdpSocketFactory");
       m_socket6 = Socket::CreateSocket (GetNode (), tid);
       Inet6SocketAddress local6 = Inet6SocketAddress (Ipv6Address::GetAny (), m_port);
-      if (m_socket6->Bind (local6) == -1)
-        {
-          NS_FATAL_ERROR ("Failed to bind socket");
-        }
+      m_socket6->Bind (local6);
       if (addressUtils::IsMulticast (local6))
         {
           Ptr<UdpSocket> udpSocket = DynamicCast<UdpSocket> (m_socket6);
@@ -159,12 +147,8 @@ UdpEchoServer::HandleRead (Ptr<Socket> socket)
 
   Ptr<Packet> packet;
   Address from;
-  Address localAddress;
   while ((packet = socket->RecvFrom (from)))
     {
-      socket->GetSockName (localAddress);
-      m_rxTrace (packet);
-      m_rxTraceWithAddresses (packet, from, localAddress);
       if (InetSocketAddress::IsMatchingType (from))
         {
           NS_LOG_INFO ("At time " << Simulator::Now ().GetSeconds () << "s server received " << packet->GetSize () << " bytes from " <<

@@ -93,18 +93,6 @@ public:
    */
   virtual void HandleEnergyDepletion (void) = 0;
 
-  /**
-   * This function is called by the EnergySource object when energy stored in
-   * the energy source is recharged. Should be implemented by child classes.
-   */
-  virtual void HandleEnergyRecharged (void) = 0;
-
-  /**
-   * This function is called by the EnergySource object when energy stored in
-   * the energy source is changed. Should be implemented by child classes.
-   */
-  virtual void HandleEnergyChanged (void) = 0;
-
 
 private:
   /**

@@ -52,9 +52,6 @@ public:
   Ipv4FlowClassifier ();
 
   /// \brief try to classify the packet into flow-id and packet-id
-  ///
-  /// \warning: it must be called only once per packet, from SendOutgoingLogger.
-  ///
   /// \return true if the packet was classified, false if not (i.e. it
   /// does not appear to be part of a flow).
   /// \param ipHeader packet's IP header
@@ -69,35 +66,12 @@ public:
   /// \returns the FiveTuple corresponding to flowId
   FiveTuple FindFlow (FlowId flowId) const;
 
-  /// Comparator used to sort the vector of DSCP values
-  class SortByCount
-  {
-  public:
-    /// Comparator function
-    /// \param left left operand
-    /// \param right right operand
-    /// \return true if left DSCP is greater than right DSCP
-    bool operator() (std::pair<Ipv4Header::DscpType, uint32_t> left,
-                     std::pair<Ipv4Header::DscpType, uint32_t> right);
-  };
-
-  /// \brief get the DSCP values of the packets belonging to the flow with the
-  /// given FlowId, sorted in decreasing order of number of packets seen with
-  /// that DSCP value
-  /// \param flowId the identifier of the flow of interest
-  /// \returns the vector of DSCP values
-  std::vector<std::pair<Ipv4Header::DscpType, uint32_t> > GetDscpCounts (FlowId flowId) const;
-
-  virtual void SerializeToXmlStream (std::ostream &os, uint16_t indent) const;
+  virtual void SerializeToXmlStream (std::ostream &os, int indent) const;
 
 private:
 
   /// Map to Flows Identifiers to FlowIds
   std::map<FiveTuple, FlowId> m_flowMap;
-  /// Map to FlowIds to FlowPacketId
-  std::map<FlowId, FlowPacketId> m_flowPktIdMap;
-  /// Map FlowIds to (DSCP value, packet count) pairs
-  std::map<FlowId, std::map<Ipv4Header::DscpType, uint32_t> > m_flowDscpMap;
 
 };
 

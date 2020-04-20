@@ -31,11 +31,12 @@
 #include "ns3/enum.h"
 
 
-namespace ns3 {
-
 NS_LOG_COMPONENT_DEFINE ("BuildingsPropagationLossModel");
 
-NS_OBJECT_ENSURE_REGISTERED (BuildingsPropagationLossModel);
+namespace ns3 {
+
+NS_OBJECT_ENSURE_REGISTERED (BuildingsPropagationLossModel)
+  ;
 
 BuildingsPropagationLossModel::ShadowingLoss::ShadowingLoss ()
 {
@@ -65,7 +66,6 @@ BuildingsPropagationLossModel::GetTypeId (void)
   static TypeId tid = TypeId ("ns3::BuildingsPropagationLossModel")
 
     .SetParent<PropagationLossModel> ()
-    .SetGroupName ("Buildings")
 
 
     .AddAttribute ("ShadowSigmaOutdoor",

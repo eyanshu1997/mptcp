@@ -34,12 +34,6 @@
 
 using namespace ns3;
 
-/**
- * \ingroup uan-test
- * \ingroup tests
- *
- * \brief Uan Test
- */
 class UanTest : public TestCase
 {
 public:
@@ -47,47 +41,13 @@ public:
 
   virtual void DoRun (void);
 private:
-  /**
-   * Create node function
-   * \param pos the position of the device
-   * \param chan the communication channel
-   * \returns the UAN device
-   */
   Ptr<UanNetDevice> CreateNode (Vector pos, Ptr<UanChannel> chan);
-  /**
-   * Phy test function 
-   * \returns true if successful
-   */
   bool DoPhyTests ();
-  /**
-   * Do one Phy test function
-   * \param t1 the time to send first packet
-   * \param t2 the time to send the second packet
-   * \param r1 first distance constant
-   * \param r2 second distance constant
-   * \param prop the propagation model
-   * \param mode1 the send mode for device 1
-   * \param mode2 the send mode for device 2
-   * \returns number of bytes received
-   */
-  uint32_t DoOnePhyTest (Time t1, Time t2, uint32_t r1, uint32_t r2, Ptr<UanPropModel> prop, uint16_t mode1 = 0, uint16_t mode2 = 0);
-  /**
-   * Receive packet function
-   * \param dev the device
-   * \param pkt the packet
-   * \param mode the receive mode
-   * \param sender the address of the sender
-   * \returns true if successful
-   */
+  uint32_t DoOnePhyTest (Time t1, Time t2, uint32_t r1, uint32_t r2, Ptr<UanPropModel> prop, uint32_t mode1 = 0, uint32_t mode2 = 0);
   bool RxPacket (Ptr<NetDevice> dev, Ptr<const Packet> pkt, uint16_t mode, const Address &sender);
-  /**
-   * Send one packet function
-   * \param dev the device
-   * \param mode the transmit mode
-   */
-  void SendOnePacket (Ptr<UanNetDevice> dev, uint16_t mode);
-  ObjectFactory m_phyFac; ///< Phy 
-  uint32_t m_bytesRx; ///< byes received
+  void SendOnePacket (Ptr<UanNetDevice> dev, uint32_t mode);
+  ObjectFactory m_phyFac;
+  uint32_t m_bytesRx;
 
 };
 
@@ -100,17 +60,14 @@ UanTest::UanTest () : TestCase ("UAN")
 bool
 UanTest::RxPacket (Ptr<NetDevice> dev, Ptr<const Packet> pkt, uint16_t mode, const Address &sender)
 {
-  NS_UNUSED (mode);
-  NS_UNUSED (sender);
   m_bytesRx += pkt->GetSize ();
   return true;
 }
 void
-UanTest::SendOnePacket (Ptr<UanNetDevice> dev, uint16_t mode)
+UanTest::SendOnePacket (Ptr<UanNetDevice> dev, uint32_t mode)
 {
   Ptr<Packet> pkt = Create<Packet> (17);
-  dev->SetTxModeIndex (mode);
-  dev->Send (pkt, dev->GetBroadcast (), 0);
+  dev->Send (pkt, dev->GetBroadcast (), mode);
 
 }
 Ptr<UanNetDevice>
@@ -128,7 +85,7 @@ UanTest::CreateNode (Vector pos, Ptr<UanChannel> chan)
 
   mobility->SetPosition (pos);
   node->AggregateObject (mobility);
-  mac->SetAddress (Mac8Address::Allocate ());
+  mac->SetAddress (UanAddress::Allocate ());
 
   dev->SetPhy (phy);
   dev->SetMac (mac);
@@ -146,8 +103,8 @@ UanTest::DoOnePhyTest (Time txTime1,
                        uint32_t r1,
                        uint32_t r2,
                        Ptr<UanPropModel> prop,
-                       uint16_t mode1,
-                       uint16_t mode2)
+                       uint32_t mode1,
+                       uint32_t mode2)
 {
 
   Ptr<UanChannel> channel = CreateObject<UanChannel> ();
@@ -213,7 +170,7 @@ UanTest::DoPhyTests ()
 
   // Should correctly receive first arriving packet
   NS_TEST_ASSERT_MSG_EQ_RETURNS_BOOL (DoOnePhyTest (Seconds (1.0), Seconds (1.0126), 50, 50, prop),
-                                      17, "Should have received 17 bytes from first arriving packet");
+                                      17, "Should have recieved 17 bytes from first arriving packet");
 
   // Packets should collide and both be lost
   NS_TEST_ASSERT_MSG_EQ_RETURNS_BOOL (DoOnePhyTest (Seconds (1.0), Seconds (1.0 + 7.01 * (13.0 / 80.0)), 50, 50, prop),
@@ -283,12 +240,7 @@ UanTest::DoRun (void)
   DoPhyTests ();
 }
 
-/**
- * \ingroup uan-test
- * \ingroup tests
- *
- * \brief Uan Test Suite
- */
+
 class UanTestSuite : public TestSuite
 {
 public:
@@ -301,5 +253,8 @@ UanTestSuite::UanTestSuite ()
   AddTestCase (new UanTest, TestCase::QUICK);
 }
 
-static UanTestSuite g_uanTestSuite; ///< the test suite
+static UanTestSuite g_uanTestSuite;
+
+
+
 

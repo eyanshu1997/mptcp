@@ -1,7 +1,7 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
  * Copyright (c) 2013 Universita' di Firenze
- *
+ * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
  * published by the Free Software Foundation;
@@ -24,6 +24,7 @@
 #include "ns3/simulator.h"
 #include "ns3/simple-channel.h"
 #include "ns3/simple-net-device.h"
+#include "ns3/drop-tail-queue.h"
 #include "ns3/socket.h"
 #include "ns3/boolean.h"
 
@@ -36,53 +37,49 @@
 #include "ns3/icmpv4-l4-protocol.h"
 #include "ns3/udp-l4-protocol.h"
 #include "ns3/ipv4-static-routing.h"
-#include "ns3/internet-stack-helper.h"
-#include "ns3/ipv4-routing-helper.h"
-
-#include "ns3/traffic-control-layer.h"
 
 #include <string>
 #include <limits>
 
 using namespace ns3;
 
+static void
+AddInternetStack (Ptr<Node> node)
+{
+  //ARP
+  Ptr<ArpL3Protocol> arp = CreateObject<ArpL3Protocol> ();
+  node->AggregateObject (arp);
+  //IPV4
+  Ptr<Ipv4L3Protocol> ipv4 = CreateObject<Ipv4L3Protocol> ();
+  //Routing for Ipv4
+  Ptr<Ipv4StaticRouting> ipv4Routing = CreateObject<Ipv4StaticRouting> ();
+  ipv4->SetRoutingProtocol (ipv4Routing);
+  node->AggregateObject (ipv4);
+  node->AggregateObject (ipv4Routing);
+  //ICMP
+  Ptr<Icmpv4L4Protocol> icmp = CreateObject<Icmpv4L4Protocol> ();
+  node->AggregateObject (icmp);
+  //UDP
+  Ptr<UdpL4Protocol> udp = CreateObject<UdpL4Protocol> ();
+  node->AggregateObject (udp);
+}
 
-/**
- * \ingroup internet-test
- * \ingroup tests
- *
- * \brief IPv4 Forwarding Test
- */
+
 class Ipv4ForwardingTest : public TestCase
 {
-  Ptr<Packet> m_receivedPacket; //!< Received packet
-
-  /**
-   * \brief Send data.
-   * \param socket The sending socket.
-   * \param to Destination address.
-   */
+  Ptr<Packet> m_receivedPacket;
   void DoSendData (Ptr<Socket> socket, std::string to);
-  /**
-   * \brief Send data.
-   * \param socket The sending socket.
-   * \param to Destination address.
-   */
   void SendData (Ptr<Socket> socket, std::string to);
 
 public:
   virtual void DoRun (void);
   Ipv4ForwardingTest ();
 
-  /**
-   * \brief Receive data.
-   * \param socket The receiving socket.
-   */
   void ReceivePkt (Ptr<Socket> socket);
 };
 
 Ipv4ForwardingTest::Ipv4ForwardingTest ()
-  : TestCase ("UDP socket implementation")
+  : TestCase ("UDP socket implementation") 
 {
 }
 
@@ -118,11 +115,7 @@ Ipv4ForwardingTest::DoRun (void)
 
   // Receiver Node
   Ptr<Node> rxNode = CreateObject<Node> ();
-
-  InternetStackHelper internet;
-  internet.SetIpv6StackInstall (false);
-
-  internet.Install (rxNode);
+  AddInternetStack (rxNode);
   Ptr<SimpleNetDevice> rxDev;
   { // first interface
     rxDev = CreateObject<SimpleNetDevice> ();
@@ -137,8 +130,7 @@ Ipv4ForwardingTest::DoRun (void)
 
   // Forwarding Node
   Ptr<Node> fwNode = CreateObject<Node> ();
-
-  internet.Install (fwNode);
+  AddInternetStack (fwNode);
   Ptr<SimpleNetDevice> fwDev1, fwDev2;
   { // first interface
     fwDev1 = CreateObject<SimpleNetDevice> ();
@@ -164,8 +156,7 @@ Ipv4ForwardingTest::DoRun (void)
 
   // Sender Node
   Ptr<Node> txNode = CreateObject<Node> ();
-
-  internet.Install (txNode);
+  AddInternetStack (txNode);
   Ptr<SimpleNetDevice> txDev;
   {
     txDev = CreateObject<SimpleNetDevice> ();
@@ -176,7 +167,7 @@ Ipv4ForwardingTest::DoRun (void)
     Ipv4InterfaceAddress ipv4Addr = Ipv4InterfaceAddress (Ipv4Address ("10.1.0.2"), Ipv4Mask (0xffff0000U));
     ipv4->AddAddress (netdev_idx, ipv4Addr);
     ipv4->SetUp (netdev_idx);
-    Ptr<Ipv4StaticRouting> ipv4StaticRouting = Ipv4RoutingHelper::GetRouting <Ipv4StaticRouting> (txNode->GetObject<Ipv4> ()->GetRoutingProtocol ());
+    Ptr<Ipv4StaticRouting> ipv4StaticRouting = txNode->GetObject<Ipv4StaticRouting> ();
     ipv4StaticRouting->SetDefaultRoute(Ipv4Address("10.1.0.1"), netdev_idx);
   }
 
@@ -218,24 +209,13 @@ Ipv4ForwardingTest::DoRun (void)
 }
 
 
-/**
- * \ingroup internet-test
- * \ingroup tests
- *
- * \brief IPv4 Forwarding TestSuite
- */
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 class Ipv4ForwardingTestSuite : public TestSuite
 {
 public:
-  Ipv4ForwardingTestSuite ();
-private:
-};
-
-Ipv4ForwardingTestSuite::Ipv4ForwardingTestSuite ()
-  : TestSuite ("ipv4-forwarding", UNIT)
-{
-  AddTestCase (new Ipv4ForwardingTest, TestCase::QUICK);
-}
-
-static Ipv4ForwardingTestSuite g_ipv4forwardingTestSuite; //!< Static variable for test initialization
-
+  Ipv4ForwardingTestSuite () : TestSuite ("ipv4-forwarding", UNIT)
+  {
+    AddTestCase (new Ipv4ForwardingTest, TestCase::QUICK);
+  }
+} g_ipv4forwardingTestSuite;

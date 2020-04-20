@@ -23,12 +23,6 @@
 
 using namespace ns3;
 
-/**
- * \ingroup internet-test
- * \ingroup tests
- *
- * \brief IPv6 network number allocator Test
- */
 class NetworkNumber6AllocatorTestCase : public TestCase
 {
 public:
@@ -74,12 +68,6 @@ NetworkNumber6AllocatorTestCase::DoRun (void)
 
 }
 
-/**
- * \ingroup internet-test
- * \ingroup tests
- *
- * \brief IPv6 address allocator Test
- */
 class AddressAllocator6TestCase : public TestCase
 {
 public:
@@ -129,12 +117,6 @@ AddressAllocator6TestCase::DoTeardown (void)
 }
 
 
-/**
- * \ingroup internet-test
- * \ingroup tests
- *
- * \brief IPv6 network number and address allocator Test
- */
 class NetworkAndAddress6TestCase : public TestCase
 {
 public:
@@ -175,12 +157,6 @@ NetworkAndAddress6TestCase::DoRun (void)
 
 }
 
-/**
- * \ingroup internet-test
- * \ingroup tests
- *
- * \brief IPv6 example of an address generator Test
- */
 class ExampleAddress6GeneratorTestCase : public TestCase
 {
 public:
@@ -231,12 +207,6 @@ ExampleAddress6GeneratorTestCase::DoRun (void)
   NS_TEST_EXPECT_MSG_EQ (address, Ipv6Address ("2001:0AB8:1::3"), "address should equal initialized address for given prefix");
 }
 
-/**
- * \ingroup internet-test
- * \ingroup tests
- *
- * \brief IPv6 address collision Test
- */
 class AddressCollision6TestCase : public TestCase
 {
 public:
@@ -303,13 +273,7 @@ AddressCollision6TestCase::DoRun (void)
 }
 
 
-/**
- * \ingroup internet-test
- * \ingroup tests
- *
- * \brief IPv6 address generator TestSuite
- */
-class Ipv6AddressGeneratorTestSuite : public TestSuite
+static class Ipv6AddressGeneratorTestSuite : public TestSuite
 {
 public:
   Ipv6AddressGeneratorTestSuite ()
@@ -321,6 +285,4 @@ public:
     AddTestCase (new ExampleAddress6GeneratorTestCase (), TestCase::QUICK);
     AddTestCase (new AddressCollision6TestCase (), TestCase::QUICK);
   }
-};
-
-static Ipv6AddressGeneratorTestSuite g_ipv6AddressGeneratorTestSuite; //!< Static variable for test initialization
+} g_ipv6AddressGeneratorTestSuite;

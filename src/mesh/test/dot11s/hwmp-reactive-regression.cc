@@ -30,6 +30,7 @@
 #include "ns3/internet-stack-helper.h"
 #include "ns3/ipv4-address-helper.h"
 #include "ns3/abort.h"
+#include "ns3/udp-echo-helper.h"
 #include "ns3/mobility-model.h"
 #include "ns3/pcap-test.h"
 #include <sstream>
@@ -41,8 +42,7 @@ const char * const PREFIX = "hwmp-reactive-regression-test";
 
 HwmpReactiveRegressionTest::HwmpReactiveRegressionTest () : TestCase ("HWMP on-demand regression test"),
                                                             m_nodes (0),
-                                                            m_time (Seconds (10)),
-                                                            m_sentPktsCounter (0)
+                                                            m_time (Seconds (10))
 {
 }
 HwmpReactiveRegressionTest::~HwmpReactiveRegressionTest ()
@@ -53,11 +53,7 @@ void
 HwmpReactiveRegressionTest::DoRun ()
 {
   RngSeedManager::SetSeed (12345);
-  // This test is somewhat sensitive to seed selection, since the nodes
-  // are on the fringe of reception range from one another (to create 
-  // a multi-hop topology).  Some seeds may yield no data transfer because
-  // ARP resolution across the mesh may fail too many times
-  RngSeedManager::SetRun (1);
+  RngSeedManager::SetRun (7);
   CreateNodes ();
   CreateDevices ();
   InstallApplications ();
@@ -90,18 +86,17 @@ HwmpReactiveRegressionTest::CreateNodes ()
 void
 HwmpReactiveRegressionTest::InstallApplications ()
 {
-  // client socket
-  m_clientSocket = Socket::CreateSocket (m_nodes->Get (5), TypeId::LookupByName ("ns3::UdpSocketFactory"));
-  m_clientSocket->Bind ();
-  m_clientSocket->Connect (InetSocketAddress (m_interfaces.GetAddress (0), 9));
-  m_clientSocket->SetRecvCallback (MakeCallback (&HwmpReactiveRegressionTest::HandleReadClient, this));
-  Simulator::ScheduleWithContext (m_clientSocket->GetNode ()->GetId (), Seconds (2.0),
-                                  &HwmpReactiveRegressionTest::SendData, this, m_clientSocket);
-
-  // server socket
-  m_serverSocket = Socket::CreateSocket (m_nodes->Get (0), TypeId::LookupByName ("ns3::UdpSocketFactory"));
-  m_serverSocket->Bind (InetSocketAddress (Ipv4Address::GetAny (), 9));
-  m_serverSocket->SetRecvCallback (MakeCallback (&HwmpReactiveRegressionTest::HandleReadServer, this));
+  UdpEchoServerHelper echoServer (9);
+  ApplicationContainer serverApps = echoServer.Install (m_nodes->Get (0));
+  serverApps.Start (Seconds (0.0));
+  serverApps.Stop (m_time);
+  UdpEchoClientHelper echoClient (m_interfaces.GetAddress (0), 9);
+  echoClient.SetAttribute ("MaxPackets", UintegerValue (300));
+  echoClient.SetAttribute ("Interval", TimeValue (Seconds (0.5)));
+  echoClient.SetAttribute ("PacketSize", UintegerValue (20));
+  ApplicationContainer clientApps = echoClient.Install (m_nodes->Get (5));
+  clientApps.Start (Seconds (2.0));
+  clientApps.Stop (m_time);
 }
 void
 HwmpReactiveRegressionTest::CreateDevices ()
@@ -114,8 +109,6 @@ HwmpReactiveRegressionTest::CreateDevices ()
   YansWifiChannelHelper wifiChannel = YansWifiChannelHelper::Default ();
   Ptr<YansWifiChannel> chan = wifiChannel.Create ();
   wifiPhy.SetChannel (chan);
-  wifiPhy.Set ("TxGain", DoubleValue (1.0)); //this configuration should go away in future revision to the test
-  wifiPhy.Set ("RxGain", DoubleValue (1.0)); //this configuration should go away in future revision to the test
 
   // 2. setup mesh
   MeshHelper mesh = MeshHelper::Default ();
@@ -125,14 +118,13 @@ HwmpReactiveRegressionTest::CreateDevices ()
   NetDeviceContainer meshDevices = mesh.Install (wifiPhy, *m_nodes);
   // Six devices, 4 streams per device
   streamsUsed += mesh.AssignStreams (meshDevices, streamsUsed);
-  NS_TEST_EXPECT_MSG_EQ (streamsUsed, (meshDevices.GetN () * 9), "Stream assignment mismatch");
+  NS_TEST_EXPECT_MSG_EQ (streamsUsed, (meshDevices.GetN () * 4), "Stream assignment mismatch");
   streamsUsed += wifiChannel.AssignStreams (chan, streamsUsed);
-  NS_TEST_EXPECT_MSG_EQ (streamsUsed, (meshDevices.GetN () * 9), "Stream assignment mismatch");
+  NS_TEST_EXPECT_MSG_EQ (streamsUsed, (meshDevices.GetN () * 4), "Stream assignment mismatch");
 
   // 3. setup TCP/IP
   InternetStackHelper internetStack;
   internetStack.Install (*m_nodes);
-  streamsUsed += internetStack.AssignStreams (*m_nodes, streamsUsed);
   Ipv4AddressHelper address;
   address.SetBase ("10.1.1.0", "255.255.255.0");
   m_interfaces = address.Assign (meshDevices);
@@ -159,40 +151,5 @@ HwmpReactiveRegressionTest::ResetPosition ()
       return;
     }
   model->SetPosition (Vector (9000, 0, 0));
-}
 
-void
-HwmpReactiveRegressionTest::SendData (Ptr<Socket> socket)
-{
-  if ((Simulator::Now () < m_time) && (m_sentPktsCounter < 300))
-    {
-      socket->Send (Create<Packet> (20));
-      m_sentPktsCounter ++;
-      Simulator::ScheduleWithContext (socket->GetNode ()->GetId (), Seconds (0.5),
-                                      &HwmpReactiveRegressionTest::SendData, this, socket);
-    }
-}
-
-void
-HwmpReactiveRegressionTest::HandleReadServer (Ptr<Socket> socket)
-{
-  Ptr<Packet> packet;
-  Address from;
-  while ((packet = socket->RecvFrom (from)))
-    {
-      packet->RemoveAllPacketTags ();
-      packet->RemoveAllByteTags ();
-
-      socket->SendTo (packet, 0, from);
-    }
-}
-
-void
-HwmpReactiveRegressionTest::HandleReadClient (Ptr<Socket> socket)
-{
-  Ptr<Packet> packet;
-  Address from;
-  while ((packet = socket->RecvFrom (from)))
-    {
-    }
 }

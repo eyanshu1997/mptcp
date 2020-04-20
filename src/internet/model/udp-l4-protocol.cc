@@ -40,11 +40,12 @@
 #include "ipv6-l3-protocol.h"
 #include "udp-socket-impl.h"
 
-namespace ns3 {
-
 NS_LOG_COMPONENT_DEFINE ("UdpL4Protocol");
 
-NS_OBJECT_ENSURE_REGISTERED (UdpL4Protocol);
+namespace ns3 {
+
+NS_OBJECT_ENSURE_REGISTERED (UdpL4Protocol)
+  ;
 
 /* see http://www.iana.org/assignments/protocol-numbers */
 const uint8_t UdpL4Protocol::PROT_NUMBER = 17;
@@ -54,7 +55,6 @@ UdpL4Protocol::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::UdpL4Protocol")
     .SetParent<IpL4Protocol> ()
-    .SetGroupName ("Internet")
     .AddConstructor<UdpL4Protocol> ()
     .AddAttribute ("SocketList", "The list of sockets associated to this protocol.",
                    ObjectVectorValue (),
@@ -92,7 +92,7 @@ UdpL4Protocol::NotifyNewAggregate ()
   NS_LOG_FUNCTION (this);
   Ptr<Node> node = this->GetObject<Node> ();
   Ptr<Ipv4> ipv4 = this->GetObject<Ipv4> ();
-  Ptr<Ipv6> ipv6 = node->GetObject<Ipv6> ();
+  Ptr<Ipv6L3Protocol> ipv6 = node->GetObject<Ipv6L3Protocol> ();
 
   if (m_node == 0)
     {
@@ -118,9 +118,9 @@ UdpL4Protocol::NotifyNewAggregate ()
   if (ipv6 != 0 && m_downTarget6.IsNull())
     {
       ipv6->Insert (this);
-      this->SetDownTarget6 (MakeCallback (&Ipv6::Send, ipv6));
+      this->SetDownTarget6 (MakeCallback (&Ipv6L3Protocol::Send, ipv6));
     }
-  IpL4Protocol::NotifyNewAggregate ();
+  Object::NotifyNewAggregate ();
 }
 
 int 
@@ -173,7 +173,7 @@ UdpL4Protocol::CreateSocket (void)
 Ipv4EndPoint *
 UdpL4Protocol::Allocate (void)
 {
-  NS_LOG_FUNCTION (this);
+  NS_LOG_FUNCTION_NOARGS ();
   return m_endPoints->Allocate ();
 }
 
@@ -185,26 +185,24 @@ UdpL4Protocol::Allocate (Ipv4Address address)
 }
 
 Ipv4EndPoint *
-UdpL4Protocol::Allocate (Ptr<NetDevice> boundNetDevice, uint16_t port)
+UdpL4Protocol::Allocate (uint16_t port)
 {
-  NS_LOG_FUNCTION (this << boundNetDevice << port);
-  return m_endPoints->Allocate (boundNetDevice, port);
+  NS_LOG_FUNCTION (this << port);
+  return m_endPoints->Allocate (port);
 }
 
 Ipv4EndPoint *
-UdpL4Protocol::Allocate (Ptr<NetDevice> boundNetDevice, Ipv4Address address, uint16_t port)
+UdpL4Protocol::Allocate (Ipv4Address address, uint16_t port)
 {
-  NS_LOG_FUNCTION (this << boundNetDevice << address << port);
-  return m_endPoints->Allocate (boundNetDevice, address, port);
+  NS_LOG_FUNCTION (this << address << port);
+  return m_endPoints->Allocate (address, port);
 }
 Ipv4EndPoint *
-UdpL4Protocol::Allocate (Ptr<NetDevice> boundNetDevice,
-                         Ipv4Address localAddress, uint16_t localPort,
+UdpL4Protocol::Allocate (Ipv4Address localAddress, uint16_t localPort,
                          Ipv4Address peerAddress, uint16_t peerPort)
 {
-  NS_LOG_FUNCTION (this << boundNetDevice << localAddress << localPort << peerAddress << peerPort);
-  return m_endPoints->Allocate (boundNetDevice,
-                                localAddress, localPort,
+  NS_LOG_FUNCTION (this << localAddress << localPort << peerAddress << peerPort);
+  return m_endPoints->Allocate (localAddress, localPort,
                                 peerAddress, peerPort);
 }
 
@@ -218,7 +216,7 @@ UdpL4Protocol::DeAllocate (Ipv4EndPoint *endPoint)
 Ipv6EndPoint *
 UdpL4Protocol::Allocate6 (void)
 {
-  NS_LOG_FUNCTION (this);
+  NS_LOG_FUNCTION_NOARGS ();
   return m_endPoints6->Allocate ();
 }
 
@@ -230,27 +228,25 @@ UdpL4Protocol::Allocate6 (Ipv6Address address)
 }
 
 Ipv6EndPoint *
-UdpL4Protocol::Allocate6 (Ptr<NetDevice> boundNetDevice, uint16_t port)
+UdpL4Protocol::Allocate6 (uint16_t port)
 {
-  NS_LOG_FUNCTION (this << boundNetDevice << port);
-  return m_endPoints6->Allocate (boundNetDevice, port);
+  NS_LOG_FUNCTION (this << port);
+  return m_endPoints6->Allocate (port);
 }
 
 Ipv6EndPoint *
-UdpL4Protocol::Allocate6 (Ptr<NetDevice> boundNetDevice, Ipv6Address address, uint16_t port)
+UdpL4Protocol::Allocate6 (Ipv6Address address, uint16_t port)
 {
-  NS_LOG_FUNCTION (this << boundNetDevice << address << port);
-  return m_endPoints6->Allocate (boundNetDevice, address, port);
+  NS_LOG_FUNCTION (this << address << port);
+  return m_endPoints6->Allocate (address, port);
 }
 Ipv6EndPoint *
-UdpL4Protocol::Allocate6 (Ptr<NetDevice> boundNetDevice,
-                          Ipv6Address localAddress, uint16_t localPort,
-                          Ipv6Address peerAddress, uint16_t peerPort)
+UdpL4Protocol::Allocate6 (Ipv6Address localAddress, uint16_t localPort,
+                         Ipv6Address peerAddress, uint16_t peerPort)
 {
-  NS_LOG_FUNCTION (this << boundNetDevice << localAddress << localPort << peerAddress << peerPort);
-  return m_endPoints6->Allocate (boundNetDevice,
-                                 localAddress, localPort,
-                                 peerAddress, peerPort);
+  NS_LOG_FUNCTION (this << localAddress << localPort << peerAddress << peerPort);
+  return m_endPoints6->Allocate (localAddress, localPort,
+                                peerAddress, peerPort);
 }
 
 void 

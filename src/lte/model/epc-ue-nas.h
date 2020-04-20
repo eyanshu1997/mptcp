@@ -33,7 +33,6 @@ class EpcHelper;
 
 class EpcUeNas : public Object
 {
-  /// allow MemberLteAsSapUser<EpcUeNas> class friend access
   friend class MemberLteAsSapUser<EpcUeNas>;
 public:
 
@@ -49,10 +48,6 @@ public:
 
   // inherited from Object
   virtual void DoDispose (void);
-  /**
-   * \brief Get the type ID.
-   * \return the object TypeId
-   */
   static TypeId GetTypeId (void);
 
 
@@ -107,7 +102,7 @@ public:
    *
    * \param dlEarfcn the DL frequency of the eNB
    */
-  void StartCellSelection (uint32_t dlEarfcn);
+  void StartCellSelection (uint16_t dlEarfcn);
 
   /**
    * \brief Causes NAS to tell AS to go to ACTIVE state.
@@ -126,7 +121,7 @@ public:
    * Since RRC Idle Mode cell selection is not supported yet, we force the UE
    * RRC to be camped on a specific eNB.
    */
-  void Connect (uint16_t cellId, uint32_t dlEarfcn);
+  void Connect (uint16_t cellId, uint16_t dlEarfcn);
  
   /** 
    * instruct the NAS to disconnect
@@ -173,80 +168,44 @@ public:
    */
   State GetState () const;
 
-  /**
-   * TracedCallback signature for state change events.
-   *
-   * \param [in] oldState The old State.
-   * \param [in] newState the new State.
-   */
-  typedef void (* StateTracedCallback)
-    (const State oldState, const State newState);
  
 private:
 
   // LTE AS SAP methods
-  /// Notify successful connection
   void DoNotifyConnectionSuccessful ();
-  /// Notify connection failed
   void DoNotifyConnectionFailed ();
-  /// Notify connection released
   void DoNotifyConnectionReleased ();
-  /**
-   * Receive data
-   * \param packet the packet
-   */
   void DoRecvData (Ptr<Packet> packet);
 
   // internal methods
-  /**
-   * Activate EPS Bearer
-   * \param bearer the EPS bearer
-   * \param tft the EPC TFT
-   */
   void DoActivateEpsBearer (EpsBearer bearer, Ptr<EpcTft> tft);
-  /**
-   * Switch the UE RRC to the given state.
-   * \param s the destination state
-   */
   void SwitchToState (State s);
 
-  /// The current UE NAS state.
   State m_state;
 
-  /**
-   * The `StateTransition` trace source. Fired upon every UE NAS state
-   * transition. Exporting old state and new state.
-   * \todo This should be a TracedValue
-   */
   TracedCallback<State, State> m_stateTransitionCallback;
 
-  /// The UE NetDevice.
   Ptr<NetDevice> m_device;
 
-  /// The unique UE identifier.
   uint64_t m_imsi;
 
-  /// Closed Subscriber Group identity.
   uint32_t m_csgId;
 
-  /// LTE SAP provider
   LteAsSapProvider* m_asSapProvider;
-  /// LTE SAP user
   LteAsSapUser* m_asSapUser;
 
-  uint8_t m_bidCounter; ///< bid counter
-  EpcTftClassifier m_tftClassifier; ///< tft classifier
+  uint8_t m_bidCounter;
+  EpcTftClassifier m_tftClassifier;
 
-  Callback <void, Ptr<Packet> > m_forwardUpCallback; ///< upward callback
+  Callback <void, Ptr<Packet> > m_forwardUpCallback;
 
-  /// BearerToBeActivated structure
   struct BearerToBeActivated
   {
-    EpsBearer bearer; ///< EPS bearer
-    Ptr<EpcTft> tft; ///< TFT
+    EpsBearer bearer;
+    Ptr<EpcTft> tft;
   };
 
-  std::list<BearerToBeActivated> m_bearersToBeActivatedList; ///< bearers to be activated list
+  std::list<BearerToBeActivated> m_bearersToBeActivatedList;
 
 };
 

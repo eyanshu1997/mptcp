@@ -60,10 +60,6 @@ public:
   /**
    * \brief Change line title.
    * \param title the new title string to use for this dataset.
-   *
-   * \note If you want your title to contain a newline character,
-   *       escape it like this:  "First line\\nSecond line" so that
-   *       it is converted to "First line\nSecond line" in the plot file.
    */
   void SetTitle (const std::string& title);
 
@@ -121,6 +117,7 @@ public:
    * The plotting style to use for this dataset.
    */
   enum Style {
+    MKS,
     LINES,
     POINTS,
     LINES_POINTS,
@@ -438,7 +435,7 @@ public:
 
   /**
    * \param osControl the output stream on which the relevant gnuplot
-   * control commands should be generated. Including output file and
+   * contol commands should be generated. Including output file and
    * terminal headers.
    * \param osData the output stream on which the relevant gnuplot
    * data values should be generated.
@@ -487,13 +484,14 @@ private:
 class GnuplotCollection
 {
 public:
+  //GnuplotCollection();
   /**
    * \param outputFilename the name of the file where the rendering of the
    *        graph will be generated if you feed the command stream output by
    *        GnuplotCollection::GenerateOutput to the gnuplot program.
    */
-  GnuplotCollection (const std::string& outputFilename);
-
+  GnuplotCollection (const std::string& outputFilename="");
+  void SetOutFile(const std::string& outputFilename);
   /**
    * \param terminal terminal setting string for output. The default terminal
    * string is guessed from the output filename's extension.
@@ -520,7 +518,7 @@ public:
  
   /**
    * \param osControl the output stream on which the relevant gnuplot
-   * control commands should be generated. Including output file and
+   * contol commands should be generated. Including output file and
    * terminal headers.
    * \param osData the output stream on which the relevant gnuplot
    * data values should be generated.

@@ -140,8 +140,8 @@ main (int argc, char *argv[])
   wifiPhy.SetChannel (wifiChannel.Create ());
 
   Ssid ssid = Ssid ("left");
-  WifiHelper wifi;
-  WifiMacHelper wifiMac;
+  WifiHelper wifi = WifiHelper::Default ();
+  NqosWifiMacHelper wifiMac = NqosWifiMacHelper::Default ();
   wifi.SetRemoteStationManager ("ns3::ArfWifiManager");
 
   wifiMac.SetType ("ns3::ApWifiMac",

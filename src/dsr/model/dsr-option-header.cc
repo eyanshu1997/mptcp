@@ -39,19 +39,17 @@
 #include "ns3/enum.h"
 
 namespace ns3 {
-
+namespace dsr {
 NS_LOG_COMPONENT_DEFINE ("DsrOptionHeader");
 
-namespace dsr {
-
-NS_OBJECT_ENSURE_REGISTERED (DsrOptionHeader);
+NS_OBJECT_ENSURE_REGISTERED (DsrOptionHeader)
+  ;
 
 TypeId DsrOptionHeader::GetTypeId ()
 {
   static TypeId tid = TypeId ("ns3::dsr::DsrOptionHeader")
     .AddConstructor<DsrOptionHeader> ()
     .SetParent<Header> ()
-    .SetGroupName ("Dsr")
   ;
   return tid;
 }
@@ -133,14 +131,14 @@ DsrOptionHeader::Alignment DsrOptionHeader::GetAlignment () const
   return retVal;
 }
 
-NS_OBJECT_ENSURE_REGISTERED (DsrOptionPad1Header);
+NS_OBJECT_ENSURE_REGISTERED (DsrOptionPad1Header)
+  ;
 
 TypeId DsrOptionPad1Header::GetTypeId ()
 {
   static TypeId tid = TypeId ("ns3::dsr::DsrOptionPad1Header")
     .AddConstructor<DsrOptionPad1Header> ()
     .SetParent<DsrOptionHeader> ()
-    .SetGroupName ("Dsr")
   ;
   return tid;
 }
@@ -185,14 +183,14 @@ uint32_t DsrOptionPad1Header::Deserialize (Buffer::Iterator start)
   return GetSerializedSize ();
 }
 
-NS_OBJECT_ENSURE_REGISTERED (DsrOptionPadnHeader);
+NS_OBJECT_ENSURE_REGISTERED (DsrOptionPadnHeader)
+  ;
 
 TypeId DsrOptionPadnHeader::GetTypeId ()
 {
   static TypeId tid = TypeId ("ns3::dsr::DsrOptionPadnHeader")
     .AddConstructor<DsrOptionPadnHeader> ()
     .SetParent<DsrOptionHeader> ()
-    .SetGroupName ("Dsr")
   ;
   return tid;
 }
@@ -246,14 +244,14 @@ uint32_t DsrOptionPadnHeader::Deserialize (Buffer::Iterator start)
   return GetSerializedSize ();
 }
 
-NS_OBJECT_ENSURE_REGISTERED (DsrOptionRreqHeader);
+NS_OBJECT_ENSURE_REGISTERED (DsrOptionRreqHeader)
+  ;
 
 TypeId DsrOptionRreqHeader::GetTypeId ()
 {
   static TypeId tid = TypeId ("ns3::dsr::DsrOptionRreqHeader")
     .AddConstructor<DsrOptionRreqHeader> ()
     .SetParent<DsrOptionHeader> ()
-    .SetGroupName ("Dsr")
   ;
   return tid;
 }
@@ -277,7 +275,7 @@ DsrOptionRreqHeader::~DsrOptionRreqHeader ()
 void DsrOptionRreqHeader::SetNumberAddress (uint8_t n)
 {
   m_ipv4Address.clear ();
-  m_ipv4Address.assign (n, Ipv4Address ());
+  m_ipv4Address.assign (n, Ipv4Address (""));
 }
 
 Ipv4Address DsrOptionRreqHeader::GetTarget ()
@@ -394,14 +392,14 @@ DsrOptionHeader::Alignment DsrOptionRreqHeader::GetAlignment () const
   return retVal;
 }
 
-NS_OBJECT_ENSURE_REGISTERED (DsrOptionRrepHeader);
+NS_OBJECT_ENSURE_REGISTERED (DsrOptionRrepHeader)
+  ;
 
 TypeId DsrOptionRrepHeader::GetTypeId ()
 {
   static TypeId tid = TypeId ("ns3::dsr::DsrOptionRrepHeader")
     .AddConstructor<DsrOptionRrepHeader> ()
     .SetParent<DsrOptionHeader> ()
-    .SetGroupName ("Dsr")
   ;
   return tid;
 }
@@ -425,7 +423,7 @@ DsrOptionRrepHeader::~DsrOptionRrepHeader ()
 void DsrOptionRrepHeader::SetNumberAddress (uint8_t n)
 {
   m_ipv4Address.clear ();
-  m_ipv4Address.assign (n, Ipv4Address ());
+  m_ipv4Address.assign (n, Ipv4Address (""));
 }
 
 void DsrOptionRrepHeader::SetNodesAddress (std::vector<Ipv4Address> ipv4Address)
@@ -516,14 +514,14 @@ DsrOptionHeader::Alignment DsrOptionRrepHeader::GetAlignment () const
   return retVal;
 }
 
-NS_OBJECT_ENSURE_REGISTERED (DsrOptionSRHeader);
+NS_OBJECT_ENSURE_REGISTERED (DsrOptionSRHeader)
+  ;
 
 TypeId DsrOptionSRHeader::GetTypeId ()
 {
   static TypeId tid = TypeId ("ns3::dsr::DsrOptionSRHeader")
     .AddConstructor<DsrOptionSRHeader> ()
     .SetParent<DsrOptionHeader> ()
-    .SetGroupName ("Dsr")
   ;
   return tid;
 }
@@ -568,7 +566,7 @@ uint8_t DsrOptionSRHeader::GetSalvage () const
 void DsrOptionSRHeader::SetNumberAddress (uint8_t n)
 {
   m_ipv4Address.clear ();
-  m_ipv4Address.assign (n, Ipv4Address ());
+  m_ipv4Address.assign (n, Ipv4Address (""));
 }
 
 void DsrOptionSRHeader::SetNodesAddress (std::vector<Ipv4Address> ipv4Address)
@@ -659,14 +657,20 @@ DsrOptionHeader::Alignment DsrOptionSRHeader::GetAlignment () const
   return retVal;
 }
 
-NS_OBJECT_ENSURE_REGISTERED (DsrOptionRerrHeader);
+NS_OBJECT_ENSURE_REGISTERED (DsrOptionRerrHeader)
+  ;
 
 TypeId DsrOptionRerrHeader::GetTypeId ()
 {
   static TypeId tid = TypeId ("ns3::dsr::DsrOptionRerrHeader")
     .AddConstructor<DsrOptionRerrHeader> ()
     .SetParent<DsrOptionHeader> ()
-    .SetGroupName ("Dsr")
+    .AddAttribute ("ErrorType","Type of route errors",
+                   EnumValue (NODE_UNREACHABLE),
+                   MakeEnumAccessor (&DsrOptionRerrHeader::m_errorType),
+                   MakeEnumChecker (NODE_UNREACHABLE, "Node unreachable",
+                                    FLOW_STATE_NOT_SUPPORTED, "Flow state not supported",
+                                    OPTION_NOT_SUPPORTED, "Option not supported"))
   ;
   return tid;
 }
@@ -782,14 +786,14 @@ DsrOptionHeader::Alignment DsrOptionRerrHeader::GetAlignment () const
   return retVal;
 }
 
-NS_OBJECT_ENSURE_REGISTERED (DsrOptionRerrUnreachHeader);
+NS_OBJECT_ENSURE_REGISTERED (DsrOptionRerrUnreachHeader)
+  ;
 
 TypeId DsrOptionRerrUnreachHeader::GetTypeId ()
 {
   static TypeId tid = TypeId ("ns3::dsr::DsrOptionRerrUnreachHeader")
     .AddConstructor<DsrOptionRerrUnreachHeader> ()
     .SetParent<DsrOptionRerrHeader> ()
-    .SetGroupName ("Dsr")
   ;
   return tid;
 }
@@ -800,7 +804,8 @@ TypeId DsrOptionRerrUnreachHeader::GetInstanceTypeId () const
 }
 
 DsrOptionRerrUnreachHeader::DsrOptionRerrUnreachHeader ()
-  : m_salvage (0)
+  :
+    m_salvage (0)
 {
   SetType (3);
   SetLength (18);
@@ -910,14 +915,14 @@ DsrOptionHeader::Alignment DsrOptionRerrUnreachHeader::GetAlignment () const
   return retVal;
 }
 
-NS_OBJECT_ENSURE_REGISTERED (DsrOptionRerrUnsupportHeader);
+NS_OBJECT_ENSURE_REGISTERED (DsrOptionRerrUnsupportHeader)
+  ;
 
 TypeId DsrOptionRerrUnsupportHeader::GetTypeId ()
 {
   static TypeId tid = TypeId ("ns3::dsr::DsrOptionRerrUnsupportHeader")
     .AddConstructor<DsrOptionRerrUnsupportHeader> ()
     .SetParent<DsrOptionRerrHeader> ()
-    .SetGroupName ("Dsr")
   ;
   return tid;
 }
@@ -928,7 +933,8 @@ TypeId DsrOptionRerrUnsupportHeader::GetInstanceTypeId () const
 }
 
 DsrOptionRerrUnsupportHeader::DsrOptionRerrUnsupportHeader ()
-  : m_salvage (0)
+  :
+    m_salvage (0)
 {
   SetType (3);
   SetLength (14);
@@ -1028,14 +1034,14 @@ DsrOptionHeader::Alignment DsrOptionRerrUnsupportHeader::GetAlignment () const
   return retVal;
 }
 
-NS_OBJECT_ENSURE_REGISTERED (DsrOptionAckReqHeader);
+NS_OBJECT_ENSURE_REGISTERED (DsrOptionAckReqHeader)
+  ;
 
 TypeId DsrOptionAckReqHeader::GetTypeId ()
 {
   static TypeId tid = TypeId ("ns3::dsr::DsrOptionAckReqHeader")
     .AddConstructor<DsrOptionAckReqHeader> ()
     .SetParent<DsrOptionHeader> ()
-    .SetGroupName ("Dsr")
   ;
   return tid;
 }
@@ -1104,14 +1110,14 @@ DsrOptionHeader::Alignment DsrOptionAckReqHeader::GetAlignment () const
   return retVal;
 }
 
-NS_OBJECT_ENSURE_REGISTERED (DsrOptionAckHeader);
+NS_OBJECT_ENSURE_REGISTERED (DsrOptionAckHeader)
+  ;
 
 TypeId DsrOptionAckHeader::GetTypeId ()
 {
   static TypeId tid = TypeId ("ns3::dsr::DsrOptionAckHeader")
     .AddConstructor<DsrOptionAckHeader> ()
     .SetParent<DsrOptionHeader> ()
-    .SetGroupName ("Dsr")
   ;
   return tid;
 }

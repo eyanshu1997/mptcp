@@ -138,6 +138,7 @@ public:
    * uint32_t node id of destination
    * unit32_t dev id on destination
    * uint8_t[] serialized packet
+   * \endinternal
    */
   virtual void SendPacket (Ptr<Packet> p, const Time &rxTime, uint32_t node, uint32_t dev);
   /**
@@ -163,6 +164,7 @@ public:
    * uint64_t guarantee time
    * uint32_t 0 must be zero for Null Message
    * uint32_t 0 must be zero for Null Message
+   * \endinternal
    */
   static void SendNullMessage (const Time& guaranteeUpdate, Ptr<RemoteChannelBundle> bundle);
   /**

@@ -1,23 +1,3 @@
-/* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
-/*
- * Copyright (c) 2009 INRIA
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation;
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- *
- * Author: Mathieu Lacage <mathieu.lacage@cutebugs.net>
- */
-
 #include "config-store.h"
 #include "raw-text-config.h"
 #include "ns3/abort.h"
@@ -38,18 +18,19 @@
 #include <cstdlib>
 
 
-namespace ns3 {
-
 NS_LOG_COMPONENT_DEFINE ("ConfigStore");
 
-NS_OBJECT_ENSURE_REGISTERED (ConfigStore);
+namespace ns3 {
+
+
+NS_OBJECT_ENSURE_REGISTERED (ConfigStore)
+  ;
 
 TypeId 
 ConfigStore::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::ConfigStore")
     .SetParent<ObjectBase> ()
-    .SetGroupName ("ConfigStore")
     .AddAttribute ("Mode", 
                    "Configuration mode",
                    EnumValue (ConfigStore::NONE),
@@ -80,7 +61,6 @@ ConfigStore::GetInstanceTypeId (void) const
 
 ConfigStore::ConfigStore ()
 {
-  NS_LOG_FUNCTION (this);
   ObjectBase::ConstructSelf (AttributeConstructionList ());
 
 #ifdef HAVE_LIBXML2
@@ -129,14 +109,10 @@ ConfigStore::ConfigStore ()
         }
     }
   m_file->SetFilename (m_filename);
-  NS_LOG_FUNCTION (this << ": format: " << m_fileFormat
-                << ", mode: " << m_mode
-                << ", file name: " << m_filename);
 }
 
 ConfigStore::~ConfigStore ()
 {
-  NS_LOG_FUNCTION (this);
   delete m_file;
   m_file = 0;
 }
@@ -144,59 +120,30 @@ ConfigStore::~ConfigStore ()
 void 
 ConfigStore::SetMode (enum Mode mode)
 {
-  NS_LOG_FUNCTION (this << mode);
   m_mode = mode;
 }
 void 
 ConfigStore::SetFileFormat (enum FileFormat format)
 {
-  NS_LOG_FUNCTION (this << format);
   m_fileFormat = format;
 }
 void 
 ConfigStore::SetFilename (std::string filename)
 {
-  NS_LOG_FUNCTION (this << filename);
   m_filename = filename;
 }
 
 void 
 ConfigStore::ConfigureAttributes (void)
 {
-  NS_LOG_FUNCTION (this);
   m_file->Attributes ();
 }
 
 void 
 ConfigStore::ConfigureDefaults (void)
 {
-  NS_LOG_FUNCTION (this);
   m_file->Default ();
   m_file->Global ();
-}
-
-std::ostream &
-operator << (std::ostream & os, ConfigStore::Mode & mode)
-{
-  switch (mode)
-    {
-    case ConfigStore::LOAD:      os << "LOAD";      break;
-    case ConfigStore::SAVE:      os << "SAVE";      break;
-    case ConfigStore::NONE:      os << "NONE";      break;
-    default:                     os << "UNKNOWN";
-    }
-  return os;
-}
-
-std::ostream &
-operator << (std::ostream & os, ConfigStore::FileFormat & format)
-{
-  switch (format)
-    {
-    case ConfigStore::XML:       os << "XML";       break;
-    case ConfigStore::RAW_TEXT:  os << "RAW_TEXT";  break;
-    }
-  return os;
 }
 
 } // namespace ns3

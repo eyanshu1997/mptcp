@@ -28,6 +28,7 @@
 #include "ns3/simple-ref-count.h"
 
 #include "ns3/ipv6-address.h"
+#include "ns3/deprecated.h"
 
 namespace ns3
 {
@@ -36,7 +37,7 @@ class NetDevice;
 
 /**
  * \ingroup ipv6Routing
- *
+ * \class Ipv6Route
  * \brief IPv6 route cache entry.
  */
 class Ipv6Route : public SimpleRefCount<Ipv6Route>
@@ -133,7 +134,7 @@ std::ostream& operator<< (std::ostream& os, Ipv6Route const& route);
 
 /**
  * \ingroup ipv6Routing
- *
+ * \class Ipv6MulticastRoute
  * \brief IPv6 multicast route entry.
  */
 class Ipv6MulticastRoute : public SimpleRefCount<Ipv6MulticastRoute>
@@ -201,6 +202,14 @@ public:
    * \param ttl time-to-live for this route
    */
   void SetOutputTtl (uint32_t oif, uint32_t ttl);
+
+  /**
+   * \brief Get output TTL for this route.
+   * \param oif outgoing interface
+   * \return TTL for this route
+   * \deprecated
+   */
+  uint32_t GetOutputTtl (uint32_t oif) NS_DEPRECATED;
 
   /**
    * \return map of output interface Ids and TTLs for this route

@@ -34,10 +34,8 @@ namespace ns3 {
 class FlameStack : public MeshStack
 {
 public:
-
-  /**
-   * \brief Get the type ID.
-   * \return the object TypeId
+  /*
+   * \internal
    */
   static TypeId GetTypeId ();
 
@@ -52,6 +50,7 @@ public:
   ~FlameStack ();
 
   /**
+   * \internal
    * Break any reference cycles in the installer helper.  Required for ns-3
    * Object support.
    */
@@ -60,20 +59,16 @@ public:
   /**
    * \brief Install a flame stack on the given MeshPointDevice
    * \param mp The Ptr<MeshPointDevice> to use.
-   * \return true if successful
    */
   bool InstallStack (Ptr<MeshPointDevice> mp);
 
   /**
    * \brief Print flame protocol statistics.
-   * \param mp The Ptr<MeshPointDevice> to use.
-   * \param os The output stream
    */
   void Report (const Ptr<MeshPointDevice> mp, std::ostream&);
 
   /**
    * \brief Reset the statistics.
-   * \param mp The Ptr<MeshPointDevice> to use.
    */
   void ResetStats (const Ptr<MeshPointDevice> mp);
 };

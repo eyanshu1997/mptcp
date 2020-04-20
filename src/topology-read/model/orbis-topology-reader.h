@@ -36,7 +36,7 @@ namespace ns3 {
  * \brief Topology file reader (Orbis-format type).
  *
  * This class takes an input file in Orbis format and extracts all
- * the information needed to build the topology
+ * the informations needed to build the topology
  * (i.e.number of nodes, links and links structure).
  * It have been tested with Orbis 0.70
  * http://www.sysnet.ucsd.edu/~pmahadevan/topo_research/topo.html
@@ -46,7 +46,7 @@ class OrbisTopologyReader : public TopologyReader
 public:
   /**
    * \brief Get the type ID.
-   * \return the object TypeId.
+   * \return the object TypeId
    */
   static TypeId GetTypeId (void);
 
@@ -61,7 +61,7 @@ public:
    * so the input file is read line by line to figure out how many links
    * and nodes are in the topology.
    *
-   * \return The container of the nodes created (or empty container if there was an error)
+   * \return the container of the nodes created (or empty container if there was an error)
    */
   virtual NodeContainer Read (void);
 
@@ -70,13 +70,13 @@ private:
   /**
    * \brief Copy constructor
    *
-   * Defined and unimplemented to avoid misuse.
+   * Defined and unimplemented to avoid misuse
    */
   OrbisTopologyReader (const OrbisTopologyReader&);
   /**
    * \brief Copy constructor
    *
-   * Defined and unimplemented to avoid misuse.
+   * Defined and unimplemented to avoid misuse
    * \returns
    */
   OrbisTopologyReader& operator= (const OrbisTopologyReader&);

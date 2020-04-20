@@ -23,20 +23,18 @@
 #include "ns3/log.h"
 #include "ns3/simulator.h"
 
-namespace ns3 {
-
 NS_LOG_COMPONENT_DEFINE ("Ipv4EndPoint");
+
+namespace ns3 {
 
 Ipv4EndPoint::Ipv4EndPoint (Ipv4Address address, uint16_t port)
   : m_localAddr (address), 
     m_localPort (port),
     m_peerAddr (Ipv4Address::GetAny ()),
-    m_peerPort (0),
-    m_rxEnabled (true)
+    m_peerPort (0)
 {
   NS_LOG_FUNCTION (this << address << port);
 }
-
 Ipv4EndPoint::~Ipv4EndPoint ()
 {
   NS_LOG_FUNCTION (this);
@@ -69,21 +67,18 @@ Ipv4EndPoint::GetLocalPort (void)
   NS_LOG_FUNCTION (this);
   return m_localPort;
 }
-
 Ipv4Address 
 Ipv4EndPoint::GetPeerAddress (void)
 {
   NS_LOG_FUNCTION (this);
   return m_peerAddr;
 }
-
 uint16_t 
 Ipv4EndPoint::GetPeerPort (void)
 {
   NS_LOG_FUNCTION (this);
   return m_peerPort;
 }
-
 void 
 Ipv4EndPoint::SetPeer (Ipv4Address address, uint16_t port)
 {
@@ -113,7 +108,6 @@ Ipv4EndPoint::SetRxCallback (Callback<void,Ptr<Packet>, Ipv4Header, uint16_t, Pt
   NS_LOG_FUNCTION (this << &callback);
   m_rxCallback = callback;
 }
-
 void 
 Ipv4EndPoint::SetIcmpCallback (Callback<void,Ipv4Address,uint8_t,uint8_t,uint8_t,uint32_t> callback)
 {
@@ -136,6 +130,18 @@ Ipv4EndPoint::ForwardUp (Ptr<Packet> p, const Ipv4Header& header, uint16_t sport
   
   if (!m_rxCallback.IsNull ())
     {
+      Simulator::ScheduleNow (&Ipv4EndPoint::DoForwardUp, this, p, header, sport, 
+                              incomingInterface);
+    }
+}
+void 
+Ipv4EndPoint::DoForwardUp (Ptr<Packet> p, const Ipv4Header& header, uint16_t sport,
+                           Ptr<Ipv4Interface> incomingInterface)
+{
+  NS_LOG_FUNCTION (this << p << &header << sport << incomingInterface);
+  
+  if (!m_rxCallback.IsNull ())
+    {
       m_rxCallback (p, header, sport, incomingInterface);
     }
 }
@@ -149,20 +155,21 @@ Ipv4EndPoint::ForwardIcmp (Ipv4Address icmpSource, uint8_t icmpTtl,
                    (uint32_t)icmpCode << icmpInfo);
   if (!m_icmpCallback.IsNull ())
     {
-      m_icmpCallback (icmpSource, icmpTtl, icmpType, icmpCode, icmpInfo);
+      Simulator::ScheduleNow (&Ipv4EndPoint::DoForwardIcmp, this, 
+                              icmpSource, icmpTtl, icmpType, icmpCode, icmpInfo);
     }
 }
-
-void
-Ipv4EndPoint::SetRxEnabled (bool enabled)
+void 
+Ipv4EndPoint::DoForwardIcmp (Ipv4Address icmpSource, uint8_t icmpTtl, 
+                             uint8_t icmpType, uint8_t icmpCode,
+                             uint32_t icmpInfo)
 {
-  m_rxEnabled = enabled;
-}
-
-bool
-Ipv4EndPoint::IsRxEnabled ()
-{
-  return m_rxEnabled;
+  NS_LOG_FUNCTION (this << icmpSource << static_cast<uint32_t> (icmpTtl) << static_cast<uint32_t> (icmpType) << static_cast<uint32_t> (icmpCode) << icmpInfo);
+  
+  if (!m_icmpCallback.IsNull ())
+    {
+      m_icmpCallback (icmpSource,icmpTtl,icmpType,icmpCode,icmpInfo);
+    }
 }
 
 } // namespace ns3

@@ -31,7 +31,8 @@
 
 namespace ns3 {
 
-NS_LOG_COMPONENT_DEFINE ("MobilityHelper");
+NS_LOG_COMPONENT_DEFINE ("MobilityHelper")
+  ;
 
 MobilityHelper::MobilityHelper ()
 {
@@ -179,12 +180,6 @@ MobilityHelper::InstallAll (void)
 {
   Install (NodeContainer::GetGlobal ());
 }
-/**
- * Utility function that rounds |1e-4| < input value < |1e-3| up to +/- 1e-3
- * and value <= |1e-4| to zero
- * \param v value to round
- * \return rounded value
- */
 static double
 DoRound (double v)
 {
@@ -268,24 +263,6 @@ MobilityHelper::AssignStreams (NodeContainer c, int64_t stream)
         }
     }
   return (currentStream - stream);
-}
-
-double
-MobilityHelper::GetDistanceSquaredBetween (Ptr<Node> n1, Ptr<Node> n2)
-{
-  NS_LOG_FUNCTION_NOARGS ();
-  double distSq = 0.0;
-
-  Ptr<MobilityModel> rxPosition = n1->GetObject<MobilityModel> ();
-  NS_ASSERT (rxPosition != 0);
-
-  Ptr<MobilityModel> txPosition = n2->GetObject<MobilityModel> ();
-  NS_ASSERT (txPosition != 0);
-
-  double dist = rxPosition -> GetDistanceFrom (txPosition);
-  distSq = dist * dist;
-
-  return distSq;
 }
 
 } // namespace ns3

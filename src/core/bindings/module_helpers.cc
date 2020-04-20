@@ -2,10 +2,6 @@
 #include "ns3/ref-count-base.h"
 #include <unistd.h>
 
-#if PY_VERSION_HEX >= 0x03000000
-# define PyInt_AsUnsignedLongMask PyLong_AsUnsignedLongMask
-# define PyString_FromStringAndSize PyUnicode_FromStringAndSize
-#endif
 
 namespace {
 

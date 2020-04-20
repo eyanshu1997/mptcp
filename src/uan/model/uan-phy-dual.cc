@@ -26,7 +26,6 @@
 #include "uan-net-device.h"
 #include "uan-channel.h"
 #include "ns3/double.h"
-#include "ns3/string.h"
 #include "ns3/log.h"
 #include "ns3/ptr.h"
 #include "ns3/traced-callback.h"
@@ -38,12 +37,14 @@
 #include <cmath>
 
 
-namespace ns3 {
-
 NS_LOG_COMPONENT_DEFINE ("UanPhyDual");
 
-NS_OBJECT_ENSURE_REGISTERED (UanPhyDual);
-NS_OBJECT_ENSURE_REGISTERED (UanPhyCalcSinrDual);
+namespace ns3 {
+
+NS_OBJECT_ENSURE_REGISTERED (UanPhyDual)
+  ;
+NS_OBJECT_ENSURE_REGISTERED (UanPhyCalcSinrDual)
+  ;
 
 UanPhyCalcSinrDual::UanPhyCalcSinrDual ()
 {
@@ -58,8 +59,7 @@ TypeId
 UanPhyCalcSinrDual::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::UanPhyCalcSinrDual")
-    .SetParent<UanPhyCalcSinr> ()
-    .SetGroupName ("Uan")
+    .SetParent<Object> ()
     .AddConstructor<UanPhyCalcSinrDual> ()
   ;
   return tid;
@@ -160,7 +160,6 @@ UanPhyDual::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::UanPhyDual")
     .SetParent<UanPhy> ()
-    .SetGroupName ("Uan")
     .AddConstructor<UanPhyDual> ()
     .AddAttribute  ("CcaThresholdPhy1",
                     "Aggregate energy of incoming signals to move to CCA Busy state dB of Phy1.",
@@ -182,6 +181,16 @@ UanPhyDual::GetTypeId (void)
                    DoubleValue (190),
                    MakeDoubleAccessor (&UanPhyDual::GetTxPowerDbPhy2, &UanPhyDual::SetTxPowerDbPhy2),
                    MakeDoubleChecker<double> ())
+    .AddAttribute ("RxGainPhy1",
+                   "Gain added to incoming signal at receiver of Phy1.",
+                   DoubleValue (0),
+                   MakeDoubleAccessor (&UanPhyDual::GetRxGainDbPhy1, &UanPhyDual::SetRxGainDbPhy1),
+                   MakeDoubleChecker<double> ())
+    .AddAttribute ("RxGainPhy2",
+                   "Gain added to incoming signal at receiver of Phy2.",
+                   DoubleValue (0),
+                   MakeDoubleAccessor (&UanPhyDual::GetRxGainDbPhy2, &UanPhyDual::SetRxGainDbPhy2),
+                   MakeDoubleChecker<double> ())
     .AddAttribute ("SupportedModesPhy1",
                    "List of modes supported by Phy1.",
                    UanModesListValue (UanPhyGen::GetDefaultModes ()),
@@ -194,36 +203,33 @@ UanPhyDual::GetTypeId (void)
                    MakeUanModesListChecker () )
     .AddAttribute ("PerModelPhy1",
                    "Functor to calculate PER based on SINR and TxMode for Phy1.",
-                   StringValue ("ns3::UanPhyPerGenDefault"),
+                   PointerValue (CreateObject<UanPhyPerGenDefault> ()),
                    MakePointerAccessor (&UanPhyDual::GetPerModelPhy1, &UanPhyDual::SetPerModelPhy1),
                    MakePointerChecker<UanPhyPer> ())
     .AddAttribute ("PerModelPhy2",
                    "Functor to calculate PER based on SINR and TxMode for Phy2.",
-                   StringValue ("ns3::UanPhyPerGenDefault"),
+                   PointerValue (CreateObject<UanPhyPerGenDefault> ()),
                    MakePointerAccessor (&UanPhyDual::GetPerModelPhy2, &UanPhyDual::SetPerModelPhy2),
                    MakePointerChecker<UanPhyPer> ())
     .AddAttribute ("SinrModelPhy1",
                    "Functor to calculate SINR based on pkt arrivals and modes for Phy1.",
-                   StringValue ("ns3::UanPhyCalcSinrDual"),
+                   PointerValue (CreateObject<UanPhyCalcSinrDual> ()),
                    MakePointerAccessor (&UanPhyDual::GetSinrModelPhy1, &UanPhyDual::SetSinrModelPhy1),
                    MakePointerChecker<UanPhyCalcSinr> ())
     .AddAttribute ("SinrModelPhy2",
                    "Functor to calculate SINR based on pkt arrivals and modes for Phy2.",
-                   StringValue ("ns3::UanPhyCalcSinrDual"),
+                   PointerValue (CreateObject<UanPhyCalcSinrDual> ()),
                    MakePointerAccessor (&UanPhyDual::GetSinrModelPhy2, &UanPhyDual::SetSinrModelPhy2),
                    MakePointerChecker<UanPhyCalcSinr> ())
     .AddTraceSource ("RxOk",
                      "A packet was received successfully.",
-                     MakeTraceSourceAccessor (&UanPhyDual::m_rxOkLogger),
-                     "ns3::UanPhy::TracedCallback")
+                     MakeTraceSourceAccessor (&UanPhyDual::m_rxOkLogger))
     .AddTraceSource ("RxError",
                      "A packet was received unsuccessfully.",
-                     MakeTraceSourceAccessor (&UanPhyDual::m_rxErrLogger),
-                     "ns3::UanPhy::TracedCallback")
+                     MakeTraceSourceAccessor (&UanPhyDual::m_rxErrLogger))
     .AddTraceSource ("Tx",
                      "Packet transmission beginning.",
-                     MakeTraceSourceAccessor (&UanPhyDual::m_txLogger),
-                     "ns3::UanPhy::TracedCallback")
+                     MakeTraceSourceAccessor (&UanPhyDual::m_txLogger))
 
   ;
 
@@ -238,12 +244,6 @@ UanPhyDual::SetEnergyModelCallback (DeviceEnergyModel::ChangeStateCallback callb
 
 void
 UanPhyDual::EnergyDepletionHandler ()
-{
-  NS_LOG_DEBUG ("Not Implemented");
-}
-
-void
-UanPhyDual::EnergyRechargeHandler ()
 {
   NS_LOG_DEBUG ("Not Implemented");
 }
@@ -275,7 +275,6 @@ UanPhyDual::RegisterListener (UanPhyListener *listener)
 void
 UanPhyDual::StartRxPacket (Ptr<Packet> pkt, double rxPowerDb, UanTxMode txMode, UanPdp pdp)
 {
-  NS_UNUSED (rxPowerDb);
   // Not called.  StartRxPacket in m_phy1 and m_phy2 are called directly from Transducer.
 }
 
@@ -293,6 +292,23 @@ UanPhyDual::SetReceiveErrorCallback (RxErrCallback cb)
   m_phy2->SetReceiveErrorCallback (cb);
 }
 
+void
+UanPhyDual::SetRxGainDb (double gain)
+{
+  m_phy1->SetRxGainDb (gain);
+  m_phy2->SetRxGainDb (gain);
+}
+void
+UanPhyDual::SetRxGainDbPhy1 (double gain)
+{
+  m_phy1->SetRxGainDb (gain);
+}
+
+void
+UanPhyDual::SetRxGainDbPhy2 (double gain)
+{
+  m_phy2->SetRxGainDb (gain);
+}
 
 void
 UanPhyDual::SetTxPowerDb (double txpwr)
@@ -315,6 +331,7 @@ UanPhyDual::SetTxPowerDbPhy2 (double txpwr)
 void
 UanPhyDual::SetRxThresholdDb (double thresh)
 {
+  NS_LOG_WARN ("SetRxThresholdDb is deprecated and has no effect.  Look at PER Functor attribute");
   m_phy1->SetRxThresholdDb (thresh);
   m_phy2->SetRxThresholdDb (thresh);
 }
@@ -336,6 +353,22 @@ UanPhyDual::SetCcaThresholdPhy2 (double thresh)
   m_phy2->SetCcaThresholdDb (thresh);
 }
 
+double
+UanPhyDual::GetRxGainDb (void)
+{
+  NS_LOG_WARN ("Warning: UanPhyDual::GetRxGainDb returns RxGain of Phy 1");
+  return m_phy1->GetRxGainDb ();
+}
+double
+UanPhyDual::GetRxGainDbPhy1 (void) const
+{
+  return m_phy1->GetRxGainDb ();
+}
+double
+UanPhyDual::GetRxGainDbPhy2 (void) const
+{
+  return m_phy2->GetRxGainDb ();
+}
 
 double
 UanPhyDual::GetTxPowerDb (void)
@@ -461,7 +494,7 @@ UanPhyDual::GetChannel (void) const
   return m_phy1->GetChannel ();
 }
 Ptr<UanNetDevice>
-UanPhyDual::GetDevice (void) const
+UanPhyDual::GetDevice (void)
 {
   return m_phy1->GetDevice ();
 }
@@ -486,7 +519,7 @@ UanPhyDual::SetMac (Ptr<UanMac> mac)
 void
 UanPhyDual::NotifyTransStartTx (Ptr<Packet> packet, double txPowerDb, UanTxMode txMode)
 {
-  NS_UNUSED (txPowerDb);
+
 }
 void
 UanPhyDual::NotifyIntChange (void)

@@ -32,7 +32,7 @@
 // - CBR/UDP flows from n0 to n4, and from n3 to n1
 // - UDP packet size of 210 bytes, with per-packet interval 0.00375 sec.
 //   (i.e., DataRate of 448,000 bps)
-// - DropTail queues
+// - DropTail queues 
 // - Tracing of queues and packet receptions to file "simple-point-to-point-olsr.tr"
 
 #include <iostream>
@@ -53,16 +53,16 @@ using namespace ns3;
 
 NS_LOG_COMPONENT_DEFINE ("SimplePointToPointOlsrExample");
 
-int
+int 
 main (int argc, char *argv[])
 {
   // Users may find it convenient to turn on explicit debugging
   // for selected modules; the below lines suggest how to do this
-#if 0
+#if 0 
   LogComponentEnable ("SimpleGlobalRoutingExample", LOG_LEVEL_INFO);
 #endif
 
-  // Set up some default values for the simulation.  Use the
+  // Set up some default values for the simulation.  Use the 
 
   Config::SetDefault ("ns3::OnOffApplication::PacketSize", UintegerValue (210));
   Config::SetDefault ("ns3::OnOffApplication::DataRate", StringValue ("448kb/s"));
@@ -130,30 +130,33 @@ main (int argc, char *argv[])
   NS_LOG_INFO ("Create Applications.");
   uint16_t port = 9;   // Discard port (RFC 863)
 
-  OnOffHelper onoff1 ("ns3::UdpSocketFactory",
+  OnOffHelper onoff ("ns3::UdpSocketFactory", 
                      InetSocketAddress (i34.GetAddress (1), port));
-  onoff1.SetConstantRate (DataRate ("448kb/s"));
+  onoff.SetConstantRate (DataRate ("448kb/s"));
 
-  ApplicationContainer onOffApp1 = onoff1.Install (c.Get (0));
-  onOffApp1.Start (Seconds (10.0));
-  onOffApp1.Stop (Seconds (20.0));
+  ApplicationContainer apps = onoff.Install (c.Get (0));
+  apps.Start (Seconds (1.0));
+  apps.Stop (Seconds (10.0));
 
-  // Create a similar flow from n3 to n1, starting at time 1.1 seconds
-  OnOffHelper onoff2 ("ns3::UdpSocketFactory",
-                     InetSocketAddress (i12.GetAddress (0), port));
-  onoff2.SetConstantRate (DataRate ("448kb/s"));
-
-  ApplicationContainer onOffApp2 = onoff2.Install (c.Get (3));
-  onOffApp2.Start (Seconds (10.1));
-  onOffApp2.Stop (Seconds (20.0));
-
-  // Create packet sinks to receive these packets
+  // Create a packet sink to receive these packets
   PacketSinkHelper sink ("ns3::UdpSocketFactory",
                          InetSocketAddress (Ipv4Address::GetAny (), port));
-  NodeContainer sinks = NodeContainer (c.Get (4), c.Get (1));
-  ApplicationContainer sinkApps = sink.Install (sinks);
-  sinkApps.Start (Seconds (0.0));
-  sinkApps.Stop (Seconds (21.0));
+
+  apps = sink.Install (c.Get (3));
+  apps.Start (Seconds (1.0));
+  apps.Stop (Seconds (10.0));
+
+  // Create a similar flow from n3 to n1, starting at time 1.1 seconds
+  onoff.SetAttribute ("Remote",
+                      AddressValue (InetSocketAddress (i12.GetAddress (0), port)));
+  apps = onoff.Install (c.Get (3));
+  apps.Start (Seconds (1.1));
+  apps.Stop (Seconds (10.0));
+
+  // Create a packet sink to receive these packets
+  apps = sink.Install (c.Get (1));
+  apps.Start (Seconds (1.1));
+  apps.Stop (Seconds (10.0));
 
   AsciiTraceHelper ascii;
   p2p.EnableAsciiAll (ascii.CreateFileStream ("simple-point-to-point-olsr.tr"));

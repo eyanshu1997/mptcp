@@ -24,7 +24,7 @@
 
 #include <ns3/net-device.h>
 #include <ns3/event-id.h>
-#include <ns3/mac64-address.h>
+#include <ns3/mac48-address.h>
 #include <ns3/traced-callback.h>
 #include <ns3/nstime.h>
 #include <ns3/lte-phy.h>
@@ -48,10 +48,6 @@ class Packet;
 class LteNetDevice : public NetDevice
 {
 public:
-  /**
-   * \brief Get the type ID.
-   * \return the object TypeId
-   */
   static TypeId GetTypeId (void);
 
   LteNetDevice (void);
@@ -93,26 +89,21 @@ public:
   
 protected:
   
-  NetDevice::ReceiveCallback m_rxCallback; ///< receive callback
+  NetDevice::ReceiveCallback m_rxCallback;
   
 private:
-  /// type conversion operator
   LteNetDevice (const LteNetDevice &);
-  /**
-   * assignment operator
-   * \returns LteNetDevice
-   */
   LteNetDevice & operator= (const LteNetDevice &);
 
-  Ptr<Node> m_node; ///< the node
+  Ptr<Node> m_node;
 
-  TracedCallback<> m_linkChangeCallbacks; ///< link change callback
+  TracedCallback<> m_linkChangeCallbacks;
 
-  uint32_t m_ifIndex; ///< interface index
-  bool m_linkUp; ///< link uo
-  mutable uint16_t m_mtu; ///< MTU
+  uint32_t m_ifIndex;
+  bool m_linkUp;
+  mutable uint16_t m_mtu;
 
-  Mac64Address m_address; ///< MAC address - only relevant for UEs.
+  Mac48Address m_address;
 };
 
 

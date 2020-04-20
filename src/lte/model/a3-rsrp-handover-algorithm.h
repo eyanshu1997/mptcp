@@ -65,22 +65,21 @@ namespace ns3 {
 class A3RsrpHandoverAlgorithm : public LteHandoverAlgorithm
 {
 public:
-  /// Creates a strongest cell handover algorithm instance.
+  /**
+   * \brief Creates a strongest cell handover algorithm instance.
+   */
   A3RsrpHandoverAlgorithm ();
 
   virtual ~A3RsrpHandoverAlgorithm ();
 
-  /**
-   * \brief Get the type ID.
-   * \return the object TypeId
-   */
+  // inherited from Object
   static TypeId GetTypeId ();
 
   // inherited from LteHandoverAlgorithm
   virtual void SetLteHandoverManagementSapUser (LteHandoverManagementSapUser* s);
   virtual LteHandoverManagementSapProvider* GetLteHandoverManagementSapProvider ();
 
-  /// let the forwarder class access the protected and private members
+  // let the forwarder class access the protected and private members
   friend class MemberLteHandoverManagementSapProvider<A3RsrpHandoverAlgorithm>;
 
 protected:
@@ -92,32 +91,18 @@ protected:
   void DoReportUeMeas (uint16_t rnti, LteRrcSap::MeasResults measResults);
 
 private:
-  /**
-   * Determines if a neighbour cell is a valid destination for handover.
-   * Currently always return true.
-   *
-   * \param cellId The cell ID of the neighbour cell.
-   * \return True if the cell is a valid destination for handover.
-   */
+  // Internal method
   bool IsValidNeighbour (uint16_t cellId);
 
-  /// The expected measurement identity for A3 measurements.
+  // The expected measurement identity
   uint8_t m_measId;
 
-  /**
-   * The `Hysteresis` attribute. Handover margin (hysteresis) in dB (rounded to
-   * the nearest multiple of 0.5 dB).
-   */
+  // Class attributes
   double m_hysteresisDb;
-  /**
-   * The `TimeToTrigger` attribute. Time during which neighbour cell's RSRP
-   * must continuously higher than serving cell's RSRP "
-   */
   Time m_timeToTrigger;
 
-  /// Interface to the eNodeB RRC instance.
+  // Handover Management SAPs
   LteHandoverManagementSapUser* m_handoverManagementSapUser;
-  /// Receive API calls from the eNodeB RRC instance.
   LteHandoverManagementSapProvider* m_handoverManagementSapProvider;
 
 }; // end of class A3RsrpHandoverAlgorithm

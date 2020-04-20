@@ -50,7 +50,9 @@ IePeeringProtocol::DeserializeInformationField (Buffer::Iterator i, uint8_t leng
 void
 IePeeringProtocol::Print (std::ostream& os) const
 {
-  os << "PeeringProtocol=(peering protocol=" << m_protocol << ")";
+  os << std::endl << "<information_element id=" << ElementId () << ">" << std::endl;
+  os << "peering protocol = " << m_protocol;
+  os << "</information_element>" << std::endl;
 }
 std::ostream &
 operator << (std::ostream &os, const IePeeringProtocol &a)

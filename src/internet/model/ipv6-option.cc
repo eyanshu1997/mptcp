@@ -24,18 +24,18 @@
 #include "ipv6-option.h"
 #include "ipv6-option-header.h"
 
+NS_LOG_COMPONENT_DEFINE ("Ipv6Option");
+
 namespace ns3
 {
 
-NS_LOG_COMPONENT_DEFINE ("Ipv6Option");
-
-NS_OBJECT_ENSURE_REGISTERED (Ipv6Option);
+NS_OBJECT_ENSURE_REGISTERED (Ipv6Option)
+  ;
 
 TypeId Ipv6Option::GetTypeId ()
 {
   static TypeId tid = TypeId ("ns3::Ipv6Option")
     .SetParent<Object> ()
-    .SetGroupName ("Internet")
     .AddAttribute ("OptionNumber", "The IPv6 option number.",
                    UintegerValue (0),
                    MakeUintegerAccessor (&Ipv6Option::GetOptionNumber),
@@ -56,13 +56,13 @@ void Ipv6Option::SetNode (Ptr<Node> node)
 }
 
 
-NS_OBJECT_ENSURE_REGISTERED (Ipv6OptionPad1);
+NS_OBJECT_ENSURE_REGISTERED (Ipv6OptionPad1)
+  ;
 
 TypeId Ipv6OptionPad1::GetTypeId ()
 {
   static TypeId tid = TypeId ("ns3::Ipv6OptionPad1")
     .SetParent<Ipv6Option> ()
-    .SetGroupName ("Internet")
     .AddConstructor<Ipv6OptionPad1> ()
   ;
   return tid;
@@ -101,13 +101,13 @@ uint8_t Ipv6OptionPad1::Process (Ptr<Packet> packet, uint8_t offset, Ipv6Header 
 }
 
 
-NS_OBJECT_ENSURE_REGISTERED (Ipv6OptionPadn);
+NS_OBJECT_ENSURE_REGISTERED (Ipv6OptionPadn)
+  ;
 
 TypeId Ipv6OptionPadn::GetTypeId ()
 {
   static TypeId tid = TypeId ("ns3::Ipv6OptionPadn")
     .SetParent<Ipv6Option> ()
-    .SetGroupName ("Internet")
     .AddConstructor<Ipv6OptionPadn> ()
   ;
   return tid;
@@ -146,13 +146,13 @@ uint8_t Ipv6OptionPadn::Process (Ptr<Packet> packet, uint8_t offset, Ipv6Header 
 }
 
 
-NS_OBJECT_ENSURE_REGISTERED (Ipv6OptionJumbogram);
+NS_OBJECT_ENSURE_REGISTERED (Ipv6OptionJumbogram)
+  ;
 
 TypeId Ipv6OptionJumbogram::GetTypeId ()
 {
   static TypeId tid = TypeId ("ns3::Ipv6OptionJumbogram")
     .SetParent<Ipv6Option> ()
-    .SetGroupName ("Internet")
     .AddConstructor<Ipv6OptionJumbogram> ()
   ;
   return tid;
@@ -191,13 +191,13 @@ uint8_t Ipv6OptionJumbogram::Process (Ptr<Packet> packet, uint8_t offset, Ipv6He
 }
 
 
-NS_OBJECT_ENSURE_REGISTERED (Ipv6OptionRouterAlert);
+NS_OBJECT_ENSURE_REGISTERED (Ipv6OptionRouterAlert)
+  ;
 
 TypeId Ipv6OptionRouterAlert::GetTypeId ()
 {
   static TypeId tid = TypeId ("ns3::Ipv6OptionRouterAlert")
     .SetParent<Ipv6Option> ()
-    .SetGroupName ("Internet")
     .AddConstructor<Ipv6OptionRouterAlert> ()
   ;
   return tid;

@@ -22,8 +22,10 @@
 
 #include "aodv-dpd.h"
 
-namespace ns3 {
-namespace aodv {
+namespace ns3
+{
+namespace aodv
+{
 
 bool
 DuplicatePacketDetection::IsDuplicate  (Ptr<const Packet> p, const Ipv4Header & header)

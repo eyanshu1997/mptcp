@@ -31,9 +31,8 @@ namespace ns3 {
 class Ipv6EndPoint;
 
 /**
- * \ingroup ipv6
- *
- * \brief Demultiplexer for end points.
+ * \class Ipv6EndPointDemux
+ * \brief Demultiplexor for end points.
  */
 class Ipv6EndPointDemux
 {
@@ -60,24 +59,14 @@ public:
 
   /**
    * \brief Lookup for address and port.
-   * \param boundNetDevice Bound NetDevice (if any)
    * \param addr address to test
    * \param port port to test
    * \return true if there is a match in EndPoints, false otherwise
    */
-  bool LookupLocal (Ptr<NetDevice> boundNetDevice, Ipv6Address addr, uint16_t port);
+  bool LookupLocal (Ipv6Address addr, uint16_t port);
 
   /**
    * \brief lookup for a match with all the parameters.
-   *
-   * The function will return a list of most-matching EndPoints, in this order:
-   *   -# Full match
-   *   -# All but local address
-   *   -# Only local port and local address match
-   *   -# Only local port match
-   *
-   * EndPoint with disabled Rx are skipped.
-   *
    * \param dst destination address to test
    * \param dport destination port to test
    * \param src source address to test
@@ -112,33 +101,28 @@ public:
 
   /**
    * \brief Allocate a Ipv6EndPoint.
-   * \param boundNetDevice Bound NetDevice (if any)
    * \param port local port
    * \return an Ipv6EndPoint instance
    */
-  Ipv6EndPoint * Allocate (Ptr<NetDevice> boundNetDevice, uint16_t port);
+  Ipv6EndPoint * Allocate (uint16_t port);
 
   /**
    * \brief Allocate a Ipv6EndPoint.
-   * \param boundNetDevice Bound NetDevice (if any)
    * \param address local address
    * \param port local port
    * \return an Ipv6EndPoint instance
    */
-  Ipv6EndPoint * Allocate (Ptr<NetDevice> boundNetDevice, Ipv6Address address, uint16_t port);
+  Ipv6EndPoint * Allocate (Ipv6Address address, uint16_t port);
 
   /**
    * \brief Allocate a Ipv6EndPoint.
-   * \param boundNetDevice Bound NetDevice (if any)
    * \param localAddress local address
    * \param localPort local port
    * \param peerAddress peer address
    * \param peerPort peer port
    * \return an Ipv6EndPoint instance
    */
-  Ipv6EndPoint * Allocate (Ptr<NetDevice> boundNetDevice,
-                           Ipv6Address localAddress, uint16_t localPort,
-                           Ipv6Address peerAddress, uint16_t peerPort);
+  Ipv6EndPoint * Allocate (Ipv6Address localAddress, uint16_t localPort, Ipv6Address peerAddress, uint16_t peerPort);
 
   /**
    * \brief Remove a end point.

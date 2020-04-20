@@ -25,11 +25,12 @@
 #include "ns3/lte-rlc-tm.h"
 #include "ns3/lte-rlc-tag.h"
 
-namespace ns3 {
-
 NS_LOG_COMPONENT_DEFINE ("LteRlcTm");
 
-NS_OBJECT_ENSURE_REGISTERED (LteRlcTm);
+namespace ns3 {
+
+NS_OBJECT_ENSURE_REGISTERED (LteRlcTm)
+  ;
 
 LteRlcTm::LteRlcTm ()
   : m_maxTxBufferSize (0),
@@ -48,7 +49,6 @@ LteRlcTm::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::LteRlcTm")
     .SetParent<LteRlc> ()
-    .SetGroupName("Lte")
     .AddConstructor<LteRlcTm> ()
     .AddAttribute ("MaxTxBufferSize",
                    "Maximum Size of the Transmission Buffer (in Bytes)",
@@ -111,7 +111,7 @@ LteRlcTm::DoTransmitPdcpPdu (Ptr<Packet> p)
  */
 
 void
-LteRlcTm::DoNotifyTxOpportunity (uint32_t bytes, uint8_t layer, uint8_t harqId, uint8_t componentCarrierId, uint16_t rnti, uint8_t lcid)
+LteRlcTm::DoNotifyTxOpportunity (uint32_t bytes, uint8_t layer, uint8_t harqId)
 {
   NS_LOG_FUNCTION (this << m_rnti << (uint32_t) m_lcid << bytes  << (uint32_t) layer << (uint32_t) harqId);
 
@@ -140,7 +140,7 @@ LteRlcTm::DoNotifyTxOpportunity (uint32_t bytes, uint8_t layer, uint8_t harqId, 
  
   // Sender timestamp
   RlcTag rlcTag (Simulator::Now ());
-  packet->ReplacePacketTag (rlcTag);
+  packet->AddByteTag (rlcTag);
   m_txPdu (m_rnti, m_lcid, packet->GetSize ());
 
   // Send RLC PDU to MAC layer
@@ -150,7 +150,6 @@ LteRlcTm::DoNotifyTxOpportunity (uint32_t bytes, uint8_t layer, uint8_t harqId, 
   params.lcid = m_lcid;
   params.layer = layer;
   params.harqProcessId = harqId;
-  params.componentCarrierId = componentCarrierId;
 
   m_macSapProvider->TransmitPdu (params);
 
@@ -168,16 +167,17 @@ LteRlcTm::DoNotifyHarqDeliveryFailure ()
 }
 
 void
-LteRlcTm::DoReceivePdu (Ptr<Packet> p, uint16_t rnti, uint8_t lcid)
+LteRlcTm::DoReceivePdu (Ptr<Packet> p)
 {
   NS_LOG_FUNCTION (this << m_rnti << (uint32_t) m_lcid << p->GetSize ());
 
   // Receiver timestamp
   RlcTag rlcTag;
   Time delay;
-  NS_ASSERT_MSG (p->PeekPacketTag (rlcTag), "RlcTag is missing");
-  p->RemovePacketTag (rlcTag);
-  delay = Simulator::Now() - rlcTag.GetSenderTimestamp ();
+  if (p->FindFirstMatchingByteTag (rlcTag))
+    {
+      delay = Simulator::Now() - rlcTag.GetSenderTimestamp ();
+    }
   m_rxPdu (m_rnti, m_lcid, p->GetSize (), delay.GetNanoSeconds ());
 
   // 5.1.1.2 Receive operations 
@@ -198,7 +198,6 @@ LteRlcTm::DoReportBufferStatus (void)
   if (! m_txBuffer.empty ())
     {
       RlcTag holTimeTag;
-      NS_ASSERT_MSG (m_txBuffer.front ()->PeekPacketTag (holTimeTag), "RlcTag is missing");
       m_txBuffer.front ()->PeekPacketTag (holTimeTag);
       holDelay = Simulator::Now () - holTimeTag.GetSenderTimestamp ();
 

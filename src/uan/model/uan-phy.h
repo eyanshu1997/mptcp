@@ -182,8 +182,7 @@ public:
     CCABUSY,  //!< Channel busy.
     RX,       //!< Receiving.
     TX,       //!< Transmitting.
-    SLEEP,    //!< Sleeping.
-    DISABLED  //!< Disabled.
+    SLEEP     //!< Sleeping.
   };
 
   /**
@@ -204,17 +203,6 @@ public:
   typedef Callback<void, Ptr<Packet>, double > RxErrCallback;
 
   /**
-   * TracedCallback signature for UanPhy packet send/receive events.
-   *
-   * \param [in] pkt The packet.
-   * \param [in] sinr The SINR.
-   * \param [in] mode The channel mode.
-   */
-  typedef void (* TracedCallback)
-    (Ptr<const Packet> pkt, double sinr, UanTxMode mode);
-
-  
-  /**
    * Set the DeviceEnergyModel callback for UanPhy device. 
    * 
    * \param callback The DeviceEnergyModel change state callback.
@@ -224,10 +212,6 @@ public:
    * Handle the energy depletion event.
    */
   virtual void EnergyDepletionHandler (void) = 0;
-  /**
-   * Handle the energy recharge event.
-   */
-  virtual void EnergyRechargeHandler (void) = 0;
   /**
    * Send a packet using a specific transmission mode.
    *
@@ -267,6 +251,12 @@ public:
    */
   virtual void SetReceiveErrorCallback (RxErrCallback cb) = 0;
 
+  /**
+   * Set the receiver gain.
+   *
+   * \param gain Gain added at receiver, in dB.
+   */
+  virtual void SetRxGainDb (double gain) = 0;
 
   /**
    * Set the transmit power.
@@ -280,7 +270,7 @@ public:
    *
    * \deprecated See UanPhyPer.
    *
-   * \param thresh Threshold SINR for proper reception in dB re 1 uPa.
+   * \param thresh Threshold SINR for propper reception in dB re 1 uPa.
    */
   virtual void SetRxThresholdDb (double thresh) = 0;
 
@@ -291,6 +281,12 @@ public:
    */
   virtual void SetCcaThresholdDb (double thresh) = 0;
 
+  /**
+   * Get the receiver gain added to signal at receiver in dB.
+   *
+   * \return The gain.
+   */
+  virtual double GetRxGainDb (void) = 0;
 
   /**
    * Get the current transmit power, in dB.
@@ -338,7 +334,7 @@ public:
    *
    * \return The net device.
    */
-  virtual Ptr<UanNetDevice> GetDevice (void) const = 0;
+  virtual Ptr<UanNetDevice> GetDevice (void) = 0;
 
   /**
    * Attach to a channel.
@@ -363,7 +359,7 @@ public:
 
   /**
    * Called when a transmission is beginning
-   * on the attached transducer.
+   * on the attched transducer.
    *
    * \param packet Packet that is beginning transmission.
    * \param txPowerDb Transmit power of packet.
@@ -373,7 +369,7 @@ public:
 
   /**
    * Called when there has been a change in the
-   * amount of interference this node is experiencing
+   * ammount of interference this node is experiencing
    * from other transmissions.
    */
   virtual void NotifyIntChange (void) = 0;
@@ -510,7 +506,7 @@ private:
    *
    * \see class CallBackTraceSource
    */
-  ns3::TracedCallback<Ptr<const Packet> > m_phyTxBeginTrace;
+  TracedCallback<Ptr<const Packet> > m_phyTxBeginTrace;
 
   /**
    * Trace source indicating a packet has been completely transmitted
@@ -518,7 +514,7 @@ private:
    *
    * \see class CallBackTraceSource
    */
-  ns3::TracedCallback<Ptr<const Packet> > m_phyTxEndTrace;
+  TracedCallback<Ptr<const Packet> > m_phyTxEndTrace;
 
   /**
    * Trace source indicating a packet has been dropped by the device
@@ -526,7 +522,7 @@ private:
    *
    * \see class CallBackTraceSource
    */
-  ns3::TracedCallback<Ptr<const Packet> > m_phyTxDropTrace;
+  TracedCallback<Ptr<const Packet> > m_phyTxDropTrace;
 
   /**
    * Trace source indicating a packet has begun being received
@@ -534,7 +530,7 @@ private:
    *
    * \see class CallBackTraceSource
    */
-  ns3::TracedCallback<Ptr<const Packet> > m_phyRxBeginTrace;
+  TracedCallback<Ptr<const Packet> > m_phyRxBeginTrace;
 
   /**
    * Trace source indicating a packet has been completely received
@@ -542,7 +538,7 @@ private:
    *
    * \see class CallBackTraceSource
    */
-  ns3::TracedCallback<Ptr<const Packet> > m_phyRxEndTrace;
+  TracedCallback<Ptr<const Packet> > m_phyRxEndTrace;
 
   /**
    * Trace source indicating a packet has been dropped by the device
@@ -550,7 +546,7 @@ private:
    *
    * \see class CallBackTraceSource
    */
-  ns3::TracedCallback<Ptr<const Packet> > m_phyRxDropTrace;
+  TracedCallback<Ptr<const Packet> > m_phyRxDropTrace;
 
 };  // class UanPhy
 

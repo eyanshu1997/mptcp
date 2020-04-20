@@ -25,20 +25,20 @@
 
 namespace ns3 {
 
-NS_OBJECT_ENSURE_REGISTERED (LteRadioBearerTag);
+NS_OBJECT_ENSURE_REGISTERED (LteRadioBearerTag)
+  ;
 
 TypeId
 LteRadioBearerTag::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::LteRadioBearerTag")
     .SetParent<Tag> ()
-    .SetGroupName("Lte")
     .AddConstructor<LteRadioBearerTag> ()
     .AddAttribute ("rnti", "The rnti that indicates the UE to which packet belongs",
                    UintegerValue (0),
                    MakeUintegerAccessor (&LteRadioBearerTag::GetRnti),
                    MakeUintegerChecker<uint16_t> ())
-    .AddAttribute ("lcid", "The id within the UE identifying the logical channel to which the packet belongs",
+    .AddAttribute ("lcid", "The id whithin the UE identifying the logical channel to which the packet belongs",
                    UintegerValue (0),
                    MakeUintegerAccessor (&LteRadioBearerTag::GetLcid),
                    MakeUintegerChecker<uint8_t> ())

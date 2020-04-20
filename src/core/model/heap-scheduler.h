@@ -25,19 +25,13 @@
 #include <stdint.h>
 #include <vector>
 
-/**
- * \file
- * \ingroup scheduler
- * ns3::HeapScheduler declaration.
- */
-
 namespace ns3 {
 
 /**
  * \ingroup scheduler
  * \brief a binary heap event scheduler
  *
- * This code started as a c++ translation of a Java-based code written in 2005
+ * This code started as a c++ translation of a java-based code written in 2005
  * to implement a heap sort. So, this binary heap is really a pretty
  * straightforward implementation of the classic data structure. Not much to say
  * about it.
@@ -53,114 +47,36 @@ namespace ns3 {
 class HeapScheduler : public Scheduler
 {
 public:
-  /**
-   *  Register this type.
-   *  \return The object TypeId.
-   */
   static TypeId GetTypeId (void);
 
-  /** Constructor. */
   HeapScheduler ();
-  /** Destructor. */
   virtual ~HeapScheduler ();
 
-  // Inherited
-  virtual void Insert (const Scheduler::Event &ev);
+  virtual void Insert (const Event &ev);
   virtual bool IsEmpty (void) const;
-  virtual Scheduler::Event PeekNext (void) const;
-  virtual Scheduler::Event RemoveNext (void);
-  virtual void Remove (const Scheduler::Event &ev);
+  virtual Event PeekNext (void) const;
+  virtual Event RemoveNext (void);
+  virtual void Remove (const Event &ev);
 
 private:
-  /** Event list type:  vector of Events, managed as a heap. */
-  typedef std::vector<Scheduler::Event> BinaryHeap;
+  typedef std::vector<Event> BinaryHeap;
 
-  /**
-   * Get the parent index of a given entry.
-   *
-   * \param [in] id The child index.
-   * \return The index of the parent of \p id.
-   */
-  inline std::size_t Parent (std::size_t id) const;
-  /**
-   * Get the next sibling of a given entry.
-   *
-   * \param [in] id The starting index.
-   * \returns The next sibling of \p id.
-   */
-  std::size_t Sibling (std::size_t id) const;
-  /**
-   * Get the left child of a given entry.
-   *
-   * \param [in] id The parent index.
-   * \returns The index of the left (first) child.
-   */
-  inline std::size_t LeftChild (std::size_t id) const;
-  /**
-   * Get the right child index of a given entry.
-   *
-   * \param [in] id The parent index.
-   * \returns The index of the right (second) child.
-   */
-  inline std::size_t RightChild (std::size_t id) const;
-  /**
-   * Get the root index of the heap.
-   *
-   * \returns The root index.
-   */
-  inline std::size_t Root (void) const;
-  /**
-   * Return the index of the last element.
-   * \returns The last index.
-   */
-  std::size_t Last (void) const;
-  /**
-   * Test if an index is the root.
-   *
-   * \param [in] id The index to test.
-   * \returns \c true if the \p id is the root.
-   */
-  inline bool IsRoot (std::size_t id) const;
-  /**
-   * Test if an index is at the bottom of the heap.
-   *
-   * \param [in] id The index to test.
-   * \returns \c true if the index is at the bottom.
-   */
-  inline bool IsBottom (std::size_t id) const;
-  /**
-   * Compare (less than) two items.
-   *
-   * \param [in] a The first item.
-   * \param [in] b The second item.
-   * \returns \c true if \c a < \c b
-   */
-  inline bool IsLessStrictly (std::size_t a, std::size_t b) const;
-  /**
-   * Minimum of two items.
-   *
-   * \param [in] a The first item.
-   * \param [in] b The second item.
-   * \returns The smaller of the two items.
-   */
-  inline std::size_t Smallest (std::size_t a, std::size_t b) const;
-  /**
-   * Swap two items.
-   *
-   * \param [in] a The first item.
-   * \param [in] b The second item.
-   */
-  inline void Exch (std::size_t a, std::size_t b);
-  /** Percolate a newly inserted Last item to its proper position. */ 
+  inline uint32_t Parent (uint32_t id) const;
+  uint32_t Sibling (uint32_t id) const;
+  inline uint32_t LeftChild (uint32_t id) const;
+  inline uint32_t RightChild (uint32_t id) const;
+  inline uint32_t Root (void) const;
+  /* Return the position in the array of the last element included in it. */
+  uint32_t Last (void) const;
+  inline bool IsRoot (uint32_t id) const;
+  inline bool IsBottom (uint32_t id) const;
+  inline bool IsLessStrictly (uint32_t a, uint32_t b) const;
+  inline uint32_t Smallest (uint32_t a, uint32_t b) const;
+
+  inline void Exch (uint32_t a, uint32_t b);
   void BottomUp (void);
-  /**
-   * Percolate a deletion bubble down the heap.
-   *
-   * \param [in] start Starting entry.
-   */
-  void TopDown (std::size_t start);
+  void TopDown (uint32_t start);
 
-  /** The event list. */
   BinaryHeap m_heap;
 };
 

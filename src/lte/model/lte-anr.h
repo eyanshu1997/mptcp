@@ -88,10 +88,7 @@ public:
   LteAnr (uint16_t servingCellId);
   virtual ~LteAnr ();
 
-  /**
-   * \brief Get the type ID.
-   * \return the object TypeId
-   */
+  // inherited from Object
   static TypeId GetTypeId ();
 
   /**
@@ -135,7 +132,7 @@ public:
    */
   virtual LteAnrSapProvider* GetLteAnrSapProvider ();
 
-  /// let the forwarder class access the protected and private members
+  // let the forwarder class access the protected and private members
   friend class MemberLteAnrSapProvider<LteAnr>;
 
 protected:
@@ -208,29 +205,23 @@ private:
    */
   struct NeighbourRelation_t
   {
-    bool noRemove; ///< no remove
-    bool noHo; ///< no HO
-    bool noX2; ///< no X2
-    bool detectedAsNeighbour; ///< detected as neighbor
+    bool noRemove;
+    bool noHo;
+    bool noX2;
+    bool detectedAsNeighbour;
   };
 
-  /// cellId
+  //               cellId
   typedef std::map<uint16_t, NeighbourRelation_t> NeighbourRelationTable_t;
 
-  /// neighbor relation table
-  NeighbourRelationTable_t m_neighbourRelationTable; 
+  NeighbourRelationTable_t m_neighbourRelationTable;
 
-  /**
-   * \internal methods
-   * \param cellId
-   * \returns the neighbor relation
-   */
+  // internal methods
   const NeighbourRelation_t* Find (uint16_t cellId) const;
 
-  /// The expected measurement identity
+  // The expected measurement identity
   uint8_t m_measId;
 
-  /// Serving cell ID
   uint16_t m_servingCellId;
 
 }; // end of class LteAnr

@@ -32,18 +32,19 @@ IePerr::~IePerr ()
 WifiInformationElementId
 IePerr::ElementId () const
 {
-  return IE_PERR;
+  return IE11S_PERR;
 }
 void
 IePerr::Print (std::ostream &os) const
 {
-  os << "PERR=(Number of failed destinations=" << m_addressUnits.size ();
+  os << std::endl << "<information_element id=" << ElementId () << ">" << std::endl;
+  os << "Number of failed destinations: = " << m_addressUnits.size ();
   for (unsigned int j = 0; j < m_addressUnits.size (); j++)
     {
-      os << "(Failed destination address=" << m_addressUnits[j].destination << ", sequence number = "
-         << m_addressUnits[j].seqnum << ")";
+      os << "Failed destination address: = " << m_addressUnits[j].destination << ", sequence number = "
+         << m_addressUnits[j].seqnum;
     }
-  os << ")";
+  os << std::endl << "</information_element>" << std::endl;
 }
 uint8_t
 IePerr::GetNumOfDest () const
@@ -53,33 +54,28 @@ IePerr::GetNumOfDest () const
 void
 IePerr::SerializeInformationField (Buffer::Iterator i) const
 {
-  i.WriteU8 (0);// TTL
-  i.WriteU8 (m_addressUnits.size ()); // number of Destinations
+  i.WriteU8 (0);
+  i.WriteU8 (m_addressUnits.size ());
   for (unsigned int j = 0; j < m_addressUnits.size (); j++)
     {
-      i.WriteU8 (0); // not used // Bit 6: AE (Address Extension) subfield (1 = destination external address is present, 0 = otherwise).
       WriteTo (i, m_addressUnits[j].destination);
       i.WriteHtolsbU32 (m_addressUnits[j].seqnum);
-      i.WriteU8 (0);
-      i.WriteU8 (0);
     }
 }
 uint8_t
 IePerr::DeserializeInformationField (Buffer::Iterator start, uint8_t length)
 {
   Buffer::Iterator i = start;
-  i.Next (1); //TTL //Mode flags is not used now
+  i.Next (1); //Mode flags is not used now
   uint8_t numOfDest = i.ReadU8 ();
-  NS_ABORT_UNLESS ((2 + 13 * numOfDest ) == length);
-
+  NS_ASSERT ((2 + 10 * numOfDest ) == length);
+  length = 0; //to avoid compiler warning in optimized builds
   for (unsigned int j = 0; j < numOfDest; j++)
     {
-      i.Next (1); // flags is not used now
       HwmpProtocol::FailedDestination unit;
       ReadFrom (i, unit.destination);
       unit.seqnum = i.ReadLsbtohU32 ();
       m_addressUnits.push_back (unit);
-      i.Next (2); // Reason
     }
   return i.GetDistanceFrom (start);
 }
@@ -87,11 +83,9 @@ IePerr::DeserializeInformationField (Buffer::Iterator start, uint8_t length)
 uint8_t
 IePerr::GetInformationFieldSize () const
 {
-  uint8_t retval = 1 //TTL   //ModeFlags
+  uint8_t retval = 1 //ModeFlags
     + 1   //NumOfDests
-    + 1  * m_addressUnits.size () //ModeFlags
-    + (6 + 4) * m_addressUnits.size ()
-    + 2* m_addressUnits.size (); // Reason Code
+    + (6 + 4) * m_addressUnits.size ();
   return retval;
 }
 
@@ -105,7 +99,7 @@ IePerr::AddAddressUnit (HwmpProtocol::FailedDestination unit)
           return;
         }
     }
- if ((m_addressUnits.size () + 1) * 13 + 2 > 255)
+  if ((m_addressUnits.size () + 1) * 10 + 2 > 255)
     {
       return;
     }
@@ -114,12 +108,7 @@ IePerr::AddAddressUnit (HwmpProtocol::FailedDestination unit)
 bool
 IePerr::IsFull () const
 {
-  // -fstrict-overflow sensitive, see bug 1868
-  return (GetInformationFieldSize ()
-          > 255
-          -   2 /* ID + LENGTH*/
-          -  13// 10 /* Size of Mac48Address + uint32_t (one unit)*/
-          );
+  return (GetInformationFieldSize () + 2 /* ID + LENGTH*/+ 10 /* Size of Mac48Address + uint32_t (one unit)*/> 255);
 }
 std::vector<HwmpProtocol::FailedDestination>
 IePerr::GetAddressUnitVector () const

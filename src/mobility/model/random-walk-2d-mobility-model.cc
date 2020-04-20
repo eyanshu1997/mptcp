@@ -26,11 +26,12 @@
 #include "ns3/log.h"
 #include <cmath>
 
-namespace ns3 {
-
 NS_LOG_COMPONENT_DEFINE ("RandomWalk2d");
 
-NS_OBJECT_ENSURE_REGISTERED (RandomWalk2dMobilityModel);
+namespace ns3 {
+
+NS_OBJECT_ENSURE_REGISTERED (RandomWalk2dMobilityModel)
+  ;
 
 TypeId
 RandomWalk2dMobilityModel::GetTypeId (void)
@@ -41,7 +42,7 @@ RandomWalk2dMobilityModel::GetTypeId (void)
     .AddConstructor<RandomWalk2dMobilityModel> ()
     .AddAttribute ("Bounds",
                    "Bounds of the area to cruise.",
-                   RectangleValue (Rectangle (0.0, 100.0, 0.0, 100.0)),
+                   RectangleValue (Rectangle (0.0, 0.0, 100.0, 100.0)),
                    MakeRectangleAccessor (&RandomWalk2dMobilityModel::m_bounds),
                    MakeRectangleChecker ())
     .AddAttribute ("Time",
@@ -62,7 +63,7 @@ RandomWalk2dMobilityModel::GetTypeId (void)
                    MakeEnumChecker (RandomWalk2dMobilityModel::MODE_DISTANCE, "Distance",
                                     RandomWalk2dMobilityModel::MODE_TIME, "Time"))
     .AddAttribute ("Direction",
-                   "A random variable used to pick the direction (radians).",
+                   "A random variable used to pick the direction (gradients).",
                    StringValue ("ns3::UniformRandomVariable[Min=0.0|Max=6.283184]"),
                    MakePointerAccessor (&RandomWalk2dMobilityModel::m_direction),
                    MakePointerChecker<RandomVariableStream> ())

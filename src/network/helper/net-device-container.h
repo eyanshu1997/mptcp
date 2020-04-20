@@ -41,7 +41,6 @@ namespace ns3 {
 class NetDeviceContainer
 {
 public:
-  /// NetDevice container iterator
   typedef std::vector<Ptr<NetDevice> >::const_iterator Iterator;
 
   /**
@@ -196,7 +195,7 @@ public:
   void Add (std::string deviceName);
 
 private:
-  std::vector<Ptr<NetDevice> > m_devices; //!< NetDevices smart pointers
+  std::vector<Ptr<NetDevice> > m_devices;
 };
 
 } // namespace ns3

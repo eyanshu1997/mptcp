@@ -2,7 +2,7 @@
 /*
  * Copyright (c) 2007 Georgia Tech Research Corporation
  * Copyright (c) 2009 INRIA
- *
+ * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
  * published by the Free Software Foundation;
@@ -37,6 +37,7 @@
 #include "ns3/uinteger.h"
 #include "ns3/log.h"
 
+#include "ns3/ipv4-end-point.h"
 #include "ns3/arp-l3-protocol.h"
 #include "ns3/ipv4-l3-protocol.h"
 #include "ns3/ipv6-l3-protocol.h"
@@ -44,20 +45,13 @@
 #include "ns3/icmpv6-l4-protocol.h"
 #include "ns3/udp-l4-protocol.h"
 #include "ns3/tcp-l4-protocol.h"
-#include "ns3/traffic-control-layer.h"
 
 #include <string>
 
-using namespace ns3;
-
 NS_LOG_COMPONENT_DEFINE ("Ipv6DualStackTestSuite");
 
-/**
- * \ingroup internet-test
- * \ingroup tests
- *
- * \brief IPv6 dual stack Test
- */
+using namespace ns3;
+
 class DualStackTestCase : public TestCase
 {
 public:
@@ -66,53 +60,29 @@ private:
   virtual void DoRun (void);
   virtual void DoTeardown (void);
 
-  /**
-   * \brief Setup the test.
-   */
   void SetUpSim ();
+  Ptr<Node> node0;
+  Ptr<Node> node1;
 
-  Ptr<Node> node0;  //!< Node 0.
-  Ptr<Node> node1;  //!< Node 1.
-
-  /**
-   * Handle connection created (1).
-   * \param s The socket.
-   * \param addr The peer address.
-   */
   void ServerHandleConnectionCreated1 (Ptr<Socket> s, const Address & addr);
-  /**
-   * Handle connection created (2).
-   * \param s The socket.
-   * \param addr The peer address.
-   */
   void ServerHandleConnectionCreated2 (Ptr<Socket> s, const Address & addr);
-  /**
-   * Handle connection created (3).
-   * \param s The socket.
-   * \param addr The peer address.
-   */
   void ServerHandleConnectionCreated3 (Ptr<Socket> s, const Address & addr);
-  /**
-   * Handle connection created (4).
-   * \param s The socket.
-   * \param addr The peer address.
-   */
   void ServerHandleConnectionCreated4 (Ptr<Socket> s, const Address & addr);
 
-  Ptr<Socket> server1;  //!< Server socket (1).
-  Ptr<Socket> server2;  //!< Server socket (2).
-  Ptr<Socket> server3;  //!< Server socket (3).
-  Ptr<Socket> server4;  //!< Server socket (4).
+  Ptr<Socket> server1;
+  Ptr<Socket> server2;
+  Ptr<Socket> server3;
+  Ptr<Socket> server4;
 
-  Ptr<Socket> source1;  //!< Sending socket (1).
-  Ptr<Socket> source2;  //!< Sending socket (2).
-  Ptr<Socket> source3;  //!< Sending socket (3).
-  Ptr<Socket> source4;  //!< Sending socket (4).
+  Ptr<Socket> source1;
+  Ptr<Socket> source2;
+  Ptr<Socket> source3;
+  Ptr<Socket> source4;
 
-  Address receivedAddr1;  //!< Received address (1).
-  Address receivedAddr2;  //!< Received address (2).
-  Address receivedAddr3;  //!< Received address (3).
-  Address receivedAddr4;  //!< Received address (4).
+  Address receivedAddr1;
+  Address receivedAddr2;
+  Address receivedAddr3;
+  Address receivedAddr4;
 };
 
 Ptr<Node>
@@ -120,14 +90,9 @@ CreateDualStackNode ()
 {
   Ptr<Node> node = CreateObject<Node> ();
 
-  // Traffic Control
-  Ptr<TrafficControlLayer> tc = CreateObject<TrafficControlLayer> ();
-  node->AggregateObject (tc);
-
   //ARP
   Ptr<ArpL3Protocol> arp = CreateObject<ArpL3Protocol> ();
   node->AggregateObject (arp);
-  arp->SetTrafficControl (tc);
 
   //IPV4
   Ptr<Ipv4L3Protocol> ipv4 = CreateObject<Ipv4L3Protocol> ();
@@ -334,13 +299,8 @@ DualStackTestCase::DoTeardown (void)
   Simulator::Destroy ();
 }
 
-/**
- * \ingroup internet-test
- * \ingroup tests
- *
- * \brief IPv6 dual stack TestSuite
- */
-class Ipv6DualStackTestSuite : public TestSuite
+
+static class Ipv6DualStackTestSuite : public TestSuite
 {
 public:
   Ipv6DualStackTestSuite ()
@@ -348,6 +308,4 @@ public:
   {
     AddTestCase (new DualStackTestCase(), TestCase::QUICK);
   }
-};
-
-static Ipv6DualStackTestSuite g_ipv6DualStackTestSuite; //!< Static variable for test initialization
+} g_ipv6DualStackTestSuite;

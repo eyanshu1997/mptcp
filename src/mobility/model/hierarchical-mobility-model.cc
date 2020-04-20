@@ -22,14 +22,14 @@
 
 namespace ns3 {
 
-NS_OBJECT_ENSURE_REGISTERED (HierarchicalMobilityModel);
+NS_OBJECT_ENSURE_REGISTERED (HierarchicalMobilityModel)
+  ;
 
 TypeId 
 HierarchicalMobilityModel::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::HierarchicalMobilityModel")
     .SetParent<MobilityModel> ()
-    .SetGroupName ("Mobility")
     .AddConstructor<HierarchicalMobilityModel> ()
     .AddAttribute ("Child", "The child mobility model.",
                    PointerValue (),
@@ -129,7 +129,7 @@ HierarchicalMobilityModel::DoSetPosition (const Vector &position)
     {
       return;
     }
-  // This implementation of DoSetPosition is really an arbitrary choice.
+  // This implementation of DoSetPosition is really an arbitraty choice.
   // anything else would have been ok.
   if (m_parent)
     {

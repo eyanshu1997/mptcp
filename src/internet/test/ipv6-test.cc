@@ -30,32 +30,36 @@
 #include "ns3/ipv6-l3-protocol.h"
 #include "ns3/icmpv6-l4-protocol.h"
 
-using namespace ns3;
+namespace ns3 {
 
-/**
- * \ingroup internet-test
- * \ingroup tests
- *
- * \brief IPv6 Test
- */
 class Ipv6L3ProtocolTestCase : public TestCase
 {
 public:
+  /**
+   * \brief Constructor.
+   */
   Ipv6L3ProtocolTestCase ();
 
-  virtual ~Ipv6L3ProtocolTestCase ();
-  virtual void DoRun ();
-};
+  /**
+   * \brief Destructor.
+   */
+  virtual
+  ~Ipv6L3ProtocolTestCase ();
 
+  /**
+   * \brief Run unit tests for this class.
+   * \return false if all tests have passed, false otherwise
+   */
+  virtual void
+  DoRun ();
+};
 Ipv6L3ProtocolTestCase::Ipv6L3ProtocolTestCase () :
   TestCase ("Verify the IPv6 layer 3 protocol")
 {
 }
-
 Ipv6L3ProtocolTestCase::~Ipv6L3ProtocolTestCase ()
 {
 }
-
 void
 Ipv6L3ProtocolTestCase::DoRun ()
 {
@@ -153,7 +157,7 @@ Ipv6L3ProtocolTestCase::DoRun ()
   num = interface->GetNAddresses ();
   NS_TEST_ASSERT_MSG_EQ (num, 1, "Number of addresses should be 1??");
 
-  /* Test Ipv6Address::RemoveAddress(index, address) */
+  /* Test Ipv6Address::RemoveAddress(index, addresss) */
   index = ipv6->GetInterfaceForAddress ("2001:ffff:5678:9001::2");
   bool result = ipv6->RemoveAddress (index, Ipv6Address 
                                      ("2001:ffff:5678:9001::2"));
@@ -176,15 +180,7 @@ Ipv6L3ProtocolTestCase::DoRun ()
 
   Simulator::Destroy ();
 } //end DoRun
-
-
-/**
- * \ingroup internet-test
- * \ingroup tests
- *
- * \brief IPv6 TestSuite
- */
-class IPv6L3ProtocolTestSuite : public TestSuite
+static class IPv6L3ProtocolTestSuite : public TestSuite
 {
 public:
   IPv6L3ProtocolTestSuite () :
@@ -192,6 +188,6 @@ public:
   {
     AddTestCase (new Ipv6L3ProtocolTestCase (), TestCase::QUICK);
   }
-};
+} g_ipv6protocolTestSuite;
 
-static IPv6L3ProtocolTestSuite g_ipv6protocolTestSuite; //!< Static variable for test initialization
+} // namespace ns3

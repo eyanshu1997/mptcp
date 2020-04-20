@@ -28,32 +28,30 @@
 #include "ns3/buffer.h"
 #include "pcap-file.h"
 #include "ns3/log.h"
-#include "ns3/build-profile.h"
 //
 // This file is used as part of the ns-3 test framework, so please refrain from 
 // adding any ns-3 specific constructs such as Packet to this file.
 //
 
-namespace ns3 {
-
 NS_LOG_COMPONENT_DEFINE ("PcapFile");
+
+namespace ns3 {
 
 const uint32_t MAGIC = 0xa1b2c3d4;            /**< Magic number identifying standard pcap file format */
 const uint32_t SWAPPED_MAGIC = 0xd4c3b2a1;    /**< Looks this way if byte swapping is required */
 
-const uint32_t NS_MAGIC = 0xa1b23c4d;         /**< Magic number identifying nanosec resolution pcap file format */
-const uint32_t NS_SWAPPED_MAGIC = 0x4d3cb2a1; /**< Looks this way if byte swapping is required */
+const uint32_t NS_MAGIC = 0xa1b23cd4;         /**< Magic number identifying nanosec resolution pcap file format */
+const uint32_t NS_SWAPPED_MAGIC = 0xd43cb2a1; /**< Looks this way if byte swapping is required */
 
 const uint16_t VERSION_MAJOR = 2;             /**< Major version of supported pcap file format */
 const uint16_t VERSION_MINOR = 4;             /**< Minor version of supported pcap file format */
 
 PcapFile::PcapFile ()
   : m_file (),
-    m_swapMode (false),
-    m_nanosecMode (false)
+    m_swapMode (false)
 {
   NS_LOG_FUNCTION (this);
-  FatalImpl::RegisterStream (&m_file); 
+  FatalImpl::RegisterStream (&m_file);
 }
 
 PcapFile::~PcapFile ()
@@ -145,13 +143,6 @@ PcapFile::GetSwapMode (void)
 {
   NS_LOG_FUNCTION (this);
   return m_swapMode;
-}
-
-bool
-PcapFile::IsNanoSecMode (void)
-{
-  NS_LOG_FUNCTION (this);
-  return m_nanosecMode;
 }
 
 uint8_t
@@ -293,12 +284,6 @@ PcapFile::ReadAndVerifyFileHeader (void)
     }
 
   //
-  // Timestamps can either be microsecond or nanosecond
-  //
-  m_nanosecMode = ((m_fileHeader.m_magicNumber == NS_MAGIC) ||
-                   (m_fileHeader.m_magicNumber == NS_SWAPPED_MAGIC)) ? true : false;
-
-  //
   // We only deal with one version of the pcap file format.
   //
   if (m_fileHeader.m_versionMajor != VERSION_MAJOR || m_fileHeader.m_versionMinor != VERSION_MINOR)
@@ -332,7 +317,6 @@ PcapFile::Open (std::string const &filename, std::ios::openmode mode)
   //
   mode |= std::ios::binary;
 
-  m_filename=filename;
   m_file.open (filename.c_str (), mode);
   if (mode & std::ios::in)
     {
@@ -342,26 +326,13 @@ PcapFile::Open (std::string const &filename, std::ios::openmode mode)
 }
 
 void
-PcapFile::Init (uint32_t dataLinkType, uint32_t snapLen, int32_t timeZoneCorrection, bool swapMode, bool nanosecMode)
+PcapFile::Init (uint32_t dataLinkType, uint32_t snapLen, int32_t timeZoneCorrection, bool swapMode)
 {
   NS_LOG_FUNCTION (this << dataLinkType << snapLen << timeZoneCorrection << swapMode);
-
   //
-  // Initialize the magic number and nanosecond mode flag
+  // Initialize the in-memory file header.
   //
-  m_nanosecMode = nanosecMode;
-  if (nanosecMode)
-    {
-      m_fileHeader.m_magicNumber = NS_MAGIC;
-    }
-  else
-    {
-      m_fileHeader.m_magicNumber = MAGIC;
-    }
-
-  //
-  // Initialize remainder of the in-memory file header.
-  //
+  m_fileHeader.m_magicNumber = MAGIC;
   m_fileHeader.m_versionMajor = VERSION_MAJOR;
   m_fileHeader.m_versionMinor = VERSION_MINOR;
   m_fileHeader.m_zone = timeZoneCorrection;
@@ -426,7 +397,6 @@ PcapFile::WritePacketHeader (uint32_t tsSec, uint32_t tsUsec, uint32_t totalLen)
   m_file.write ((const char *)&header.m_tsUsec, sizeof(header.m_tsUsec));
   m_file.write ((const char *)&header.m_inclLen, sizeof(header.m_inclLen));
   m_file.write ((const char *)&header.m_origLen, sizeof(header.m_origLen));
-  NS_BUILD_DEBUG(m_file.flush());
   return inclLen;
 }
 
@@ -436,7 +406,6 @@ PcapFile::Write (uint32_t tsSec, uint32_t tsUsec, uint8_t const * const data, ui
   NS_LOG_FUNCTION (this << tsSec << tsUsec << &data << totalLen);
   uint32_t inclLen = WritePacketHeader (tsSec, tsUsec, totalLen);
   m_file.write ((const char *)data, inclLen);
-  NS_BUILD_DEBUG(m_file.flush());
 }
 
 void 
@@ -445,11 +414,10 @@ PcapFile::Write (uint32_t tsSec, uint32_t tsUsec, Ptr<const Packet> p)
   NS_LOG_FUNCTION (this << tsSec << tsUsec << p);
   uint32_t inclLen = WritePacketHeader (tsSec, tsUsec, p->GetSize ());
   p->CopyData (&m_file, inclLen);
-  NS_BUILD_DEBUG(m_file.flush());
 }
 
 void 
-PcapFile::Write (uint32_t tsSec, uint32_t tsUsec, const Header &header, Ptr<const Packet> p)
+PcapFile::Write (uint32_t tsSec, uint32_t tsUsec, Header &header, Ptr<const Packet> p)
 {
   NS_LOG_FUNCTION (this << tsSec << tsUsec << &header << p);
   uint32_t headerSize = header.GetSerializedSize ();
@@ -526,7 +494,7 @@ PcapFile::Read (
 
 bool
 PcapFile::Diff (std::string const & f1, std::string const & f2, 
-                uint32_t & sec, uint32_t & usec, uint32_t & packets,
+                uint32_t & sec, uint32_t & usec, 
                 uint32_t snapLen)
 {
   NS_LOG_FUNCTION (f1 << f2 << sec << usec << snapLen);
@@ -569,8 +537,6 @@ PcapFile::Diff (std::string const & f1, std::string const & f2,
           break;
         }
 
-      ++packets;
-      
       if (tsSec1 != tsSec2 || tsUsec1 != tsUsec2)
         {
           diff = true; // Next packet timestamps do not match

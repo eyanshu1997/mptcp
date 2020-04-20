@@ -26,11 +26,12 @@
 #include "ns3/lte-rlc-sdu-status-tag.h"
 #include "ns3/lte-rlc-tag.h"
 
-namespace ns3 {
-
 NS_LOG_COMPONENT_DEFINE ("LteRlcUm");
 
-NS_OBJECT_ENSURE_REGISTERED (LteRlcUm);
+namespace ns3 {
+
+NS_OBJECT_ENSURE_REGISTERED (LteRlcUm)
+  ;
 
 LteRlcUm::LteRlcUm ()
   : m_maxTxBufferSize (10 * 1024),
@@ -56,7 +57,6 @@ LteRlcUm::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::LteRlcUm")
     .SetParent<LteRlc> ()
-    .SetGroupName("Lte")
     .AddConstructor<LteRlcUm> ()
     .AddAttribute ("MaxTxBufferSize",
                    "Maximum Size of the Transmission Buffer (in Bytes)",
@@ -124,7 +124,7 @@ LteRlcUm::DoTransmitPdcpPdu (Ptr<Packet> p)
  */
 
 void
-LteRlcUm::DoNotifyTxOpportunity (uint32_t bytes, uint8_t layer, uint8_t harqId, uint8_t componentCarrierId, uint16_t rnti, uint8_t lcid)
+LteRlcUm::DoNotifyTxOpportunity (uint32_t bytes, uint8_t layer, uint8_t harqId)
 {
   NS_LOG_FUNCTION (this << m_rnti << (uint32_t) m_lcid << bytes);
 
@@ -331,8 +331,7 @@ LteRlcUm::DoNotifyTxOpportunity (uint32_t bytes, uint8_t layer, uint8_t harqId, 
 
   // FIRST SEGMENT
   LteRlcSduStatusTag tag;
-  NS_ASSERT_MSG ((*it)->PeekPacketTag (tag), "LteRlcSduStatusTag is missing");
-  (*it)->PeekPacketTag (tag);
+  (*it)->RemovePacketTag (tag);
   if ( (tag.GetStatus () == LteRlcSduStatusTag::FULL_SDU) ||
         (tag.GetStatus () == LteRlcSduStatusTag::FIRST_SEGMENT) )
     {
@@ -342,26 +341,19 @@ LteRlcUm::DoNotifyTxOpportunity (uint32_t bytes, uint8_t layer, uint8_t harqId, 
     {
       framingInfo |= LteRlcHeader::NO_FIRST_BYTE;
     }
+  (*it)->AddPacketTag (tag);
 
   while (it < dataField.end ())
     {
       NS_LOG_LOGIC ("Adding SDU/segment to packet, length = " << (*it)->GetSize ());
 
-      NS_ASSERT_MSG ((*it)->PeekPacketTag (tag), "LteRlcSduStatusTag is missing");
-      (*it)->RemovePacketTag (tag);
-      if (packet->GetSize () > 0)
-        {
-          packet->AddAtEnd (*it);
-        }
-      else
-        {
-          packet = (*it);
-        }
+      packet->AddAtEnd (*it);
       it++;
     }
 
   // LAST SEGMENT (Note: There could be only one and be the first one)
   it--;
+  (*it)->RemovePacketTag (tag);
   if ( (tag.GetStatus () == LteRlcSduStatusTag::FULL_SDU) ||
         (tag.GetStatus () == LteRlcSduStatusTag::LAST_SEGMENT) )
     {
@@ -371,6 +363,7 @@ LteRlcUm::DoNotifyTxOpportunity (uint32_t bytes, uint8_t layer, uint8_t harqId, 
     {
       framingInfo |= LteRlcHeader::NO_LAST_BYTE;
     }
+  (*it)->AddPacketTag (tag);
 
   rlcHeader.SetFramingInfo (framingInfo);
 
@@ -379,7 +372,7 @@ LteRlcUm::DoNotifyTxOpportunity (uint32_t bytes, uint8_t layer, uint8_t harqId, 
 
   // Sender timestamp
   RlcTag rlcTag (Simulator::Now ());
-  packet->ReplacePacketTag (rlcTag);
+  packet->AddByteTag (rlcTag);
   m_txPdu (m_rnti, m_lcid, packet->GetSize ());
 
   // Send RLC PDU to MAC layer
@@ -389,7 +382,6 @@ LteRlcUm::DoNotifyTxOpportunity (uint32_t bytes, uint8_t layer, uint8_t harqId, 
   params.lcid = m_lcid;
   params.layer = layer;
   params.harqProcessId = harqId;
-  params.componentCarrierId = componentCarrierId;
 
   m_macSapProvider->TransmitPdu (params);
 
@@ -407,16 +399,17 @@ LteRlcUm::DoNotifyHarqDeliveryFailure ()
 }
 
 void
-LteRlcUm::DoReceivePdu (Ptr<Packet> p, uint16_t rnti, uint8_t lcid)
+LteRlcUm::DoReceivePdu (Ptr<Packet> p)
 {
   NS_LOG_FUNCTION (this << m_rnti << (uint32_t) m_lcid << p->GetSize ());
 
   // Receiver timestamp
   RlcTag rlcTag;
   Time delay;
-  NS_ASSERT_MSG (p->PeekPacketTag (rlcTag), "RlcTag is missing");
-  p->RemovePacketTag (rlcTag);
-  delay = Simulator::Now() - rlcTag.GetSenderTimestamp ();
+  if (p->FindFirstMatchingByteTag (rlcTag))
+    {
+      delay = Simulator::Now() - rlcTag.GetSenderTimestamp ();
+    }
   m_rxPdu (m_rnti, m_lcid, p->GetSize (), delay.GetNanoSeconds ());
 
   // 5.1.2.2 Receive operations
@@ -648,7 +641,7 @@ LteRlcUm::ReassembleAndDeliver (Ptr<Packet> packet)
   std::list < Ptr<Packet> >::iterator it;
 
   // Current reassembling state
-  if (m_reassemblingState == WAITING_S0_FULL)       NS_LOG_LOGIC ("Reassembling State = 'WAITING_S0_FULL'");
+  if      (m_reassemblingState == WAITING_S0_FULL)  NS_LOG_LOGIC ("Reassembling State = 'WAITING_S0_FULL'");
   else if (m_reassemblingState == WAITING_SI_SF)    NS_LOG_LOGIC ("Reassembling State = 'WAITING_SI_SF'");
   else                                              NS_LOG_LOGIC ("Reassembling State = Unknown state");
 
@@ -1124,7 +1117,6 @@ LteRlcUm::DoReportBufferStatus (void)
   if (! m_txBuffer.empty ())
     {
       RlcTag holTimeTag;
-      NS_ASSERT_MSG (m_txBuffer.front ()->PeekPacketTag (holTimeTag), "RlcTag is missing");
       m_txBuffer.front ()->PeekPacketTag (holTimeTag);
       holDelay = Simulator::Now () - holTimeTag.GetSenderTimestamp ();
 

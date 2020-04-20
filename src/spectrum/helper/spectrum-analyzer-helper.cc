@@ -35,16 +35,11 @@
 
 
 
-namespace ns3 {
-
 NS_LOG_COMPONENT_DEFINE ("SpectrumAnalyzerHelper");
 
-/**
- * \ingroup spectrum
- * \brief Writes a report of the Average Power Spectral Density
- * \param streamWrapper the wrapper to the output stream
- * \param avgPowerSpectralDensity Average Power Spectral Density
- */
+namespace ns3 {
+
+
 static void
 WriteAveragePowerSpectralDensityReport (Ptr<OutputStreamWrapper> streamWrapper,
                                         Ptr<const SpectrumValue> avgPowerSpectralDensity)

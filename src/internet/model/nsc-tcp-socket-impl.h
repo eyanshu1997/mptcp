@@ -85,7 +85,6 @@ public:
 
   virtual enum SocketErrno GetErrno (void) const;
   virtual enum SocketType GetSocketType (void) const;
-  virtual int GetPeerName (Address &address) const;
   virtual Ptr<Node> GetNode (void) const;
   virtual int Bind (void);
   virtual int Bind6 (void);
@@ -105,7 +104,6 @@ public:
   virtual int GetSockName (Address &address) const; 
   virtual bool SetAllowBroadcast (bool allowBroadcast);
   virtual bool GetAllowBroadcast () const;
-  virtual void BindToNetDevice (Ptr<NetDevice> netdevice); // NetDevice with my m_endPoint
 
 private:
   /**
@@ -114,10 +112,6 @@ private:
    * Actually performs the ForwardUp operations
    */
   void NSCWakeup (void);
-  /**
-   * \brief Tcp friend class.
-   * \relates Tcp
-   */
   friend class Tcp;
   // invoked by Tcp class
   /**
@@ -193,16 +187,14 @@ private:
    * \returns the window size
    */
   virtual uint32_t GetAdvWin (void) const;
-  virtual void SetInitialSSThresh (uint32_t threshold);
-  virtual uint32_t GetInitialSSThresh (void) const;
+  virtual void SetSSThresh (uint32_t threshold);
+  virtual uint32_t GetSSThresh (void) const;
   virtual void SetInitialCwnd (uint32_t cwnd);
   virtual uint32_t GetInitialCwnd (void) const;
   virtual void SetConnTimeout (Time timeout);
   virtual Time GetConnTimeout (void) const;
-  virtual uint32_t GetSynRetries (void) const;
-  virtual void SetSynRetries (uint32_t count);
-  virtual void SetDataRetries (uint32_t retries);
-  virtual uint32_t GetDataRetries (void) const;
+  virtual void SetConnCount (uint32_t count);
+  virtual uint32_t GetConnCount (void) const;
   virtual void SetDelAckTimeout (Time timeout);
   virtual Time GetDelAckTimeout (void) const;
   virtual void SetDelAckMaxCount (uint32_t count);
@@ -231,7 +223,7 @@ private:
   Ipv4Address m_localAddress;   //!< local address
   uint16_t m_localPort;         //!< local port
   InetSocketAddress m_peerAddress; //!< peer IP and port
-  mutable enum SocketErrno m_errno; //!< last error number
+  enum SocketErrno m_errno;     //!< last error number
   bool m_shutdownSend;          //!< Send no longer allowed
   bool m_shutdownRecv;          //!< Receive no longer allowed
   bool m_connected;             //!< Connection established
@@ -249,17 +241,15 @@ private:
   uint32_t                       m_rxWindowSize;         //!< Receive window size
   uint32_t                       m_advertisedWindowSize; //!< Window to advertise
   TracedValue<uint32_t>          m_cWnd;                 //!< Congestion window
-  TracedValue<uint32_t>          m_ssThresh;             //!< Slow Start Threshold
+  uint32_t                       m_ssThresh;             //!< Slow Start Threshold
   uint32_t                       m_initialCWnd;          //!< Initial cWnd value
-  uint32_t                       m_initialSsThresh;      //!< Initial Slow Start Threshold
 
   // Round trip time estimation
   Time m_lastMeasuredRtt; //!< Last measured RTT
 
   // Timer-related members
   Time              m_cnTimeout;       //!< Timeout for connection retry
-  uint32_t          m_synRetries;      //!< Count of remaining connection retries
-  uint32_t          m_dataRetries;     //!< Count of remaining data retransmission attempts
+  uint32_t          m_cnCount;         //!< Count of remaining connection retries
   Time              m_persistTimeout;  //!< Time between sending 1-byte probes
 
   // Temporary queue for delivering data to application

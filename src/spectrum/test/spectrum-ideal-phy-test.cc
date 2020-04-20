@@ -46,13 +46,14 @@
 #include <ns3/uinteger.h>
 #include <ns3/packet-socket-helper.h>
 #include <ns3/packet-socket-address.h>
-#include <ns3/packet-socket-client.h>
+#include <ns3/on-off-helper.h>
 #include <ns3/config.h>
 
 
-using namespace ns3;
-
 NS_LOG_COMPONENT_DEFINE ("SpectrumIdealPhyTest");
+
+namespace ns3 {
+
 
 static uint64_t g_rxBytes;
 static double g_bandwidth = 20e6; // Hz
@@ -178,14 +179,13 @@ SpectrumIdealPhyTestCase::DoRun (void)
   socket.SetPhysicalAddress (devices.Get (1)->GetAddress ());
   socket.SetProtocol (1);
 
-  Ptr<PacketSocketClient> client = CreateObject<PacketSocketClient> ();
-  client->SetRemote (socket);
-  client->SetAttribute ("Interval", TimeValue (Seconds (double (pktSize*8) / (1.2*double (phyRate)))));
-  client->SetAttribute ("PacketSize", UintegerValue (pktSize));
-  client->SetAttribute ("MaxPackets", UintegerValue (0));
-  client->SetStartTime(Seconds (0.0));
-  client->SetStopTime(Seconds (testDuration));
-  c.Get (0)->AddApplication (client);
+  OnOffHelper onoff ("ns3::PacketSocketFactory", Address (socket));
+  onoff.SetConstantRate (DataRate (static_cast<uint64_t> (1.2*phyRate)));
+  onoff.SetAttribute ("PacketSize", UintegerValue (pktSize));
+
+  ApplicationContainer apps = onoff.Install (c.Get (0));
+  apps.Start (Seconds (0.0));
+  apps.Stop (Seconds (testDuration));
 
   Config::Connect ("/NodeList/*/DeviceList/*/Phy/RxEndOk", MakeCallback (&PhyRxEndOkTrace));
 
@@ -246,3 +246,5 @@ SpectrumIdealPhyTestSuite::SpectrumIdealPhyTestSuite ()
 }
 
 static SpectrumIdealPhyTestSuite g_spectrumIdealPhyTestSuite;
+
+} // namespace ns3

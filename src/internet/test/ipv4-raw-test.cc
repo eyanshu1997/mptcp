@@ -27,7 +27,7 @@
 #include "ns3/simulator.h"
 #include "ns3/simple-channel.h"
 #include "ns3/simple-net-device.h"
-#include "ns3/simple-net-device-helper.h"
+#include "ns3/drop-tail-queue.h"
 #include "ns3/socket.h"
 
 #include "ns3/log.h"
@@ -40,7 +40,6 @@
 #include "ns3/icmpv4-l4-protocol.h"
 #include "ns3/ipv4-list-routing.h"
 #include "ns3/ipv4-static-routing.h"
-#include "ns3/internet-stack-helper.h"
 
 #include <string>
 #include <limits>
@@ -50,70 +49,45 @@
 
 using namespace ns3;
 
+static void
+AddInternetStack (Ptr<Node> node)
+{
+  //ARP
+  Ptr<ArpL3Protocol> arp = CreateObject<ArpL3Protocol> ();
+  node->AggregateObject (arp);
+  //IPV4
+  Ptr<Ipv4L3Protocol> ipv4 = CreateObject<Ipv4L3Protocol> ();
+  //Routing for Ipv4
+  Ptr<Ipv4ListRouting> ipv4Routing = CreateObject<Ipv4ListRouting> ();
+  ipv4->SetRoutingProtocol (ipv4Routing);
+  Ptr<Ipv4StaticRouting> ipv4staticRouting = CreateObject<Ipv4StaticRouting> ();
+  ipv4Routing->AddRoutingProtocol (ipv4staticRouting, 0);
+  node->AggregateObject (ipv4);
+  //ICMP
+  Ptr<Icmpv4L4Protocol> icmp = CreateObject<Icmpv4L4Protocol> ();
+  node->AggregateObject (icmp);
+  // //Ipv4Raw
+  // Ptr<Ipv4UdpL4Protocol> udp = CreateObject<UdpL4Protocol> ();
+  // node->AggregateObject(udp); 
+}
 
-/**
- * \ingroup internet-test
- * \ingroup tests
- *
- * \brief IPv4 RAW Socket Test
- */
+
 class Ipv4RawSocketImplTest : public TestCase
 {
-  Ptr<Packet> m_receivedPacket;   //!< Received packet (1).
-  Ptr<Packet> m_receivedPacket2;  //!< Received packet (2).
-
-  /**
-   * \brief Send data.
-   * \param socket The sending socket.
-   * \param to Destination address.
-   */
+  Ptr<Packet> m_receivedPacket;
+  Ptr<Packet> m_receivedPacket2;
   void DoSendData (Ptr<Socket> socket, std::string to);
-  /**
-   * \brief Send data.
-   * \param socket The sending socket.
-   * \param to Destination address.
-   */
   void SendData (Ptr<Socket> socket, std::string to);
-  /**
-   * \brief Send data.
-   * \param socket The sending socket.
-   * \param to Destination address.
-   */
   void DoSendData_IpHdr (Ptr<Socket> socket, std::string to);
-  /**
-   * \brief Send data.
-   * \param socket The sending socket.
-   * \param to Destination address.
-   */
   void SendData_IpHdr (Ptr<Socket> socket, std::string to);
 
 public:
   virtual void DoRun (void);
   Ipv4RawSocketImplTest ();
 
-  /**
-   * \brief Receive data.
-   * \param socket The receiving socket.
-   * \param packet The received packet.
-   * \param from The sender.
-   */
   void ReceivePacket (Ptr<Socket> socket, Ptr<Packet> packet, const Address &from);
-  /**
-   * \brief Receive data.
-   * \param socket The receiving socket.
-   * \param packet The received packet.
-   * \param from The sender.
-   */
   void ReceivePacket2 (Ptr<Socket> socket, Ptr<Packet> packet, const Address &from);
-  /**
-   * \brief Receive data.
-   * \param socket The receiving socket.
-   */
   void ReceivePkt (Ptr<Socket> socket);
-  /**
-   * \brief Receive data.
-   * \param socket The receiving socket.
-   */
   void ReceivePkt2 (Ptr<Socket> socket);
 };
 
@@ -207,49 +181,65 @@ Ipv4RawSocketImplTest::DoRun (void)
 
   // Receiver Node
   Ptr<Node> rxNode = CreateObject<Node> ();
+  AddInternetStack (rxNode);
+  Ptr<SimpleNetDevice> rxDev1, rxDev2;
+  { // first interface
+    rxDev1 = CreateObject<SimpleNetDevice> ();
+    rxDev1->SetAddress (Mac48Address::ConvertFrom (Mac48Address::Allocate ()));
+    rxNode->AddDevice (rxDev1);
+    Ptr<Ipv4> ipv4 = rxNode->GetObject<Ipv4> ();
+    uint32_t netdev_idx = ipv4->AddInterface (rxDev1);
+    Ipv4InterfaceAddress ipv4Addr = Ipv4InterfaceAddress (Ipv4Address ("10.0.0.1"), Ipv4Mask (0xffff0000U));
+    ipv4->AddAddress (netdev_idx, ipv4Addr);
+    ipv4->SetUp (netdev_idx);
+  }
+
+  { // second interface
+    rxDev2 = CreateObject<SimpleNetDevice> ();
+    rxDev2->SetAddress (Mac48Address::ConvertFrom (Mac48Address::Allocate ()));
+    rxNode->AddDevice (rxDev2);
+    Ptr<Ipv4> ipv4 = rxNode->GetObject<Ipv4> ();
+    uint32_t netdev_idx = ipv4->AddInterface (rxDev2);
+    Ipv4InterfaceAddress ipv4Addr = Ipv4InterfaceAddress (Ipv4Address ("10.0.1.1"), Ipv4Mask (0xffff0000U));
+    ipv4->AddAddress (netdev_idx, ipv4Addr);
+    ipv4->SetUp (netdev_idx);
+  }
+
   // Sender Node
   Ptr<Node> txNode = CreateObject<Node> ();
+  AddInternetStack (txNode);
+  Ptr<SimpleNetDevice> txDev1;
+  {
+    txDev1 = CreateObject<SimpleNetDevice> ();
+    txDev1->SetAddress (Mac48Address::ConvertFrom (Mac48Address::Allocate ()));
+    txNode->AddDevice (txDev1);
+    Ptr<Ipv4> ipv4 = txNode->GetObject<Ipv4> ();
+    uint32_t netdev_idx = ipv4->AddInterface (txDev1);
+    Ipv4InterfaceAddress ipv4Addr = Ipv4InterfaceAddress (Ipv4Address ("10.0.0.2"), Ipv4Mask (0xffff0000U));
+    ipv4->AddAddress (netdev_idx, ipv4Addr);
+    ipv4->SetUp (netdev_idx);
+  }
+  Ptr<SimpleNetDevice> txDev2;
+  {
+    txDev2 = CreateObject<SimpleNetDevice> ();
+    txDev2->SetAddress (Mac48Address::ConvertFrom (Mac48Address::Allocate ()));
+    txNode->AddDevice (txDev2);
+    Ptr<Ipv4> ipv4 = txNode->GetObject<Ipv4> ();
+    uint32_t netdev_idx = ipv4->AddInterface (txDev2);
+    Ipv4InterfaceAddress ipv4Addr = Ipv4InterfaceAddress (Ipv4Address ("10.0.1.2"), Ipv4Mask (0xffff0000U));
+    ipv4->AddAddress (netdev_idx, ipv4Addr);
+    ipv4->SetUp (netdev_idx);
+  }
 
-  NodeContainer nodes (rxNode, txNode);
+  // link the two nodes
+  Ptr<SimpleChannel> channel1 = CreateObject<SimpleChannel> ();
+  rxDev1->SetChannel (channel1);
+  txDev1->SetChannel (channel1);
 
-  SimpleNetDeviceHelper helperChannel1;
-  helperChannel1.SetNetDevicePointToPointMode (true);
-  NetDeviceContainer net1 = helperChannel1.Install (nodes);
+  Ptr<SimpleChannel> channel2 = CreateObject<SimpleChannel> ();
+  rxDev2->SetChannel (channel2);
+  txDev2->SetChannel (channel2);
 
-  SimpleNetDeviceHelper helperChannel2;
-  helperChannel2.SetNetDevicePointToPointMode (true);
-  NetDeviceContainer net2 = helperChannel2.Install (nodes);
-
-  InternetStackHelper internet;
-  internet.Install (nodes);
-
-  Ptr<Ipv4> ipv4;
-  uint32_t netdev_idx;
-  Ipv4InterfaceAddress ipv4Addr;
-
-  // Receiver Node
-  ipv4 = rxNode->GetObject<Ipv4> ();
-  netdev_idx = ipv4->AddInterface (net1.Get (0));
-  ipv4Addr = Ipv4InterfaceAddress (Ipv4Address ("10.0.0.1"), Ipv4Mask (0xffff0000U));
-  ipv4->AddAddress (netdev_idx, ipv4Addr);
-  ipv4->SetUp (netdev_idx);
-
-  netdev_idx = ipv4->AddInterface (net2.Get (0));
-  ipv4Addr = Ipv4InterfaceAddress (Ipv4Address ("10.0.1.1"), Ipv4Mask (0xffff0000U));
-  ipv4->AddAddress (netdev_idx, ipv4Addr);
-  ipv4->SetUp (netdev_idx);
-
-  // Sender Node
-  ipv4 = txNode->GetObject<Ipv4> ();
-  netdev_idx = ipv4->AddInterface (net1.Get (1));
-  ipv4Addr = Ipv4InterfaceAddress (Ipv4Address ("10.0.0.2"), Ipv4Mask (0xffff0000U));
-  ipv4->AddAddress (netdev_idx, ipv4Addr);
-  ipv4->SetUp (netdev_idx);
-
-  netdev_idx = ipv4->AddInterface (net2.Get (1));
-  ipv4Addr = Ipv4InterfaceAddress (Ipv4Address ("10.0.1.2"), Ipv4Mask (0xffff0000U));
-  ipv4->AddAddress (netdev_idx, ipv4Addr);
-  ipv4->SetUp (netdev_idx);
 
   // Create the IPv4 Raw sockets
   Ptr<SocketFactory> rxSocketFactory = rxNode->GetObject<Ipv4RawSocketFactory> ();
@@ -322,32 +312,9 @@ Ipv4RawSocketImplTest::DoRun (void)
   m_receivedPacket = 0;
   m_receivedPacket2 = 0;
 
-  // Simple getpeername tests
-
-  Address peerAddress;
-  int err = txSocket->GetPeerName (peerAddress);
-  NS_TEST_EXPECT_MSG_EQ (err, -1, "socket GetPeerName() should fail when socket is not connected");
-  NS_TEST_EXPECT_MSG_EQ (txSocket->GetErrno (), Socket::ERROR_NOTCONN, "socket error code should be ERROR_NOTCONN");
-
-  InetSocketAddress peer ("10.0.0.1", 1234);
-  err = txSocket->Connect (peer);
-  NS_TEST_EXPECT_MSG_EQ (err, 0, "socket Connect() should succeed");
-
-  err = txSocket->GetPeerName (peerAddress);
-  NS_TEST_EXPECT_MSG_EQ (err, 0, "socket GetPeerName() should succeed when socket is connected");
-  peer.SetPort (0);
-  NS_TEST_EXPECT_MSG_EQ (peerAddress, peer, "address from socket GetPeerName() should equal the connected address");
-
   Simulator::Destroy ();
 }
-
-
-/**
- * \ingroup internet-test
- * \ingroup tests
- *
- * \brief IPv4 RAW Socket TestSuite
- */
+//-----------------------------------------------------------------------------
 class Ipv4RawTestSuite : public TestSuite
 {
 public:
@@ -355,6 +322,4 @@ public:
   {
     AddTestCase (new Ipv4RawSocketImplTest, TestCase::QUICK);
   }
-};
-
-static Ipv4RawTestSuite g_ipv4rawTestSuite; //!< Static variable for test initialization
+} g_ipv4rawTestSuite;

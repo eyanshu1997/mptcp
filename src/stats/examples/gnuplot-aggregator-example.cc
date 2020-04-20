@@ -80,7 +80,7 @@ void Create2dPlot ()
 }
 
 
-}  // unnamed namespace
+} // anonymous namespace
 
 
 int main (int argc, char *argv[])

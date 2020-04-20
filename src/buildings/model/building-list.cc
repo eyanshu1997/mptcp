@@ -16,7 +16,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
  * Author: Jaume Nin <jaume.nin@cttc,cat>
- * Based on BuildingList implementation by Mathieu Lacage  <mathieu.lacage@sophia.inria.fr>
+ * Based on BuildingList implemenation by Mathieu Lacage  <mathieu.lacage@sophia.inria.fr>
  *
  */
 #include "building-list.h"
@@ -30,7 +30,8 @@
 
 namespace ns3 {
 
-NS_LOG_COMPONENT_DEFINE ("BuildingList");
+NS_LOG_COMPONENT_DEFINE ("BuildingList")
+  ;
 
 /**
  * \brief private implementation detail of the BuildingList API.
@@ -57,14 +58,14 @@ private:
   std::vector<Ptr<Building> > m_buildings;
 };
 
-NS_OBJECT_ENSURE_REGISTERED (BuildingListPriv);
+NS_OBJECT_ENSURE_REGISTERED (BuildingListPriv)
+  ;
 
 TypeId
 BuildingListPriv::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::BuildingListPriv")
     .SetParent<Object> ()
-    .SetGroupName ("Buildings")
     .AddAttribute ("BuildingList", "The list of all buildings created during the simulation.",
                    ObjectVectorValue (),
                    MakeObjectVectorAccessor (&BuildingListPriv::m_buildings),

@@ -40,84 +40,38 @@ public:
 
   FlameHeader ();
   ~FlameHeader ();
-
   /**
-   * \brief Get the type ID.
-   * \return the object TypeId
+   * \name Inherited from Header class:
+   * \{
    */
   static TypeId GetTypeId (void);
-  // Inherited from Header class:
   virtual TypeId GetInstanceTypeId (void) const;
   virtual void Print (std::ostream &os) const;
   virtual uint32_t GetSerializedSize (void) const;
   virtual void Serialize (Buffer::Iterator start) const;
   virtual uint32_t Deserialize (Buffer::Iterator start);
-
-  // Seeters/Getters for fields:
+  ///\}
   /**
-   * Add cost value
-   * \param cost the cost
+   * \name Seeters/Getters for fields:
+   * \{
    */
   void AddCost (uint8_t cost);
-  /**
-   * Get cost value
-   * \returns the cost
-   */
   uint8_t GetCost () const;
-  /**
-   * Set sequence number value
-   * \param seqno the sequence number
-   */
   void SetSeqno (uint16_t seqno);
-  /**
-   * Get sequence number value
-   * \returns the sequence number
-   */
   uint16_t GetSeqno () const;
-  /**
-   * Set origin destination address
-   * \param dst the MAC address of the destination
-   */
   void SetOrigDst (Mac48Address dst);
-  /**
-   * Get origin destination address
-   * \returns the MAC address of the destination
-   */
   Mac48Address GetOrigDst () const;
-  /**
-   * Set origin source function
-   * \param OrigSrc the MAC address of the origina source
-   */
   void SetOrigSrc (Mac48Address OrigSrc);
-  /**
-   * Get origin source address
-   * \returns the MAC address of the origin source
-   */
   Mac48Address GetOrigSrc () const;
-  /**
-   * Set protocol value
-   * \param protocol the protocol
-   */
   void SetProtocol (uint16_t protocol);
-  /**
-   * Get protocol value
-   * \returns the protocol
-   */
   uint16_t GetProtocol () const;
-
+  ///\}
 private:
-  uint8_t m_cost; ///< cost
-  uint16_t m_seqno; ///< sequence number
-  Mac48Address m_origDst; ///< origin destination
-  Mac48Address m_origSrc; ///< origin source
-  uint16_t m_protocol; ///< protocol
-  /**
-   * equality operator
-   *
-   * \param a lhs
-   * \param b rhs
-   * \returns true if equal
-   */
+  uint8_t m_cost;
+  uint16_t m_seqno;
+  Mac48Address m_origDst;
+  Mac48Address m_origSrc;
+  uint16_t m_protocol;
   friend bool operator== (const FlameHeader & a, const FlameHeader & b);
 };
 bool operator== (const FlameHeader & a, const FlameHeader & b);

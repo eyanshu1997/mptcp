@@ -34,10 +34,9 @@ class NetDevice;
 class Node;
 
 /**
- * \ingroup socket
- * \ingroup ipv6
- *
+ * \class Ipv6RawSocketImpl
  * \brief IPv6 raw socket.
+ * \ingroup socket
  *
  * A RAW Socket typically is used to access specific IP layers not usually
  * available through L4 sockets, e.g., ICMP. The implementer should take
@@ -96,7 +95,6 @@ public:
   virtual int Bind6 ();
 
   virtual int GetSockName (Address& address) const;
-  virtual int GetPeerName (Address& address) const;
 
   virtual int Close ();
   virtual int ShutdownSend ();
@@ -109,7 +107,6 @@ public:
   virtual int SendTo (Ptr<Packet> p, uint32_t flags, const Address& toAddress);
   virtual Ptr<Packet> Recv (uint32_t maxSize, uint32_t flags);
   virtual Ptr<Packet> RecvFrom (uint32_t maxSize, uint32_t flags, Address& fromAddress);
-  virtual void Ipv6JoinGroup (Ipv6Address address, Socket::Ipv6MulticastFilterMode filterMode, std::vector<Ipv6Address> sourceAddresses);
 
   /**
    * \brief Set protocol field.
@@ -168,14 +165,15 @@ public:
 
 private:
   /**
+   * \struct Data
    * \brief IPv6 raw data and additional information.
    */
-  typedef struct
+  struct Data
   {
     Ptr<Packet> packet;   /**< Packet data */
     Ipv6Address fromIp;   /**< Source address */
     uint16_t fromProtocol;   /**< Protocol used */
-  } Data;
+  };
 
   /**
    * \brief Dispose object.
@@ -185,7 +183,7 @@ private:
   /**
    * \brief Last error number.
    */
-  mutable enum Socket::SocketErrno m_err;
+  enum Socket::SocketErrno m_err;
 
   /**
    * \brief Node.
@@ -210,7 +208,7 @@ private:
   /**
    * \brief Packet waiting to be processed.
    */
-  std::list<Data> m_data;
+  std::list<struct Data> m_data;
 
   /**
    * \brief Flag to shutdown send capability.
@@ -228,12 +226,12 @@ private:
   typedef struct
   {
     uint32_t icmpv6Filt[8]; //!< ICMPv6 filter specification
-  } Icmpv6Filter;
+  } icmpv6Filter;
 
   /**
    * \brief ICMPv6 filter.
    */
-  Icmpv6Filter m_icmpFilter;
+  icmpv6Filter m_icmpFilter;
 };
 
 } /* namespace ns3 */

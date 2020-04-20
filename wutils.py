@@ -68,7 +68,7 @@ def find_program(program_name, env):
 
 def get_proc_env(os_env=None):
     env = bld.env
-    if sys.platform == 'linux2' or sys.platform == 'linux':
+    if sys.platform == 'linux2':
         pathvar = 'LD_LIBRARY_PATH'
     elif sys.platform == 'darwin':
         pathvar = 'DYLD_LIBRARY_PATH'
@@ -115,13 +115,10 @@ def run_argv(argv, env, os_env=None, cwd=None, force_no_valgrind=False):
             raise WafError("Options --command-template and --valgrind are conflicting")
         if not env['VALGRIND']:
             raise WafError("valgrind is not installed")
-        # Use the first program found in the env['VALGRIND'] list
-        argv = [env['VALGRIND'][0], "--leak-check=full", "--show-reachable=yes", "--error-exitcode=1"] + argv
+        argv = [env['VALGRIND'], "--leak-check=full", "--show-reachable=yes", "--error-exitcode=1"] + argv
         proc = subprocess.Popen(argv, env=proc_env, cwd=cwd, stderr=subprocess.PIPE)
-        stderrdata = proc.communicate()[1]
-        stderrdata = stderrdata.decode('utf-8')
         error = False
-        for line in stderrdata:
+        for line in proc.stderr:
             sys.stderr.write(line)
             if "== LEAK SUMMARY" in line:
                 error = True
@@ -136,13 +133,13 @@ def run_argv(argv, env, os_env=None, cwd=None, force_no_valgrind=False):
         else:
             try:
                 retval = subprocess.Popen(argv, env=proc_env, cwd=cwd).wait()
-            except WindowsError as ex:
+            except WindowsError, ex:
                 raise WafError("Command %s raised exception %s" % (argv, ex))
     if retval:
         signame = None
         if retval < 0: # signal?
             import signal
-            for name, val in vars(signal).items():
+            for name, val in vars(signal).iteritems():
                 if len(name) > 3 and name[:3] == 'SIG' and name[3] != '_':
                     if val == -retval:
                         signame = name
@@ -170,7 +167,7 @@ def get_run_program(program_string, command_template=None):
 
         try:
             program_obj = find_program(program_name, env)
-        except ValueError as ex:
+        except ValueError, ex:
             raise WafError(str(ex))
 
         program_node = program_obj.path.find_or_declare(program_obj.target)
@@ -186,7 +183,7 @@ def get_run_program(program_string, command_template=None):
         program_name = program_string
         try:
             program_obj = find_program(program_name, env)
-        except ValueError as ex:
+        except ValueError, ex:
             raise WafError(str(ex))
 
         program_node = program_obj.path.find_or_declare(program_obj.target)
@@ -230,11 +227,4 @@ def run_python_program(program_string, env, visualize=False):
         execvec.append("--SimulatorImplementationType=ns3::VisualSimulatorImpl")
     return run_argv([env['PYTHON'][0]] + execvec, env, cwd=cwd)
 
-
-def uniquify_list(seq):
-    """Remove duplicates while preserving order
-       From Dave Kirby http://www.peterbe.com/plog/uniqifiers-benchmark
-    """
-    seen = set()
-    return [ x for x in seq if x not in seen and not seen.add(x)]
 

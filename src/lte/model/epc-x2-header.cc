@@ -22,11 +22,13 @@
 #include "ns3/epc-x2-header.h"
 
 
-namespace ns3 {
-
 NS_LOG_COMPONENT_DEFINE ("EpcX2Header");
 
-NS_OBJECT_ENSURE_REGISTERED (EpcX2Header);
+namespace ns3 {
+
+
+NS_OBJECT_ENSURE_REGISTERED (EpcX2Header)
+  ;
 
 EpcX2Header::EpcX2Header ()
   : m_messageType (0xfa),
@@ -49,7 +51,6 @@ EpcX2Header::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::EpcX2Header")
     .SetParent<Header> ()
-    .SetGroupName("Lte")
     .AddConstructor<EpcX2Header> ()
   ;
   return tid;
@@ -145,7 +146,8 @@ EpcX2Header::SetNumberOfIes (uint32_t numberOfIes)
 
 /////////////////////////////////////////////////////////////////////
 
-NS_OBJECT_ENSURE_REGISTERED (EpcX2HandoverRequestHeader);
+NS_OBJECT_ENSURE_REGISTERED (EpcX2HandoverRequestHeader)
+  ;
 
 EpcX2HandoverRequestHeader::EpcX2HandoverRequestHeader ()
   : m_numberOfIes (1 + 1 + 1 + 1),
@@ -174,7 +176,6 @@ EpcX2HandoverRequestHeader::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::EpcX2HandoverRequestHeader")
     .SetParent<Header> ()
-    .SetGroupName("Lte")
     .AddConstructor<EpcX2HandoverRequestHeader> ()
   ;
   return tid;
@@ -434,7 +435,8 @@ EpcX2HandoverRequestHeader::GetNumberOfIes () const
 
 /////////////////////////////////////////////////////////////////////
 
-NS_OBJECT_ENSURE_REGISTERED (EpcX2HandoverRequestAckHeader);
+NS_OBJECT_ENSURE_REGISTERED (EpcX2HandoverRequestAckHeader)
+  ;
 
 EpcX2HandoverRequestAckHeader::EpcX2HandoverRequestAckHeader ()
   : m_numberOfIes (1 + 1 + 1 + 1),
@@ -459,7 +461,6 @@ EpcX2HandoverRequestAckHeader::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::EpcX2HandoverRequestAckHeader")
     .SetParent<Header> ()
-    .SetGroupName("Lte")
     .AddConstructor<EpcX2HandoverRequestAckHeader> ()
   ;
   return tid;
@@ -660,7 +661,8 @@ EpcX2HandoverRequestAckHeader::GetNumberOfIes () const
 
 /////////////////////////////////////////////////////////////////////
 
-NS_OBJECT_ENSURE_REGISTERED (EpcX2HandoverPreparationFailureHeader);
+NS_OBJECT_ENSURE_REGISTERED (EpcX2HandoverPreparationFailureHeader)
+  ;
 
 EpcX2HandoverPreparationFailureHeader::EpcX2HandoverPreparationFailureHeader ()
   : m_numberOfIes (1 + 1 + 1),
@@ -685,7 +687,6 @@ EpcX2HandoverPreparationFailureHeader::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::EpcX2HandoverPreparationFailureHeader")
     .SetParent<Header> ()
-    .SetGroupName("Lte")
     .AddConstructor<EpcX2HandoverPreparationFailureHeader> ()
   ;
   return tid;
@@ -786,7 +787,8 @@ EpcX2HandoverPreparationFailureHeader::GetNumberOfIes () const
 
 /////////////////////////////////////////////////////////////////////
 
-NS_OBJECT_ENSURE_REGISTERED (EpcX2SnStatusTransferHeader);
+NS_OBJECT_ENSURE_REGISTERED (EpcX2SnStatusTransferHeader)
+  ;
 
 EpcX2SnStatusTransferHeader::EpcX2SnStatusTransferHeader ()
   : m_numberOfIes (3),
@@ -811,7 +813,6 @@ EpcX2SnStatusTransferHeader::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::EpcX2SnStatusTransferHeader")
     .SetParent<Header> ()
-    .SetGroupName("Lte")
     .AddConstructor<EpcX2SnStatusTransferHeader> ()
   ;
   return tid;
@@ -979,7 +980,8 @@ EpcX2SnStatusTransferHeader::GetNumberOfIes () const
 
 /////////////////////////////////////////////////////////////////////
 
-NS_OBJECT_ENSURE_REGISTERED (EpcX2UeContextReleaseHeader);
+NS_OBJECT_ENSURE_REGISTERED (EpcX2UeContextReleaseHeader)
+  ;
 
 EpcX2UeContextReleaseHeader::EpcX2UeContextReleaseHeader ()
   : m_numberOfIes (1 + 1),
@@ -1002,7 +1004,6 @@ EpcX2UeContextReleaseHeader::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::EpcX2UeContextReleaseHeader")
     .SetParent<Header> ()
-    .SetGroupName("Lte")
     .AddConstructor<EpcX2UeContextReleaseHeader> ()
   ;
   return tid;
@@ -1087,7 +1088,8 @@ EpcX2UeContextReleaseHeader::GetNumberOfIes () const
 
 /////////////////////////////////
 
-NS_OBJECT_ENSURE_REGISTERED (EpcX2LoadInformationHeader);
+NS_OBJECT_ENSURE_REGISTERED (EpcX2LoadInformationHeader)
+  ;
 
 EpcX2LoadInformationHeader::EpcX2LoadInformationHeader ()
   : m_numberOfIes (1),
@@ -1108,7 +1110,6 @@ EpcX2LoadInformationHeader::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::EpcX2LoadInformationHeader")
     .SetParent<Header> ()
-    .SetGroupName("Lte")
     .AddConstructor<EpcX2LoadInformationHeader> ()
   ;
   return tid;
@@ -1312,7 +1313,8 @@ EpcX2LoadInformationHeader::GetNumberOfIes () const
 
 ////////////////
 
-NS_OBJECT_ENSURE_REGISTERED (EpcX2ResourceStatusUpdateHeader);
+NS_OBJECT_ENSURE_REGISTERED (EpcX2ResourceStatusUpdateHeader)
+  ;
 
 EpcX2ResourceStatusUpdateHeader::EpcX2ResourceStatusUpdateHeader ()
   : m_numberOfIes (3),
@@ -1337,7 +1339,6 @@ EpcX2ResourceStatusUpdateHeader::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::EpcX2ResourceStatusUpdateHeader")
     .SetParent<Header> ()
-    .SetGroupName("Lte")
     .AddConstructor<EpcX2ResourceStatusUpdateHeader> ()
   ;
   return tid;

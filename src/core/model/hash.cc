@@ -21,16 +21,11 @@
 #include "log.h"
 #include "hash.h"
 
-/**
- * \file
- * \ingroup hash
- * \brief ns3::Hasher implementation.
- */
-
 
 namespace ns3 {
 
-NS_LOG_COMPONENT_DEFINE ("Hash");
+NS_LOG_COMPONENT_DEFINE ("Hash")
+  ;
 
 Hasher::Hasher ()
 {

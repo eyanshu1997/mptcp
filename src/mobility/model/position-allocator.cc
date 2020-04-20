@@ -26,18 +26,18 @@
 #include "ns3/log.h"
 #include <cmath>
 
-namespace ns3 {
-
 NS_LOG_COMPONENT_DEFINE ("PositionAllocator");
 
-NS_OBJECT_ENSURE_REGISTERED (PositionAllocator);
+namespace ns3 {
+
+NS_OBJECT_ENSURE_REGISTERED (PositionAllocator)
+  ;
 
 TypeId 
 PositionAllocator::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::PositionAllocator")
-    .SetParent<Object> ()
-    .SetGroupName ("Mobility");
+    .SetParent<Object> ();
   return tid;
 }
 
@@ -49,14 +49,14 @@ PositionAllocator::~PositionAllocator ()
 {
 }
 
-NS_OBJECT_ENSURE_REGISTERED (ListPositionAllocator);
+NS_OBJECT_ENSURE_REGISTERED (ListPositionAllocator)
+  ;
 
 TypeId
 ListPositionAllocator::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::ListPositionAllocator")
     .SetParent<PositionAllocator> ()
-    .SetGroupName ("Mobility")
     .AddConstructor<ListPositionAllocator> ()
   ;
   return tid;
@@ -87,13 +87,8 @@ ListPositionAllocator::AssignStreams (int64_t stream)
   return 0;
 }
 
-uint32_t
-ListPositionAllocator::GetSize (void) const
-{
-  return m_positions.size ();
-}
-
-NS_OBJECT_ENSURE_REGISTERED (GridPositionAllocator);
+NS_OBJECT_ENSURE_REGISTERED (GridPositionAllocator)
+  ;
 
 TypeId 
 GridPositionAllocator::GetTypeId (void)
@@ -102,7 +97,7 @@ GridPositionAllocator::GetTypeId (void)
     .SetParent<PositionAllocator> ()
     .SetGroupName ("Mobility")
     .AddConstructor<GridPositionAllocator> ()
-    .AddAttribute ("GridWidth", "The number of objects laid out on a line.",
+    .AddAttribute ("GridWidth", "The number of objects layed out on a line.",
                    UintegerValue (10),
                    MakeUintegerAccessor (&GridPositionAllocator::m_n),
                    MakeUintegerChecker<uint32_t> ())
@@ -221,7 +216,8 @@ GridPositionAllocator::AssignStreams (int64_t stream)
   return 0;
 }
 
-NS_OBJECT_ENSURE_REGISTERED (RandomRectanglePositionAllocator);
+NS_OBJECT_ENSURE_REGISTERED (RandomRectanglePositionAllocator)
+  ;
 
 TypeId
 RandomRectanglePositionAllocator::GetTypeId (void)
@@ -277,7 +273,8 @@ RandomRectanglePositionAllocator::AssignStreams (int64_t stream)
   return 2;
 }
 
-NS_OBJECT_ENSURE_REGISTERED (RandomBoxPositionAllocator);
+NS_OBJECT_ENSURE_REGISTERED (RandomBoxPositionAllocator)
+  ;
 
 TypeId
 RandomBoxPositionAllocator::GetTypeId (void)
@@ -345,7 +342,8 @@ RandomBoxPositionAllocator::AssignStreams (int64_t stream)
   return 3;
 }
 
-NS_OBJECT_ENSURE_REGISTERED (RandomDiscPositionAllocator);
+NS_OBJECT_ENSURE_REGISTERED (RandomDiscPositionAllocator)
+  ;
 
 TypeId
 RandomDiscPositionAllocator::GetTypeId (void)
@@ -426,7 +424,8 @@ RandomDiscPositionAllocator::AssignStreams (int64_t stream)
 
 
 
-NS_OBJECT_ENSURE_REGISTERED (UniformDiscPositionAllocator);
+NS_OBJECT_ENSURE_REGISTERED (UniformDiscPositionAllocator)
+  ;
 
 TypeId
 UniformDiscPositionAllocator::GetTypeId (void)

@@ -34,15 +34,16 @@
 
 
 
+NS_LOG_COMPONENT_DEFINE ("AdhocAlohaNoackIdealPhyHelper");
+
 namespace ns3 {
 
-NS_LOG_COMPONENT_DEFINE ("AdhocAlohaNoackIdealPhyHelper");
 
 AdhocAlohaNoackIdealPhyHelper::AdhocAlohaNoackIdealPhyHelper ()
 {
   m_phy.SetTypeId ("ns3::HalfDuplexIdealPhy");
   m_device.SetTypeId ("ns3::AlohaNoackNetDevice");
-  m_queue.SetTypeId ("ns3::DropTailQueue<Packet>");
+  m_queue.SetTypeId ("ns3::DropTailQueue");
   m_antenna.SetTypeId ("ns3::IsotropicAntennaModel");
 }
 
@@ -124,7 +125,7 @@ AdhocAlohaNoackIdealPhyHelper::Install (NodeContainer c) const
 
       Ptr<AlohaNoackNetDevice> dev = (m_device.Create ())->GetObject<AlohaNoackNetDevice> ();
       dev->SetAddress (Mac48Address::Allocate ());
-      Ptr<Queue<Packet> > q = (m_queue.Create ())->GetObject<Queue<Packet> > ();
+      Ptr<Queue> q = (m_queue.Create ())->GetObject<Queue> ();
       dev->SetQueue (q);
 
       // note that we could have used a SpectrumPhyHelper here, but

@@ -8,7 +8,7 @@
 #
 # See test.py for more information.
 cpp_examples = [
-    ("mesh --ascii", "True", "True"),
+    ("mesh", "True", "True"),
 ]
 
 # A list of Python examples to run in order to ensure that they remain

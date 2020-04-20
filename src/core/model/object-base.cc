@@ -27,33 +27,19 @@
 #include <cstdlib>
 #endif
 
-/**
- * \file
- * \ingroup object
- * ns3::ObjectBase class implementation.
- */
+NS_LOG_COMPONENT_DEFINE ("ObjectBase");
 
 namespace ns3 {
 
-NS_LOG_COMPONENT_DEFINE ("ObjectBase");
+NS_OBJECT_ENSURE_REGISTERED (ObjectBase)
+  ;
 
-NS_OBJECT_ENSURE_REGISTERED (ObjectBase);
-
-/**
- * Ensure the TypeId for ObjectBase gets fully configured
- * to anchor the inheritance tree properly.
- *
- * \relates ns3::ObjectBase
- *
- * \return The TypeId for ObjectBase.
- */
 static TypeId
 GetObjectIid (void)
 {
   NS_LOG_FUNCTION_NOARGS ();
   TypeId tid = TypeId ("ns3::ObjectBase");
   tid.SetParent (tid);
-  tid.SetGroupName ("Core");
   return tid;
 }
 
@@ -90,29 +76,13 @@ ObjectBase::ConstructSelf (const AttributeConstructionList &attributes)
           struct TypeId::AttributeInformation info = tid.GetAttribute(i);
           NS_LOG_DEBUG ("try to construct \""<< tid.GetName ()<<"::"<<
                         info.name <<"\"");
-          // is this attribute stored in this AttributeConstructionList instance ?
-          Ptr<AttributeValue> value = attributes.Find(info.checker);
-          // See if this attribute should not be set here in the
-          // constructor.
           if (!(info.flags & TypeId::ATTR_CONSTRUCT))
             {
-              // Handle this attribute if it should not be 
-              // set here.
-              if (value == 0)
-                {
-                  // Skip this attribute if it's not in the
-                  // AttributeConstructionList.
-                  continue;
-                }              
-              else
-                {
-                  // This is an error because this attribute is not
-                  // settable in its constructor but is present in
-                  // the AttributeConstructionList.
-                  NS_FATAL_ERROR ("Attribute name="<<info.name<<" tid="<<tid.GetName () << ": initial value cannot be set using attributes");
-                }
+              continue;
             }
-
+          bool found = false;
+          // is this attribute stored in this AttributeConstructionList instance ?
+          Ptr<AttributeValue> value = attributes.Find(info.checker);
           if (value != 0)
             {
               // We have a matching attribute value.
@@ -120,46 +90,52 @@ ObjectBase::ConstructSelf (const AttributeConstructionList &attributes)
                 {
                   NS_LOG_DEBUG ("construct \""<< tid.GetName ()<<"::"<<
                                 info.name<<"\"");
+                  found = true;
                   continue;
                 }
-            }
-
-#ifdef HAVE_GETENV
-          // No matching attribute value so we try to look at the env var.
-          char *envVar = getenv ("NS_ATTRIBUTE_DEFAULT");
-          if (envVar != 0)
+            }              
+          if (!found)
             {
-              std::string env = std::string (envVar);
-              std::string::size_type cur = 0;
-              std::string::size_type next = 0;
-              while (next != std::string::npos)
+              // No matching attribute value so we try to look at the env var.
+#ifdef HAVE_GETENV
+              char *envVar = getenv ("NS_ATTRIBUTE_DEFAULT");
+              if (envVar != 0)
                 {
-                  next = env.find (";", cur);
-                  std::string tmp = std::string (env, cur, next-cur);
-                  std::string::size_type equal = tmp.find ("=");
-                  if (equal != std::string::npos)
+                  std::string env = std::string (envVar);
+                  std::string::size_type cur = 0;
+                  std::string::size_type next = 0;
+                  while (next != std::string::npos)
                     {
-                      std::string name = tmp.substr (0, equal);
-                      std::string envval = tmp.substr (equal+1, tmp.size () - equal - 1);
-                      if (name == tid.GetAttributeFullName (i))
+                      next = env.find (";", cur);
+                      std::string tmp = std::string (env, cur, next-cur);
+                      std::string::size_type equal = tmp.find ("=");
+                      if (equal != std::string::npos)
                         {
-                          if (DoSet (info.accessor, info.checker, StringValue (envval)))
+                          std::string name = tmp.substr (0, equal);
+                          std::string value = tmp.substr (equal+1, tmp.size () - equal - 1);
+                          if (name == tid.GetAttributeFullName (i))
                             {
-                              NS_LOG_DEBUG ("construct \""<< tid.GetName ()<<"::"<<
-                                            info.name <<"\" from env var");
-                              break;
+                              if (DoSet (info.accessor, info.checker, StringValue (value)))
+                                {
+                                  NS_LOG_DEBUG ("construct \""<< tid.GetName ()<<"::"<<
+                                                info.name <<"\" from env var");
+                                  found = true;
+                                  break;
+                                }
                             }
                         }
+                      cur = next + 1;
                     }
-                  cur = next + 1;
                 }
-            }
 #endif /* HAVE_GETENV */
-
-          // No matching attribute value so we try to set the default value.
-          DoSet (info.accessor, info.checker, *info.initialValue);
-          NS_LOG_DEBUG ("construct \""<< tid.GetName ()<<"::"<<
-                        info.name <<"\" from initial value.");
+            }
+          if (!found)
+            {
+              // No matching attribute value so we try to set the default value.
+              DoSet (info.accessor, info.checker, *info.initialValue);
+              NS_LOG_DEBUG ("construct \""<< tid.GetName ()<<"::"<<
+                            info.name <<"\" from initial value.");
+            }
         }
       tid = tid.GetParent ();
     } while (tid != ObjectBase::GetTypeId ());

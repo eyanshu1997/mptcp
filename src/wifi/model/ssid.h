@@ -17,11 +17,13 @@
  *
  * Author: Mathieu Lacage <mathieu.lacage@sophia.inria.fr>
  */
-
 #ifndef SSID_H
 #define SSID_H
 
-#include "wifi-information-element.h"
+#include <stdint.h>
+#include "ns3/buffer.h"
+#include "ns3/attribute-helper.h"
+#include "ns3/wifi-information-element.h"
 
 namespace ns3 {
 
@@ -29,8 +31,6 @@ namespace ns3 {
  * \ingroup wifi
  *
  * The IEEE 802.11 SSID Information Element
- *
- * \see attribute_Ssid
  */
 class Ssid : public WifiInformationElement
 {
@@ -43,12 +43,18 @@ public:
    * \param s SSID in string
    */
   Ssid (std::string s);
+  /**
+   * Create SSID from a given array of char and given length.
+   *
+   * \param ssid
+   * \param length
+   */
+  Ssid (char const ssid[32], uint8_t length);
 
   /**
    * Check if the two SSIDs are equal.
    *
    * \param o SSID to compare to
-   *
    * \return true if the two SSIDs are equal,
    *         false otherwise
    */
@@ -68,34 +74,9 @@ public:
    */
   char* PeekString (void) const;
 
-  /**
-   * Get the ElementID.
-   *
-   * \returns the element ID
-   */
   WifiInformationElementId ElementId () const;
-
-  /**
-   * Get the information field size.
-   *
-   * \returns the information field size
-   */
   uint8_t GetInformationFieldSize () const;
-
-  /**
-   * Get the information field size.
-   *
-   * \param start the information field iterator
-   */
   void SerializeInformationField (Buffer::Iterator start) const;
-
-  /**
-   * Get the information field size.
-   *
-   * \param start the information field iterator
-   * \param length the size of the information field
-   * \returns the size of the field read
-   */
   uint8_t DeserializeInformationField (Buffer::Iterator start,
                                        uint8_t length);
 
@@ -107,8 +88,13 @@ private:
 std::ostream &operator << (std::ostream &os, const Ssid &ssid);
 std::istream &operator >> (std::istream &is, Ssid &ssid);
 
+/**
+ * \class ns3::SsidValue
+ * \brief hold objects of type ns3::Ssid
+ */
+
 ATTRIBUTE_HELPER_HEADER (Ssid);
 
-} //namespace ns3
+} // namespace ns3
 
 #endif /* SSID_H */

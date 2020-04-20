@@ -18,16 +18,12 @@
  * Author: Kirill Andreev <andreev@iitp.ru>
  *         Pavel Boyko <boyko@iitp.ru>
  */
- 
 #include "mesh-helper.h"
 #include "ns3/simulator.h"
-#include "ns3/pointer.h"
 #include "ns3/mesh-point-device.h"
 #include "ns3/wifi-net-device.h"
 #include "ns3/minstrel-wifi-manager.h"
 #include "ns3/mesh-wifi-interface-mac.h"
-#include "ns3/wifi-helper.h"
-
 namespace ns3
 {
 MeshHelper::MeshHelper () :
@@ -247,30 +243,6 @@ MeshHelper::AssignStreams (NetDeviceContainer c, int64_t stream)
                 {
                   currentStream += mac->AssignStreams (currentStream);
                 }
-              Ptr<RegularWifiMac> rmac = DynamicCast<RegularWifiMac> (mac);
-              if (rmac)
-                {
-                  PointerValue ptr;
-                  rmac->GetAttribute ("Txop", ptr);
-                  Ptr<Txop> txop = ptr.Get<Txop> ();
-                  currentStream += txop->AssignStreams (currentStream);
-
-                  rmac->GetAttribute ("VO_Txop", ptr);
-                  Ptr<QosTxop> vo_txop = ptr.Get<QosTxop> ();
-                  currentStream += vo_txop->AssignStreams (currentStream);
-
-                  rmac->GetAttribute ("VI_Txop", ptr);
-                  Ptr<QosTxop> vi_txop = ptr.Get<QosTxop> ();
-                  currentStream += vi_txop->AssignStreams (currentStream);
-
-                  rmac->GetAttribute ("BE_Txop", ptr);
-                  Ptr<QosTxop> be_txop = ptr.Get<QosTxop> ();
-                  currentStream += be_txop->AssignStreams (currentStream);
-
-                  rmac->GetAttribute ("BK_Txop", ptr);
-                  Ptr<QosTxop> bk_txop = ptr.Get<QosTxop> ();
-                  currentStream += bk_txop->AssignStreams (currentStream);
-               }
             }
         }
     }

@@ -35,28 +35,22 @@
 
 #include <cmath>
 
-
-/**
- * \file
- * \ingroup realtime
- * ns3::RealTimeSimulatorImpl implementation.
- */
-
-namespace ns3 {
-
 // Note:  Logging in this file is largely avoided due to the
 // number of calls that are made to these functions and the possibility
 // of causing recursions leading to stack overflow
+
 NS_LOG_COMPONENT_DEFINE ("RealtimeSimulatorImpl");
 
-NS_OBJECT_ENSURE_REGISTERED (RealtimeSimulatorImpl);
+namespace ns3 {
+
+NS_OBJECT_ENSURE_REGISTERED (RealtimeSimulatorImpl)
+  ;
 
 TypeId
 RealtimeSimulatorImpl::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::RealtimeSimulatorImpl")
     .SetParent<SimulatorImpl> ()
-    .SetGroupName ("Core")
     .AddConstructor<RealtimeSimulatorImpl> ()
     .AddAttribute ("SynchronizationMode", 
                    "What to do if the simulation cannot keep up with real time.",
@@ -88,7 +82,7 @@ RealtimeSimulatorImpl::RealtimeSimulatorImpl ()
   // before ::Run is entered, the m_currentUid will be zero
   m_currentUid = 0;
   m_currentTs = 0;
-  m_currentContext = Simulator::NO_CONTEXT;
+  m_currentContext = 0xffffffff;
   m_unscheduledEvents = 0;
 
   m_main = SystemThread::Self();
@@ -177,7 +171,7 @@ RealtimeSimulatorImpl::ProcessOneEvent (void)
   // cause us to re-evaluate our state.  The way this works is that the synchronizer
   // gets interrupted and returns.  So, there is a possibility that things may change
   // out from under us dynamically.  In this case, we need to re-evaluate how long to 
-  // wait in a for-loop until we have waited successfully (until a timeout) for the 
+  // wait in a for-loop until we have waited sucessfully (until a timeout) for the 
   // event at the head of the event list.
   //
   // m_synchronizer->Synchronize will return true if the wait was completed without 
@@ -196,7 +190,7 @@ RealtimeSimulatorImpl::ProcessOneEvent (void)
       // It is important to understand that m_currentTs is interpreted only as the 
       // timestamp  of the last event we executed.  Current time can a bit of a 
       // slippery concept in realtime mode.  What we have here is a discrete event 
-      // simulator, so the last event is, by definition, executed entirely at a single
+      // simulator, so the last event is, by defintion, executed entirely at a single
       //  discrete time.  This is the definition of m_currentTs.  It really has 
       // nothing to do with the current real time, except that we are trying to arrange
       // that at the instant of the beginning of event execution, the current real time
@@ -373,7 +367,7 @@ RealtimeSimulatorImpl::ProcessOneEvent (void)
             tsJitter = m_currentTs - tsFinal;
           }
 
-        if (tsJitter > static_cast<uint64_t> (m_hardLimit.GetTimeStep ()))
+        if (tsJitter > static_cast<uint64_t>(m_hardLimit.GetTimeStep ()))
           {
             NS_FATAL_ERROR ("RealtimeSimulatorImpl::ProcessOneEvent (): "
                             "Hard real-time limit exceeded (jitter = " << tsJitter << ")");
@@ -433,7 +427,7 @@ RealtimeSimulatorImpl::Run (void)
   m_synchronizer->SetOrigin (m_currentTs);
 
   // Sleep until signalled
-  uint64_t tsNow = 0;
+  uint64_t tsNow;
   uint64_t tsDelay = 1000000000; // wait time of 1 second (in nanoseconds)
  
   while (!m_stop) 
@@ -499,31 +493,32 @@ RealtimeSimulatorImpl::Stop (void)
 }
 
 void 
-RealtimeSimulatorImpl::Stop (Time const &delay)
+RealtimeSimulatorImpl::Stop (Time const &time)
 {
-  NS_LOG_FUNCTION (this << delay);
-  Simulator::Schedule (delay, &Simulator::Stop);
+  NS_LOG_FUNCTION (this << time);
+  Simulator::Schedule (time, &Simulator::Stop);
 }
 
 //
 // Schedule an event for a _relative_ time in the future.
 //
 EventId
-RealtimeSimulatorImpl::Schedule (Time const &delay, EventImpl *impl)
+RealtimeSimulatorImpl::Schedule (Time const &time, EventImpl *impl)
 {
-  NS_LOG_FUNCTION (this << delay << impl);
+  NS_LOG_FUNCTION (this << time << impl);
 
   Scheduler::Event ev;
   {
     CriticalSection cs (m_mutex);
     //
-    // This is the reason we had to bring the absolute time calculation in from the
+    // This is the reason we had to bring the absolute time calcualtion in from the
     // simulator.h into the implementation.  Since the implementations may be 
     // multi-threaded, we need this calculation to be atomic.  You can see it is
     // here since we are running in a CriticalSection.
     //
-    Time tAbsolute = Simulator::Now () + delay;
-    NS_ASSERT_MSG (delay.IsPositive (), "RealtimeSimulatorImpl::Schedule(): Negative delay");
+    Time tAbsolute = Simulator::Now () + time;
+    NS_ASSERT_MSG (tAbsolute.IsPositive (), "RealtimeSimulatorImpl::Schedule(): Negative time");
+    NS_ASSERT_MSG (tAbsolute >= TimeStep (m_currentTs), "RealtimeSimulatorImpl::Schedule(): time < m_currentTs");
     ev.impl = impl;
     ev.key.m_ts = (uint64_t) tAbsolute.GetTimeStep ();
     ev.key.m_context = GetContext ();
@@ -538,9 +533,9 @@ RealtimeSimulatorImpl::Schedule (Time const &delay, EventImpl *impl)
 }
 
 void
-RealtimeSimulatorImpl::ScheduleWithContext (uint32_t context, Time const &delay, EventImpl *impl)
+RealtimeSimulatorImpl::ScheduleWithContext (uint32_t context, Time const &time, EventImpl *impl)
 {
-  NS_LOG_FUNCTION (this << context << delay << impl);
+  NS_LOG_FUNCTION (this << context << time << impl);
 
   {
     CriticalSection cs (m_mutex);
@@ -548,7 +543,7 @@ RealtimeSimulatorImpl::ScheduleWithContext (uint32_t context, Time const &delay,
 
     if (SystemThread::Equals (m_main))
       {
-        ts = m_currentTs + delay.GetTimeStep ();
+        ts = m_currentTs + time.GetTimeStep ();
       }
     else
       {
@@ -557,7 +552,7 @@ RealtimeSimulatorImpl::ScheduleWithContext (uint32_t context, Time const &delay,
         // realtime clock.  If we're not, then m_currentTs is where we stopped.
         // 
         ts = m_running ? m_synchronizer->GetCurrentRealtime () : m_currentTs;
-        ts += delay.GetTimeStep ();
+        ts += time.GetTimeStep ();
       }
 
     NS_ASSERT_MSG (ts >= m_currentTs, "RealtimeSimulatorImpl::ScheduleRealtime(): schedule for time < m_currentTs");
@@ -756,12 +751,12 @@ RealtimeSimulatorImpl::Cancel (const EventId &id)
 }
 
 bool
-RealtimeSimulatorImpl::IsExpired (const EventId &id) const
+RealtimeSimulatorImpl::IsExpired (const EventId &ev) const
 {
-  if (id.GetUid () == 2)
+  if (ev.GetUid () == 2)
     {
-      if (id.PeekEventImpl () == 0 ||
-          id.PeekEventImpl ()->IsCancelled ())
+      if (ev.PeekEventImpl () == 0 ||
+          ev.PeekEventImpl ()->IsCancelled ())
         {
           return true;
         }
@@ -769,7 +764,7 @@ RealtimeSimulatorImpl::IsExpired (const EventId &id) const
       for (DestroyEvents::const_iterator i = m_destroyEvents.begin (); 
            i != m_destroyEvents.end (); i++)
         {
-          if (*i == id)
+          if (*i == ev)
             {
               return false;
             }
@@ -785,10 +780,10 @@ RealtimeSimulatorImpl::IsExpired (const EventId &id) const
   //
   // The same is true for the next line involving the m_currentUid.
   //
-  if (id.PeekEventImpl () == 0 ||
-      id.GetTs () < m_currentTs ||
-      (id.GetTs () == m_currentTs && id.GetUid () <= m_currentUid) ||
-      id.PeekEventImpl ()->IsCancelled ()) 
+  if (ev.PeekEventImpl () == 0 ||
+      ev.GetTs () < m_currentTs ||
+      (ev.GetTs () == m_currentTs && ev.GetUid () <= m_currentUid) ||
+      ev.PeekEventImpl ()->IsCancelled ()) 
     {
       return true;
     }
@@ -801,6 +796,8 @@ RealtimeSimulatorImpl::IsExpired (const EventId &id) const
 Time 
 RealtimeSimulatorImpl::GetMaximumSimulationTime (void) const
 {
+  /// \todo I am fairly certain other compilers use other non-standard
+  /// post-fixes to indicate 64 bit constants.
   return TimeStep (0x7fffffffffffffffLL);
 }
 

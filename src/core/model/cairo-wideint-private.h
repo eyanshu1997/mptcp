@@ -1,4 +1,3 @@
-/* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /* cairo - a vector graphics library with display and print output
  *
  * Copyright © 2004 Keith Packard
@@ -33,21 +32,9 @@
 #ifndef CAIRO_WIDEINT_H
 #define CAIRO_WIDEINT_H
 
-/**
- * \file
- * \ingroup highprec
- * \c cairo_x function declarations, which provide the fallback
- * high precision arithmetic implementation.
- */
-
-// Adapt to ns-3 environment
 #include "ns3/core-config.h"
 #define cairo_private 
 #define HAVE_UINT64_T 1
-// Implementation tags added below and in cairo-wideint.c:
-// extern const char * cairo_impl64;
-// extern const char * cairo_impl128;
-
 
 /*for compatibility with MacOS and Cygwin*/
 #ifndef HAVE_STDINT_H
@@ -103,8 +90,6 @@ extern "C" {
 
 #if !HAVE_UINT64_T
 
-extern const char * cairo_impl64;
-
 typedef struct _cairo_uint64 {
   uint32_t    lo, hi;
 } cairo_uint64_t, cairo_int64_t;
@@ -143,8 +128,6 @@ int            I        _cairo_int64_lt (cairo_uint64_t a, cairo_uint64_t b);
 #define                 _cairo_int64_not(a)         _cairo_uint64_not (a)
 
 #else
-
-extern const char * cairo_impl64;
 
 typedef uint64_t    cairo_uint64_t;
 typedef int64_t     cairo_int64_t;
@@ -185,7 +168,7 @@ typedef int64_t     cairo_int64_t;
 #endif
 
 /*
- * 64-bit comparisons derived from lt or eq
+ * 64-bit comparisions derived from lt or eq
  */
 #define                 _cairo_uint64_le(a,b)       (!_cairo_uint64_gt (a,b))
 #define                 _cairo_uint64_ne(a,b)       (!_cairo_uint64_eq (a,b))
@@ -225,8 +208,6 @@ _cairo_int64_divrem (cairo_int64_t num, cairo_int64_t den);
  */
 
 #if !HAVE_UINT128_T
-
-extern const char * cairo_impl128;
 
 typedef struct cairo_uint128 {
   cairo_uint64_t      lo, hi;
@@ -270,8 +251,6 @@ int             I       _cairo_int128_lt (cairo_int128_t a, cairo_int128_t b);
 #define                 _cairo_int128_not(a)        _cairo_uint128_not (a)
 
 #else   /* !HAVE_UINT128_T */
-
-extern const char * cairo_impl128;
 
 typedef uint128_t       cairo_uint128_t;
 typedef int128_t        cairo_int128_t;

@@ -22,18 +22,18 @@
 #include "aloha-noack-mac-header.h"
 
 
-namespace ns3 {
-
 NS_LOG_COMPONENT_DEFINE ("AlohaNoackMacHeader");
 
-NS_OBJECT_ENSURE_REGISTERED (AlohaNoackMacHeader);
+namespace ns3 {
+
+NS_OBJECT_ENSURE_REGISTERED (AlohaNoackMacHeader)
+  ;
 
 TypeId
 AlohaNoackMacHeader::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::AlohaNoackMacHeader")
     .SetParent<Header> ()
-    .SetGroupName ("Spectrum")
     .AddConstructor<AlohaNoackMacHeader> ()
   ;
   return tid;

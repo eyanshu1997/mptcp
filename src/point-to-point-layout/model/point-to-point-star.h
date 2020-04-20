@@ -14,7 +14,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-// Define an object to create a star topology.
+// Define an object to create a dumbbell topology.
 
 #ifndef POINT_TO_POINT_STAR_HELPER_H
 #define POINT_TO_POINT_STAR_HELPER_H
@@ -139,14 +139,14 @@ public:
   void BoundingBox (double ulx, double uly, double lrx, double lry);
 
 private:
-  NodeContainer m_hub;              //!< Hub node
-  NetDeviceContainer m_hubDevices;  //!< Hub node NetDevices
-  NodeContainer m_spokes;                     //!< Spoke nodes
-  NetDeviceContainer m_spokeDevices;          //!< Spoke nodes NetDevices
-  Ipv4InterfaceContainer m_hubInterfaces;     //!< IPv4 hub interfaces
-  Ipv4InterfaceContainer m_spokeInterfaces;   //!< IPv4 spoke nodes interfaces
-  Ipv6InterfaceContainer m_hubInterfaces6;    //!< IPv6 hub interfaces
-  Ipv6InterfaceContainer m_spokeInterfaces6;  //!< IPv6 spoke nodes interfaces
+  NodeContainer m_hub;
+  NetDeviceContainer m_hubDevices;
+  NodeContainer m_spokes;
+  NetDeviceContainer m_spokeDevices;
+  Ipv4InterfaceContainer m_hubInterfaces;
+  Ipv4InterfaceContainer m_spokeInterfaces;
+  Ipv6InterfaceContainer m_hubInterfaces6;
+  Ipv6InterfaceContainer m_spokeInterfaces6;
 };
 
 } // namespace ns3

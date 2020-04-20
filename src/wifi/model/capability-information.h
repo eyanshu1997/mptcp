@@ -17,10 +17,10 @@
  *
  * Author: Mathieu Lacage <mathieu.lacage@sophia.inria.fr>
  */
-
 #ifndef CAPABILITY_INFORMATION_H
 #define CAPABILITY_INFORMATION_H
 
+#include <stdint.h>
 #include "ns3/buffer.h"
 
 namespace ns3 {
@@ -45,27 +45,6 @@ public:
    * in the capability information field.
    */
   void SetIbss (void);
-  /**
-   * Set the short preamble bit
-   * in the capability information field.
-   *
-   * \param shortPreamble the short preamble bit
-   *
-   */
-  void SetShortPreamble (bool shortPreamble);
-  /**
-   * Set the short slot time bit
-   * in the capability information field.
-   *
-   * \param shortSlotTime the short preamble bit
-   *
-   */
-  void SetShortSlotTime (bool shortSlotTime);
-  /**
-   * Set the CF-Pollable bit
-   * in the capability information field.
-   */
-  void SetCfPollable (void);
 
   /**
    * Check if the Extended Service Set (ESS) bit
@@ -83,33 +62,9 @@ public:
    *         field is set to 1
    */
   bool IsIbss (void) const;
-  /**
-   * Check if the short preamble bit
-   * in the capability information field is set to 1.
-   *
-   * \return short preamble bit in the capability information
-   *         field is set to 1
-   */
-  bool IsShortPreamble (void) const;
-  /**
-   * Check if the short slot time
-   * in the capability information field is set to 1.
-   *
-   * \return short slot time bit in the capability information
-   *         field is set to 1
-   */
-  bool IsShortSlotTime (void) const;
-  /**
-   * Check if the CF-Pollable bit
-   * in the capability information field is set to 1.
-   *
-   * \return CF-Pollable bit in the capability information
-   *         field is set to 1
-   */
-  bool IsCfPollable (void) const;
 
   /**
-   * Return the serialized size of capability
+   * Return the serialized size of capability 
    * information.
    *
    * \return the serialized size
@@ -131,14 +86,11 @@ public:
    *         was deserialized
    */
   Buffer::Iterator Deserialize (Buffer::Iterator start);
-
-
 private:
   /**
    * Check if bit n is set to 1.
    *
    * \param n the bit position
-   *
    * \return true if bit n is set to 1,
    *         false otherwise
    */
@@ -155,10 +107,9 @@ private:
    * \param n the bit position
    */
   void Clear (uint8_t n);
-
-  uint16_t m_capability; ///< capability
+  uint16_t m_capability;
 };
 
-} //namespace ns3
+} // namespace ns3
 
 #endif /* CAPABILITY_INFORMATION_H */

@@ -24,18 +24,18 @@
 #include "ns3/node.h"
 #include "ns3/packet.h"
 
-namespace ns3 {
-
 NS_LOG_COMPONENT_DEFINE ("LoopbackNetDevice");
 
-NS_OBJECT_ENSURE_REGISTERED (LoopbackNetDevice);
+namespace ns3 {
+
+NS_OBJECT_ENSURE_REGISTERED (LoopbackNetDevice)
+  ;
 
 TypeId 
 LoopbackNetDevice::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::LoopbackNetDevice")
     .SetParent<NetDevice> ()
-    .SetGroupName ("Internet")
     .AddConstructor<LoopbackNetDevice> ()
   ;
   return tid;

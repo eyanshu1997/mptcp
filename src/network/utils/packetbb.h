@@ -55,10 +55,8 @@ enum PbbAddressLength {
 class PbbTlvBlock
 {
 public:
-  /// PbbTlv container iterator
-  typedef std::list< Ptr<PbbTlv> >::iterator Iterator;
-  /// PbbTlv container const iterator
-  typedef std::list< Ptr<PbbTlv> >::const_iterator ConstIterator;
+  typedef std::list< Ptr<PbbTlv> >::iterator Iterator;              /// this is an iterator
+  typedef std::list< Ptr<PbbTlv> >::const_iterator ConstIterator;   /// this is a const iterator
 
   PbbTlvBlock (void);
   ~PbbTlvBlock (void);
@@ -208,7 +206,7 @@ public:
   bool operator!= (const PbbTlvBlock &other) const;
 
 private:
-  std::list< Ptr<PbbTlv> > m_tlvList; //!< PbbTlv container
+  std::list< Ptr<PbbTlv> > m_tlvList;
 };
 
 /**
@@ -219,10 +217,8 @@ private:
 class PbbAddressTlvBlock
 {
 public:
-  /// PbbAddressTlv iterator for PbbAddressTlvBlock
-  typedef std::list< Ptr<PbbAddressTlv> >::iterator Iterator;
-  /// PbbAddressTlv const iterator for PbbAddressTlvBlock
-  typedef std::list< Ptr<PbbAddressTlv> >::const_iterator ConstIterator;
+  typedef std::list< Ptr<PbbAddressTlv> >::iterator Iterator;               /// This is a PbbAddressTlv iterator for PbbAddressTlvBlock
+  typedef std::list< Ptr<PbbAddressTlv> >::const_iterator ConstIterator;    /// This is a const PbbAddressTlv iterator for PbbAddressTlvBlock
 
   PbbAddressTlvBlock (void);
   ~PbbAddressTlvBlock (void);
@@ -375,7 +371,7 @@ public:
   bool operator!= (const PbbAddressTlvBlock &other) const;
 
 private:
-  std::list< Ptr<PbbAddressTlv> > m_tlvList; //!< PbbAddressTlv container
+  std::list< Ptr<PbbAddressTlv> > m_tlvList;
 };
 
 /**
@@ -389,14 +385,10 @@ private:
 class PbbPacket : public SimpleRefCount<PbbPacket,Header>
 {
 public:
-  /// PbbTlv iterator for PbbPacket
-  typedef std::list< Ptr<PbbTlv> >::iterator TlvIterator;
-  /// PbbTlv const iterator for PbbPacket
-  typedef std::list< Ptr<PbbTlv> >::const_iterator ConstTlvIterator;
-  /// PbbMessage Iterator for PbbPacket
-  typedef std::list< Ptr<PbbMessage> >::iterator MessageIterator;
-  /// PbbMessage Const Iterator for PbbPacket
-  typedef std::list< Ptr<PbbMessage> >::const_iterator ConstMessageIterator;
+  typedef std::list< Ptr<PbbTlv> >::iterator TlvIterator;                       /// This is a PbbTlv iterator for PbbPacket
+  typedef std::list< Ptr<PbbTlv> >::const_iterator ConstTlvIterator;            /// This is a const PbbTlv iterator for PbbPacket
+  typedef std::list< Ptr<PbbMessage> >::iterator MessageIterator;               /// This is a PbbMessageIterator for PbbPacket
+  typedef std::list< Ptr<PbbMessage> >::const_iterator ConstMessageIterator;    /// This is a const PbbMessageIterator for PbbPacket
 
   PbbPacket (void);
   ~PbbPacket (void);
@@ -625,10 +617,7 @@ public:
    */
   void MessageClear (void);
 
-  /**
-   * \brief Get the type ID.
-   * \return the object TypeId
-   */
+  /* Methods implemented by all headers */
   static TypeId GetTypeId (void);
   virtual TypeId GetInstanceTypeId (void) const;
 
@@ -676,13 +665,13 @@ public:
 protected:
 
 private:
-  PbbTlvBlock m_tlvList; //!< PbbTlv container
-  std::list< Ptr<PbbMessage> > m_messageList; //!< PbbTlvBlock container
+  PbbTlvBlock m_tlvList;
+  std::list< Ptr<PbbMessage> > m_messageList;
 
-  uint8_t m_version; //!< version
+  uint8_t m_version;
 
-  bool m_hasseqnum; //!< Sequence number present
-  uint16_t m_seqnum; //!< Sequence number
+  bool m_hasseqnum;
+  uint16_t m_seqnum;
 };
 
 /**
@@ -695,14 +684,10 @@ private:
 class PbbMessage : public SimpleRefCount<PbbMessage>
 {
 public:
-  /// PbbTlv iterator
-  typedef std::list< Ptr<PbbTlv> >::iterator TlvIterator;
-  /// PbbTlv const iterator
-  typedef std::list< Ptr<PbbTlv> >::const_iterator ConstTlvIterator;
-  /// PbbAddressBlock iterator
-  typedef std::list< Ptr<PbbAddressBlock> >::iterator AddressBlockIterator;
-  /// PbbAddressBlock const iterator
-  typedef std::list< Ptr<PbbAddressBlock> >::const_iterator ConstAddressBlockIterator;
+  typedef std::list< Ptr<PbbTlv> >::iterator TlvIterator;                                 /// This is a PbbTlv iterator for PbbMessage
+  typedef std::list< Ptr<PbbTlv> >::const_iterator ConstTlvIterator;                      /// This is a const PbbTlv iterator for PbbMessage
+  typedef std::list< Ptr<PbbAddressBlock> >::iterator AddressBlockIterator;               /// This is a PbbAddressBlock iterator for PbbMessage
+  typedef std::list< Ptr<PbbAddressBlock> >::const_iterator ConstAddressBlockIterator;    /// This is a const PbbAddressBlock iterator for PbbMessage
 
   PbbMessage ();
   virtual ~PbbMessage ();
@@ -1075,48 +1060,30 @@ protected:
    */
   virtual PbbAddressLength GetAddressLength (void) const = 0;
 
-  /**
-   * \brief Serialize the originator address
-   * \param start the buffer iterator start
-   */
   virtual void SerializeOriginatorAddress (Buffer::Iterator &start) const = 0;
-  /**
-   * \brief Deserialize the originator address
-   * \param start the buffer iterator start
-   * \returns the deserialized address
-   */
   virtual Address DeserializeOriginatorAddress (Buffer::Iterator &start) const = 0;
-  /**
-   * \brief Print the originator address
-   * \param os the output stream
-   */
   virtual void PrintOriginatorAddress (std::ostream &os) const = 0;
 
-  /**
-   * \brief Deserialize an address block
-   * \param start the buffer iterator start
-   * \returns the deserialized address block
-   */
   virtual Ptr<PbbAddressBlock> AddressBlockDeserialize (Buffer::Iterator &start) const = 0;
 
 private:
-  PbbTlvBlock m_tlvList; //!< PbbTlvBlock
-  std::list< Ptr<PbbAddressBlock> > m_addressBlockList; //!< PbbAddressBlock container
+  PbbTlvBlock m_tlvList;
+  std::list< Ptr<PbbAddressBlock> > m_addressBlockList;
 
-  uint8_t m_type; //!< the type for this message
-  PbbAddressLength m_addrSize; //!< the address size
+  uint8_t m_type;
+  PbbAddressLength m_addrSize;
 
-  bool m_hasOriginatorAddress; //!< Originator address present
-  Address m_originatorAddress; //!< originator address
+  bool m_hasOriginatorAddress;
+  Address m_originatorAddress;
 
-  bool m_hasHopLimit; //!< Hop limit present
-  uint8_t m_hopLimit; //!< Hop limit
+  bool m_hasHopLimit;
+  uint8_t m_hopLimit;
 
-  bool m_hasHopCount; //!< Hop count present
-  uint8_t m_hopCount; //!< Hop count
+  bool m_hasHopCount;
+  uint8_t m_hopCount;
 
-  bool m_hasSequenceNumber;  //!< Sequence number present
-  uint16_t m_sequenceNumber; //!< Sequence number
+  bool m_hasSequenceNumber;
+  uint16_t m_sequenceNumber;
 };
 
 /**
@@ -1184,20 +1151,14 @@ protected:
 class PbbAddressBlock : public SimpleRefCount<PbbAddressBlock>
 {
 public:
-  /// Address iterator
-  typedef std::list< Address >::iterator AddressIterator;
-  /// Address const iterator
-  typedef std::list< Address >::const_iterator ConstAddressIterator;
+  typedef std::list< Address >::iterator AddressIterator;             /// this is an address iterator for PbbAddressBlock
+  typedef std::list< Address >::const_iterator ConstAddressIterator;  /// this is an const address iterator for PbbAddressBlock
 
-  /// Prefix iterator
-  typedef std::list<uint8_t>::iterator PrefixIterator;
-  /// Prefix const iterator
-  typedef std::list<uint8_t>::const_iterator ConstPrefixIterator;
+  typedef std::list<uint8_t>::iterator PrefixIterator;                /// this is a prefix iterator for PbbAddressBlock
+  typedef std::list<uint8_t>::const_iterator ConstPrefixIterator;     /// this is a const prefix iterator for PbbAddressBlock
 
-  /// tlvblock iterator
-  typedef PbbAddressTlvBlock::Iterator TlvIterator;
-  /// tlvblock const iterator
-  typedef PbbAddressTlvBlock::ConstIterator ConstTlvIterator;
+  typedef PbbAddressTlvBlock::Iterator TlvIterator;                   /// this is a tlvblock iterator for PbbAddressBlock
+  typedef PbbAddressTlvBlock::ConstIterator ConstTlvIterator;         /// this is a const tlvblock iterator for PbbAddressBlock
 
   PbbAddressBlock ();
   virtual ~PbbAddressBlock ();
@@ -1561,52 +1522,19 @@ protected:
    * \returns Address length
    */
   virtual uint8_t GetAddressLength (void) const = 0;
-  /**
-   * \brief Serialize one or more addresses
-   * \param buffer the buffer to serialize to
-   * \param iter the iterator to the addresses
-   */
   virtual void SerializeAddress (uint8_t *buffer, ConstAddressIterator iter) const = 0;
-  /**
-   * \brief Deserialize one address
-   * \param buffer the buffer to deserialize from
-   * \returns the address
-   */
   virtual Address DeserializeAddress (uint8_t *buffer) const = 0;
-  /**
-   * \brief Print one or more addresses
-   * \param os the output stream
-   * \param iter the iterator to the addresses
-   */
   virtual void PrintAddress (std::ostream &os, ConstAddressIterator iter) const = 0;
 
 private:
-  /**
-   * \brief Get the prefix flags
-   * \return the prefix flags
-   */
   uint8_t GetPrefixFlags (void) const;
-  /**
-   * \brief Get head and tail
-   * \param head the head
-   * \param headlen the head length
-   * \param tail the tail
-   * \param taillen the tail length
-   */
   void GetHeadTail (uint8_t *head, uint8_t &headlen,
                     uint8_t *tail, uint8_t &taillen) const;
-
-  /**
-   * \brief Check if the tail is empty
-   * \param tail the tail
-   * \param taillen the tail length
-   * \returns true if the tail is empty
-   */
   bool HasZeroTail (const uint8_t *tail, uint8_t taillen) const;
 
-  std::list<Address> m_addressList; //!< Addresses container
-  std::list<uint8_t> m_prefixList; //!< Prefixes container
-  PbbAddressTlvBlock m_addressTlvList; //!< PbbAddressTlv container
+  std::list<Address> m_addressList;
+  std::list<uint8_t> m_prefixList;
+  PbbAddressTlvBlock m_addressTlvList;
 };
 
 /**
@@ -1789,64 +1717,32 @@ public:
   bool operator!= (const PbbTlv &other) const;
 
 protected:
-  /**
-   * \brief Set an index as starting point
-   * \param index the starting index
-   */
   void SetIndexStart (uint8_t index);
-  /**
-   * \brief Get the starting point index
-   * \returns the starting index
-   */
   uint8_t GetIndexStart (void) const;
-  /**
-   * \brief Checks if there is a starting index
-   * \returns true if the start index has been set
-   */
   bool HasIndexStart (void) const;
 
-  /**
-   * \brief Set an index as stop point
-   * \param index the stop index
-   */
   void SetIndexStop (uint8_t index);
-  /**
-   * \brief Get the stop point index
-   * \returns the stop index
-   */
   uint8_t GetIndexStop (void) const;
-  /**
-   * \brief Checks if there is a stop index
-   * \returns true if the stop index has been set
-   */
   bool HasIndexStop (void) const;
 
-  /**
-   * \brief Set the multivalue parameter
-   * \param isMultivalue the multivalue status
-   */
   void SetMultivalue (bool isMultivalue);
-  /**
-   * \brief Check the multivalue parameter
-   * \returns the multivalue status
-   */
   bool IsMultivalue (void) const;
 
 private:
-  uint8_t m_type; //!< Type of this TLV.
+  uint8_t m_type;
 
-  bool m_hasTypeExt; //!< Extended type present.
-  uint8_t m_typeExt; //!< Extended type.
+  bool m_hasTypeExt;
+  uint8_t m_typeExt;
 
-  bool m_hasIndexStart; //!< Start index present.
-  uint8_t m_indexStart; //!< Start index.
+  bool m_hasIndexStart;
+  uint8_t m_indexStart;
 
-  bool m_hasIndexStop; //!< Stop index present.
-  uint8_t m_indexStop; //!< Stop index.
+  bool m_hasIndexStop;
+  uint8_t m_indexStop;
 
-  bool m_isMultivalue; //!< Is multivalue.
-  bool m_hasValue;     //!< Has value.
-  Buffer m_value;      //!< Value.
+  bool m_isMultivalue;
+  bool m_hasValue;
+  Buffer m_value;
 };
 
 /**

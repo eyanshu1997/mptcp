@@ -24,14 +24,14 @@
 namespace ns3 {
 
 
-NS_OBJECT_ENSURE_REGISTERED (SpectrumChannel);
+NS_OBJECT_ENSURE_REGISTERED (SpectrumChannel)
+  ;
 
 TypeId
 SpectrumChannel::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::SpectrumChannel")
     .SetParent<Channel> ()
-    .SetGroupName ("Spectrum")
   ;
   return tid;
 }

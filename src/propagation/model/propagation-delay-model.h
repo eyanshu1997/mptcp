@@ -37,10 +37,6 @@ class MobilityModel;
 class PropagationDelayModel : public Object
 {
 public:
-  /**
-   * \brief Get the type ID.
-   * \return the object TypeId
-   */
   static TypeId GetTypeId (void);
   virtual ~PropagationDelayModel ();
   /**
@@ -78,10 +74,6 @@ private:
 class RandomPropagationDelayModel : public PropagationDelayModel
 {
 public:
-  /**
-   * \brief Get the type ID.
-   * \return the object TypeId
-   */
   static TypeId GetTypeId (void);
 
   /**
@@ -92,7 +84,7 @@ public:
   virtual Time GetDelay (Ptr<MobilityModel> a, Ptr<MobilityModel> b) const;
 private:
   virtual int64_t DoAssignStreams (int64_t stream);
-  Ptr<RandomVariableStream> m_variable; //!< random generator
+  Ptr<RandomVariableStream> m_variable;
 };
 
 /**
@@ -103,10 +95,6 @@ private:
 class ConstantSpeedPropagationDelayModel : public PropagationDelayModel
 {
 public:
-  /**
-   * \brief Get the type ID.
-   * \return the object TypeId
-   */
   static TypeId GetTypeId (void);
 
   /**
@@ -124,7 +112,7 @@ public:
   double GetSpeed (void) const;
 private:
   virtual int64_t DoAssignStreams (int64_t stream);
-  double m_speed; //!< speed
+  double m_speed;
 };
 
 } // namespace ns3

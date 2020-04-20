@@ -22,18 +22,18 @@
 #include "ns3/log.h"
 #include "packet-socket.h"
 
-namespace ns3 {
-
 NS_LOG_COMPONENT_DEFINE ("PacketSocketFactory");
 
-NS_OBJECT_ENSURE_REGISTERED (PacketSocketFactory);
+namespace ns3 {
+
+NS_OBJECT_ENSURE_REGISTERED (PacketSocketFactory)
+  ;
 
 TypeId 
 PacketSocketFactory::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::PacketSocketFactory")
-    .SetParent<SocketFactory> ()
-    .SetGroupName("Network");
+    .SetParent<SocketFactory> ();
   return tid;
 }
 

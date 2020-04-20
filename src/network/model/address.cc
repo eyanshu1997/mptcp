@@ -25,9 +25,9 @@
 #include <iostream>
 #include <iomanip>
 
-namespace ns3 {
-
 NS_LOG_COMPONENT_DEFINE ("Address");
+
+namespace ns3 {
 
 Address::Address ()
   : m_type (0),
@@ -90,7 +90,7 @@ uint32_t
 Address::CopyAllTo (uint8_t *buffer, uint8_t len) const
 {
   NS_LOG_FUNCTION (this << &buffer << static_cast<uint32_t> (len));
-  NS_ASSERT (len - m_len > 1);
+  NS_ASSERT (len >= m_len + 2);
   buffer[0] = m_type;
   buffer[1] = m_len;
   std::memcpy (buffer + 2, m_data, m_len);
@@ -114,7 +114,7 @@ Address::CopyAllFrom (const uint8_t *buffer, uint8_t len)
   m_type = buffer[0];
   m_len = buffer[1];
 
-  NS_ASSERT (len - m_len > 1);
+  NS_ASSERT (len >= m_len + 2);
   std::memcpy (m_data, buffer + 2, m_len);
   return m_len + 2;
 }
@@ -169,7 +169,7 @@ Address::Deserialize (TagBuffer buffer)
   buffer.Read (m_data, m_len);
 }
 
-ATTRIBUTE_HELPER_CPP (Address);
+ATTRIBUTE_HELPER_CPP (Address);   /// Macro to make help make class an ns-3 attribute
 
 
 bool operator == (const Address &a, const Address &b)
@@ -248,6 +248,17 @@ std::ostream& operator<< (std::ostream& os, const Address & address)
   return os;
 }
 
+static uint8_t
+AsInt (std::string v)
+{
+  NS_LOG_FUNCTION_NOARGS ();
+  std::istringstream iss;
+  iss.str (v);
+  uint8_t retval;
+  iss >> std::hex >> retval >> std::dec;
+  return retval;
+}
+
 std::istream& operator>> (std::istream& is, Address & address)
 {
   std::string v;
@@ -258,8 +269,8 @@ std::istream& operator>> (std::istream& is, Address & address)
   std::string type = v.substr (0, firstDash-0);
   std::string len = v.substr (firstDash+1, secondDash-(firstDash+1));
 
-  address.m_type = strtoul (type.c_str(), 0, 16);
-  address.m_len = strtoul (len.c_str(), 0, 16);
+  address.m_type = AsInt (type);
+  address.m_len = AsInt (len);
   NS_ASSERT (address.m_len <= Address::MAX_SIZE);
 
   std::string::size_type col = secondDash + 1;
@@ -271,13 +282,13 @@ std::istream& operator>> (std::istream& is, Address & address)
       if (next == std::string::npos)
         {
           tmp = v.substr (col, v.size ()-col);
-          address.m_data[i] = strtoul (tmp.c_str(), 0, 16);
+          address.m_data[i] = AsInt (tmp);
           break;
         }
       else
         {
           tmp = v.substr (col, next-col);
-          address.m_data[i] = strtoul (tmp.c_str(), 0, 16);
+          address.m_data[i] = AsInt (tmp);
           col = next + 1;
         }
     }

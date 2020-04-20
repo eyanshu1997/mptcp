@@ -27,11 +27,12 @@
 #include "ns3/trace-source-accessor.h"
 #include "ns3/log.h"
 
-namespace ns3 {
-
 NS_LOG_COMPONENT_DEFINE ("UanMacCw");
 
-NS_OBJECT_ENSURE_REGISTERED (UanMacCw);
+namespace ns3 {
+
+NS_OBJECT_ENSURE_REGISTERED (UanMacCw)
+  ;
 
 UanMacCw::UanMacCw ()
   : UanMac (),
@@ -77,8 +78,7 @@ TypeId
 UanMacCw::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::UanMacCw")
-    .SetParent<UanMac> ()
-    .SetGroupName ("Uan")
+    .SetParent<Object> ()
     .AddConstructor<UanMacCw> ()
     .AddAttribute ("CW",
                    "The MAC parameter CW.",
@@ -92,23 +92,32 @@ UanMacCw::GetTypeId (void)
                    MakeTimeChecker ())
     .AddTraceSource ("Enqueue",
                      "A packet arrived at the MAC for transmission.",
-                     MakeTraceSourceAccessor (&UanMacCw::m_enqueueLogger),
-                     "ns3::UanMacCw::QueueTracedCallback")
+                     MakeTraceSourceAccessor (&UanMacCw::m_enqueueLogger))
     .AddTraceSource ("Dequeue",
                      "A was passed down to the PHY from the MAC.",
-                     MakeTraceSourceAccessor (&UanMacCw::m_dequeueLogger),
-                     "ns3::UanMacCw::QueueTracedCallback")
+                     MakeTraceSourceAccessor (&UanMacCw::m_dequeueLogger))
     .AddTraceSource ("RX",
                      "A packet was destined for this MAC and was received.",
-                     MakeTraceSourceAccessor (&UanMacCw::m_rxLogger),
-                     "ns3::UanMac::PacketModeTracedCallback")
+                     MakeTraceSourceAccessor (&UanMacCw::m_rxLogger))
 
   ;
   return tid;
 }
 
+Address
+UanMacCw::GetAddress ()
+{
+  return this->m_address;
+}
+
+void
+UanMacCw::SetAddress (UanAddress addr)
+{
+  m_address = addr;
+}
+
 bool
-UanMacCw::Enqueue (Ptr<Packet> packet, uint16_t protocolNumber, const Address &dest)
+UanMacCw::Enqueue (Ptr<Packet> packet, const Address &dest, uint16_t protocolNumber)
 {
 
   switch (m_state)
@@ -136,18 +145,17 @@ UanMacCw::Enqueue (Ptr<Packet> packet, uint16_t protocolNumber, const Address &d
         NS_ASSERT (!m_pktTx);
 
         UanHeaderCommon header;
-        header.SetDest (Mac8Address::ConvertFrom (dest));
+        header.SetDest (UanAddress::ConvertFrom (dest));
         header.SetSrc (m_address);
         header.SetType (0);
-        header.SetProtocolNumber (0);
         packet->AddHeader (header);
 
-        m_enqueueLogger (packet, GetTxModeIndex ());
+        m_enqueueLogger (packet, protocolNumber);
 
         if (m_phy->IsStateBusy ())
           {
             m_pktTx = packet;
-            m_pktTxProt = GetTxModeIndex ();
+            m_pktTxProt = protocolNumber;
             m_state = CCABUSY;
             uint32_t cw = (uint32_t) m_rv->GetValue (0,m_cw);
             m_savedDelayS = Seconds ((double)(cw) * m_slotTime.GetSeconds ());
@@ -161,7 +169,7 @@ UanMacCw::Enqueue (Ptr<Packet> packet, uint16_t protocolNumber, const Address &d
             NS_LOG_DEBUG ("Time " << Simulator::Now ().GetSeconds () << ": Addr " << GetAddress () << ": Enqueuing new packet while idle (sending)");
             NS_ASSERT (m_phy->GetTransducer ()->GetArrivalList ().size () == 0 && !m_phy->IsStateTx ());
             m_state = TX;
-            m_phy->SendPacket (packet,GetTxModeIndex ());
+            m_phy->SendPacket (packet,protocolNumber);
 
           }
         break;
@@ -177,7 +185,7 @@ UanMacCw::Enqueue (Ptr<Packet> packet, uint16_t protocolNumber, const Address &d
 }
 
 void
-UanMacCw::SetForwardUpCb (Callback<void, Ptr<Packet>, uint16_t, const Mac8Address&> cb)
+UanMacCw::SetForwardUpCb (Callback<void, Ptr<Packet>, const UanAddress&> cb)
 {
   m_forwardUpCb = cb;
 }
@@ -190,6 +198,13 @@ UanMacCw::AttachPhy (Ptr<UanPhy> phy)
   m_phy->SetReceiveErrorCallback (MakeCallback (&UanMacCw::PhyRxPacketError, this));
   m_phy->RegisterListener (this);
 }
+
+Address
+UanMacCw::GetBroadcast (void) const
+{
+  return UanAddress::GetBroadcast ();
+}
+
 
 void
 UanMacCw::NotifyRxStart (void)
@@ -325,19 +340,18 @@ UanMacCw::GetSlotTime (void)
 void
 UanMacCw::PhyRxPacketGood (Ptr<Packet> packet, double sinr, UanTxMode mode)
 {
-  NS_UNUSED (sinr);
   UanHeaderCommon header;
   packet->RemoveHeader (header);
 
-  if (header.GetDest () == m_address || header.GetDest () == Mac8Address::GetBroadcast ())
+  if (header.GetDest () == m_address || header.GetDest () == UanAddress::GetBroadcast ())
     {
-      m_forwardUpCb (packet, header.GetProtocolNumber (), header.GetSrc ());
+      m_forwardUpCb (packet, header.GetSrc ());
     }
 }
 void
 UanMacCw::PhyRxPacketError (Ptr<Packet> packet, double sinr)
 {
-  NS_UNUSED (sinr);
+
 }
 void
 UanMacCw::SaveTimer (void)

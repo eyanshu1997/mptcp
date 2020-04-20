@@ -27,14 +27,14 @@
 namespace ns3
 {
 
-NS_LOG_COMPONENT_DEFINE ("Ipv6EndPoint");
+NS_LOG_COMPONENT_DEFINE ("Ipv6EndPoint")
+  ;
 
 Ipv6EndPoint::Ipv6EndPoint (Ipv6Address addr, uint16_t port)
   : m_localAddr (addr),
     m_localPort (port),
     m_peerAddr (Ipv6Address::GetAny ()),
-    m_peerPort (0),
-    m_rxEnabled (true)
+    m_peerPort (0)
 {
 }
 
@@ -115,7 +115,8 @@ void Ipv6EndPoint::ForwardUp (Ptr<Packet> p, Ipv6Header header, uint16_t port, P
 {
   if (!m_rxCallback.IsNull ())
     {
-      m_rxCallback (p, header, port, incomingInterface);
+      Simulator::ScheduleNow (&Ipv6EndPoint::DoForwardUp, this, p, header, port,
+                              incomingInterface);
     }
 }
 
@@ -124,20 +125,21 @@ void Ipv6EndPoint::ForwardIcmp (Ipv6Address src, uint8_t ttl, uint8_t type,
 {
   if (!m_icmpCallback.IsNull ())
     {
-      m_icmpCallback (src, ttl, type, code, info);
+      Simulator::ScheduleNow (&Ipv6EndPoint::DoForwardIcmp, this,
+                              src, ttl, type, code, info);
     }
 }
 
-void Ipv6EndPoint::SetRxEnabled (bool enabled)
+void Ipv6EndPoint::DoForwardUp (Ptr<Packet> p, Ipv6Header header, uint16_t sport, Ptr<Ipv6Interface> incomingInterface)
 {
-  m_rxEnabled = enabled;
+  m_rxCallback (p, header, sport, incomingInterface);
 }
 
-bool Ipv6EndPoint::IsRxEnabled ()
+void Ipv6EndPoint::DoForwardIcmp (Ipv6Address src, uint8_t ttl, uint8_t type, 
+                                  uint8_t code, uint32_t info)
 {
-  return m_rxEnabled;
+  m_icmpCallback (src, ttl, type, code, info);
 }
-
 
 } /* namespace ns3 */
 

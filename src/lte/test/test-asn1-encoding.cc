@@ -30,24 +30,14 @@
 #include "ns3/lte-rrc-header.h"
 #include "ns3/lte-rrc-sap.h"
 
-using namespace ns3;
-
 NS_LOG_COMPONENT_DEFINE ("Asn1EncodingTest");
 
-/**
- * \ingroup lte-test
- * \ingroup tests
- *
- * \brief Contains ASN encoding test utility functions.
- */
+namespace ns3 {
+
 class TestUtils
 {
 public:
-  /**
-   * Function to convert packet contents in hex format
-   * \param pkt the packet
-   * \returns the text string
-   */
+  // Function to convert packet contents in hex format
   static std::string sprintPacketContentsHex (Ptr<Packet> pkt)
   {
     uint32_t psize = pkt->GetSize ();
@@ -61,11 +51,7 @@ public:
     return std::string (sbuffer);
   }
 
-  /**
-   * Function to convert packet contents in binary format
-   * \param pkt the packet
-   * \returns the text string
-   */
+  // Function to convert packet contents in binary format
   static std::string sprintPacketContentsBin (Ptr<Packet> pkt)
   {
     uint32_t psize = pkt->GetSize ();
@@ -79,10 +65,7 @@ public:
     return std::string (oss.str () + "\n");
   }
 
-  /**
-   * Function to log packet contents
-   * \param pkt the packet
-   */
+  // Function to log packet contents
   static void LogPacketContents (Ptr<Packet> pkt)
   {
     NS_LOG_DEBUG ("---- SERIALIZED PACKET CONTENTS (HEX): -------");
@@ -90,11 +73,6 @@ public:
     NS_LOG_DEBUG ("Bin: " << TestUtils::sprintPacketContentsBin (pkt));
   }
 
-  /**
-   * Function to log packet info
-   * \param source T
-   * \param s the string
-   */
   template <class T>
   static void LogPacketInfo (T source,std::string s)
   {
@@ -107,43 +85,27 @@ public:
 
 // --------------------------- CLASS RrcHeaderTestCase -----------------------------
 /**
- * \ingroup lte-test
- * \ingroup tests
- *
- * \brief This class provides common functions to be inherited
+ * This class provides common functions to be inherited
  * by the children TestCases
  */
 class RrcHeaderTestCase : public TestCase
 {
 public:
-  /**
-   * Constructor
-   * \param s the reference name
-   */
   RrcHeaderTestCase (std::string s);
   virtual void DoRun (void) = 0;
-  /**
-   * \brief Create radio resource config dedicated
-   * \returns LteRrcSap::RadioResourceConfigDedicated
-   */
   LteRrcSap::RadioResourceConfigDedicated CreateRadioResourceConfigDedicated ();
-  /**
-   * \brief Assert equal radio resource config dedicated
-   * \param rrcd1 LteRrcSap::RadioResourceConfigDedicated # 1
-   * \param rrcd2 LteRrcSap::RadioResourceConfigDedicated # 2
-   */
   void AssertEqualRadioResourceConfigDedicated (LteRrcSap::RadioResourceConfigDedicated rrcd1, LteRrcSap::RadioResourceConfigDedicated rrcd2);
 
 protected:
-  Ptr<Packet> packet; ///< the packet
+  Ptr<Packet> packet;
 };
 
-RrcHeaderTestCase::RrcHeaderTestCase (std::string s) : TestCase (s)
+RrcHeaderTestCase :: RrcHeaderTestCase (std::string s) : TestCase (s)
 {
 }
 
 LteRrcSap::RadioResourceConfigDedicated
-RrcHeaderTestCase::CreateRadioResourceConfigDedicated ()
+RrcHeaderTestCase :: CreateRadioResourceConfigDedicated ()
 {
   LteRrcSap::RadioResourceConfigDedicated rrd;
 
@@ -188,16 +150,13 @@ RrcHeaderTestCase::CreateRadioResourceConfigDedicated ()
   physicalConfigDedicated.haveAntennaInfoDedicated = true;
   physicalConfigDedicated.antennaInfo.transmissionMode = 2;
 
-  physicalConfigDedicated.havePdschConfigDedicated = true;
-  physicalConfigDedicated.pdschConfigDedicated.pa = LteRrcSap::PdschConfigDedicated::dB0;
-
   rrd.physicalConfigDedicated = physicalConfigDedicated;
 
   return rrd;
 }
 
 void
-RrcHeaderTestCase::AssertEqualRadioResourceConfigDedicated (LteRrcSap::RadioResourceConfigDedicated rrcd1, LteRrcSap::RadioResourceConfigDedicated rrcd2)
+RrcHeaderTestCase :: AssertEqualRadioResourceConfigDedicated (LteRrcSap::RadioResourceConfigDedicated rrcd1, LteRrcSap::RadioResourceConfigDedicated rrcd2)
 {
   NS_TEST_ASSERT_MSG_EQ (rrcd1.srbToAddModList.size (), rrcd2.srbToAddModList.size (),"SrbToAddModList different sizes");
 
@@ -277,26 +236,10 @@ RrcHeaderTestCase::AssertEqualRadioResourceConfigDedicated (LteRrcSap::RadioReso
                                  rrcd2.physicalConfigDedicated.antennaInfo.transmissionMode,
                                  "antennaInfo.transmissionMode");
         }
-
-      NS_TEST_ASSERT_MSG_EQ (rrcd1.physicalConfigDedicated.havePdschConfigDedicated,
-                             rrcd2.physicalConfigDedicated.havePdschConfigDedicated,
-                             "havePdschConfigDedicated");
-
-      if (rrcd1.physicalConfigDedicated.havePdschConfigDedicated)
-        {
-          NS_TEST_ASSERT_MSG_EQ (rrcd1.physicalConfigDedicated.pdschConfigDedicated.pa,
-                                 rrcd2.physicalConfigDedicated.pdschConfigDedicated.pa,
-                                 "pdschConfigDedicated.pa");
-        }
     }
 }
 
-/**
- * \ingroup lte-test
- * \ingroup tests
- *
- * \brief Rrc Connection Request Test Case
- */
+// --------------------------- CLASS RrcConnectionRequestTestCase -----------------------------
 class RrcConnectionRequestTestCase : public RrcHeaderTestCase
 {
 public:
@@ -343,12 +286,7 @@ RrcConnectionRequestTestCase::DoRun (void)
   packet = 0;
 }
 
-/**
- * \ingroup lte-test
- * \ingroup tests
- *
- * \brief Rrc Connection Setup Test Case
- */
+// --------------------------- CLASS RrcConnectionSetupTestCase -----------------------------
 class RrcConnectionSetupTestCase : public RrcHeaderTestCase
 {
 public:
@@ -397,12 +335,7 @@ RrcConnectionSetupTestCase::DoRun (void)
   packet = 0;
 }
 
-/**
- * \ingroup lte-test
- * \ingroup tests
- *
- * \brief Rrc Connection Setup Complete Test Case
- */
+// --------------------------- CLASS RrcConnectionSetupCompleteTestCase -----------------------------
 class RrcConnectionSetupCompleteTestCase : public RrcHeaderTestCase
 {
 public:
@@ -448,12 +381,7 @@ RrcConnectionSetupCompleteTestCase::DoRun (void)
   packet = 0;
 }
 
-/**
- * \ingroup lte-test
- * \ingroup tests
- *
- * \brief Rrc Connection Reconfiguration Complete Test Case
- */
+// --------------------------- CLASS RrcConnectionReconfigurationCompleteTestCase -----------------------------
 class RrcConnectionReconfigurationCompleteTestCase : public RrcHeaderTestCase
 {
 public:
@@ -500,12 +428,7 @@ RrcConnectionReconfigurationCompleteTestCase::DoRun (void)
   packet = 0;
 }
 
-/**
- * \ingroup lte-test
- * \ingroup tests
- *
- * \brief Rrc Connection Reconfiguration Test Case
- */
+// --------------------------- CLASS RrcConnectionReconfigurationTestCase -----------------------------
 class RrcConnectionReconfigurationTestCase : public RrcHeaderTestCase
 {
 public:
@@ -637,7 +560,6 @@ RrcConnectionReconfigurationTestCase::DoRun (void)
 
   msg.radioResourceConfigDedicated = CreateRadioResourceConfigDedicated ();
 
-  msg.haveNonCriticalExtension = false; //Danilo
   RrcConnectionReconfigurationHeader source;
   source.SetMessage (msg);
 
@@ -710,12 +632,7 @@ RrcConnectionReconfigurationTestCase::DoRun (void)
   packet = 0;
 }
 
-/**
- * \ingroup lte-test
- * \ingroup tests
- *
- * \brief Handover Preparation Info Test Case
- */
+// --------------------------- CLASS HandoverPreparationInfoTestCase -----------------------------
 class HandoverPreparationInfoTestCase : public RrcHeaderTestCase
 {
 public:
@@ -737,7 +654,7 @@ HandoverPreparationInfoTestCase::DoRun (void)
   msg.asConfig.sourceDlCarrierFreq = 3;
   msg.asConfig.sourceUeIdentity = 11;
   msg.asConfig.sourceRadioResourceConfig = CreateRadioResourceConfigDedicated ();
-  msg.asConfig.sourceMasterInformationBlock.dlBandwidth = 50;
+  msg.asConfig.sourceMasterInformationBlock.dlBandwidth = 3;
   msg.asConfig.sourceMasterInformationBlock.systemFrameNumber = 1;
 
   msg.asConfig.sourceSystemInformationBlockType1.cellAccessRelatedInfo.csgIndication = true;
@@ -789,12 +706,7 @@ HandoverPreparationInfoTestCase::DoRun (void)
   packet = 0;
 }
 
-/**
- * \ingroup lte-test
- * \ingroup tests
- *
- * \brief Rrc Connection Reestablishment Request Test Case
- */
+// --------------------------- CLASS RrcConnectionReestablishmentRequestTestCase -----------------------------
 class RrcConnectionReestablishmentRequestTestCase : public RrcHeaderTestCase
 {
 public:
@@ -844,12 +756,7 @@ RrcConnectionReestablishmentRequestTestCase::DoRun (void)
   packet = 0;
 }
 
-/**
- * \ingroup lte-test
- * \ingroup tests
- *
- * \brief Rrc Connection Reestablishment Test Case
- */
+// --------------------------- CLASS RrcConnectionReestablishmentTestCase -----------------------------
 class RrcConnectionReestablishmentTestCase : public RrcHeaderTestCase
 {
 public:
@@ -897,12 +804,7 @@ RrcConnectionReestablishmentTestCase::DoRun (void)
   packet = 0;
 }
 
-/**
- * \ingroup lte-test
- * \ingroup tests
- *
- * \brief Rrc Connection Reestablishment Complete Test Case
- */
+// --------------------------- CLASS RrcConnectionReestablishmentCompleteTestCase -----------------------------
 class RrcConnectionReestablishmentCompleteTestCase : public RrcHeaderTestCase
 {
 public:
@@ -948,12 +850,7 @@ RrcConnectionReestablishmentCompleteTestCase::DoRun (void)
   packet = 0;
 }
 
-/**
- * \ingroup lte-test
- * \ingroup tests
- *
- * \brief Rrc Connection Reject Test Case
- */
+// --------------------------- CLASS RrcConnectionRejectTestCase -----------------------------
 class RrcConnectionRejectTestCase : public RrcHeaderTestCase
 {
 public:
@@ -999,12 +896,7 @@ RrcConnectionRejectTestCase::DoRun (void)
   packet = 0;
 }
 
-/**
- * \ingroup lte-test
- * \ingroup tests
- *
- * \brief Measurement Report Test Case
- */
+// --------------------------- CLASS MeasurementReportTestCase -----------------------------
 class MeasurementReportTestCase : public RrcHeaderTestCase
 {
 public:
@@ -1040,7 +932,6 @@ MeasurementReportTestCase::DoRun (void)
   mResEutra.cgiInfo.trackingAreaCode = 5;
   msg.measResults.measResultListEutra.push_back (mResEutra);
 
-  msg.measResults.haveScellsMeas = false;
 
   MeasurementReportHeader source;
   source.SetMessage (msg);
@@ -1115,12 +1006,7 @@ MeasurementReportTestCase::DoRun (void)
   packet = 0;
 }
 
-/**
- * \ingroup lte-test
- * \ingroup tests
- *
- * \brief Asn1Encoding Test Suite
- */
+// --------------------------- CLASS Asn1EncodingSuite -----------------------------
 class Asn1EncodingSuite : public TestSuite
 {
 public:
@@ -1145,4 +1031,6 @@ Asn1EncodingSuite::Asn1EncodingSuite ()
 }
 
 Asn1EncodingSuite asn1EncodingSuite;
+
+} // namespace ns3
 

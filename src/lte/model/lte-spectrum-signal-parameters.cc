@@ -26,9 +26,9 @@
 #include <ns3/lte-control-messages.h>
 
 
-namespace ns3 {
-
 NS_LOG_COMPONENT_DEFINE ("LteSpectrumSignalParameters");
+
+namespace ns3 {
 
 LteSpectrumSignalParameters::LteSpectrumSignalParameters ()
 {

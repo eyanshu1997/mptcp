@@ -40,7 +40,6 @@ class SpectrumChannel;
 /**
  * \ingroup spectrum
  *
- * Create a Waveform generator, which can be used to inject specific noise in the channel.
  */
 class WaveformGeneratorHelper
 {
@@ -135,11 +134,11 @@ public:
 
 
 protected:
-  ObjectFactory m_phy;      //!< Object factory for the phy objects
-  ObjectFactory m_device;   //!< Object factory for the NetDevice objects
-  ObjectFactory m_antenna;  //!< Object factory for the Antenna objects
-  Ptr<SpectrumChannel> m_channel; //!< Channel
-  Ptr<SpectrumValue> m_txPsd;     //!< Tx power spectral density
+  ObjectFactory m_phy;
+  ObjectFactory m_device;
+  ObjectFactory m_antenna;
+  Ptr<SpectrumChannel> m_channel;
+  Ptr<SpectrumValue> m_txPsd;
 };
 
 

@@ -36,7 +36,6 @@ class Packet;
 
 /**
  * \ingroup socket
- * \ingroup udp
  *
  * \brief (abstract) base class of all UdpSockets
  *

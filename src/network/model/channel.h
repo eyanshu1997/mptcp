@@ -43,10 +43,6 @@ class NetDevice;
 class Channel : public Object
 {
 public:
-  /**
-   * \brief Get the type ID.
-   * \return the object TypeId
-   */
   static TypeId GetTypeId (void);
 
   Channel ();
@@ -65,17 +61,17 @@ public:
    *
    * This method must be implemented by subclasses.
    */
-  virtual std::size_t GetNDevices (void) const = 0;
+  virtual uint32_t GetNDevices (void) const = 0;
   /**
    * \param i index of NetDevice to retrieve
    * \returns one of the NetDevices connected to this channel.
    *
    * This method must be implemented by subclasses.
    */
-  virtual Ptr<NetDevice> GetDevice (std::size_t i) const = 0;
+  virtual Ptr<NetDevice> GetDevice (uint32_t i) const = 0;
 
 private:
-  uint32_t m_id; //!< Channel id for this channel
+  uint32_t m_id; // Channel id for this channel
 };
 
 } // namespace ns3

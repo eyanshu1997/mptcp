@@ -1,4 +1,3 @@
-/* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
  * uan-helper.cc
  *
@@ -41,9 +40,8 @@
 #include <sstream>
 #include <string>
 
-namespace ns3 {
-
 NS_LOG_COMPONENT_DEFINE ("UanHelper");
+namespace ns3 {
 
 /**
  * Ascii trace callback on Phy transmit events.
@@ -57,7 +55,6 @@ NS_LOG_COMPONENT_DEFINE ("UanHelper");
 static void AsciiPhyTxEvent (std::ostream *os, std::string context,
                              Ptr<const Packet> packet, double txPowerDb, UanTxMode mode)
 {
-  NS_UNUSED (txPowerDb);
   *os << "+ " << Simulator::Now ().GetSeconds () << " " << context << " " << *packet << std::endl;
 }
 
@@ -73,7 +70,6 @@ static void AsciiPhyTxEvent (std::ostream *os, std::string context,
 static void AsciiPhyRxOkEvent (std::ostream *os, std::string context,
                                Ptr<const Packet> packet, double snr, UanTxMode mode)
 {
-  NS_UNUSED (snr);
   *os << "r " << Simulator::Now ().GetSeconds () << " " << context << " " << *packet << std::endl;
 }
 
@@ -244,7 +240,7 @@ UanHelper::Install (Ptr<Node> node, Ptr<UanChannel> channel) const
   Ptr<UanPhy> phy = m_phy.Create<UanPhy> ();
   Ptr<UanTransducer> trans = m_transducer.Create<UanTransducer> ();
 
-  mac->SetAddress (Mac8Address::Allocate ());
+  mac->SetAddress (UanAddress::Allocate ());
   device->SetMac (mac);
   device->SetPhy (phy);
   device->SetTransducer (trans);

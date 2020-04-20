@@ -46,9 +46,9 @@
 #include <cstdlib>
 #include <unistd.h>
 
-namespace ns3 {
-
 NS_LOG_COMPONENT_DEFINE ("TapBridge");
+
+namespace ns3 {
 
 FdReader::Data TapBridgeFdReader::DoRead (void)
 {
@@ -73,14 +73,14 @@ FdReader::Data TapBridgeFdReader::DoRead (void)
 
 #define TAP_MAGIC 95549
 
-NS_OBJECT_ENSURE_REGISTERED (TapBridge);
+NS_OBJECT_ENSURE_REGISTERED (TapBridge)
+  ;
 
 TypeId
 TapBridge::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::TapBridge")
     .SetParent<NetDevice> ()
-    .SetGroupName ("TapBridge")
     .AddConstructor<TapBridge> ()
     .AddAttribute ("Mtu", "The MAC-level Maximum Transmission Unit",
                    UintegerValue (0),
@@ -339,7 +339,7 @@ TapBridge::CreateTap (void)
   NS_LOG_INFO ("Encoded Unix socket as \"" << path << "\"");
 
   //
-  // Tom Goff reports the possibility of a deadlock when trying to acquire the
+  // Tom Goff reports the possiblility of a deadlock when trying to acquire the
   // python GIL here.  He says that this might be due to trying to access Python
   // objects after fork() without calling PyOS_AfterFork() to properly reset 
   // Python state (including the GIL).  Originally these next three lines were
@@ -508,8 +508,7 @@ TapBridge::CreateTap (void)
       // If the execlp successfully completes, it never returns.  If it returns it failed or the OS is
       // broken.  In either case, we bail.
       //
-      NS_FATAL_ERROR ("TapBridge::CreateTap(): Back from execlp(), status = " << status <<
-                      " errno = " << ::strerror (errno));
+      NS_FATAL_ERROR ("TapBridge::CreateTap(): Back from execlp(), errno = " << ::strerror (errno));
     }
   else
     {
@@ -632,15 +631,14 @@ TapBridge::CreateTap (void)
           NS_FATAL_ERROR ("Did not get the raw socket from the socket creator");
         }
 
-      if (m_mode == USE_BRIDGE)
+      if (m_mode == USE_LOCAL || m_mode == USE_BRIDGE)
         {
           //
           // Set the ns-3 device's mac address to the overlying container's
           // mac address
           //
           struct ifreq s;
-          memset (&s, 0, sizeof(struct ifreq));
-          strncpy (s.ifr_name, m_tapDeviceName.c_str (), IFNAMSIZ - 1);
+          strncpy (s.ifr_name, m_tapDeviceName.c_str (), sizeof (s.ifr_name));
 
           NS_LOG_INFO ("Trying to get MacAddr of " << m_tapDeviceName);
           int ioctlResult = ioctl (sock, SIOCGIFHWADDR, &s);
@@ -835,8 +833,7 @@ TapBridge::Filter (Ptr<Packet> p, Address *src, Address *dst, uint16_t *type)
       return 0;
     }
 
-  uint32_t headerSize = p->PeekHeader (header);
-  p->RemoveAtStart (headerSize);
+  p->RemoveHeader (header);
 
   NS_LOG_LOGIC ("Pkt source is " << header.GetSource ());
   NS_LOG_LOGIC ("Pkt destination is " << header.GetDestination ());

@@ -42,14 +42,8 @@ namespace ns3 {
 class Header : public Chunk
 {
 public:
-  /**
-   * \brief Get the type ID.
-   * \return the object TypeId
-   */
   static TypeId GetTypeId (void);
   virtual ~Header ();
-
-  using Chunk::Deserialize;
   /**
    * \returns the expected size of the header.
    *
@@ -72,7 +66,7 @@ public:
   virtual void Serialize (Buffer::Iterator start) const = 0;
   /**
    * \param start an iterator which points to where the header should
-   *        read from.
+   *        written.
    * \returns the number of bytes read.
    *
    * This method is used by Packet::RemoveHeader to
@@ -80,19 +74,13 @@ public:
    * The data read is expected to
    * match bit-for-bit the representation of this header in real
    * networks.
-   *
-   * Note that data is not actually removed from the buffer to 
-   * which the iterator points.  Both Packet::RemoveHeader() and
-   * Packet::PeekHeader() call Deserialize(), but only the RemoveHeader()
-   * has additional statements to remove the header bytes from the
-   * underlying buffer and associated metadata.
    */
   virtual uint32_t Deserialize (Buffer::Iterator start) = 0;
   /**
    * \param os output stream
    * This method is used by Packet::Print to print the 
-   * content of a header as ascii data to a c++ output stream.
-   * Although the header is free to format its output as it
+   * content of a trailer as ascii data to a c++ output stream.
+   * Although the trailer is free to format its output as it
    * wishes, it is recommended to follow a few rules to integrate
    * with the packet pretty printer: start with flags, small field 
    * values located between a pair of parens. Values should be separated 
@@ -103,14 +91,6 @@ public:
   virtual void Print (std::ostream &os) const = 0;
 };
 
-
-/**
- * \brief Stream insertion operator.
- *
- * \param os the stream
- * \param header the header
- * \returns a reference to the stream
- */
 std::ostream & operator << (std::ostream &os, const Header &header);
 
 } // namespace ns3

@@ -25,20 +25,24 @@
 #include <fstream>
 #include <sstream>
 
+#define INDENT(level) for (int __xpto = 0; __xpto < level; __xpto++) os << ' ';
+
 #define PERIODIC_CHECK_INTERVAL (Seconds (1))
 
 namespace ns3 {
 
-NS_LOG_COMPONENT_DEFINE ("FlowMonitor");
+NS_LOG_COMPONENT_DEFINE ("FlowMonitor")
+  ;
 
-NS_OBJECT_ENSURE_REGISTERED (FlowMonitor);
+NS_OBJECT_ENSURE_REGISTERED (FlowMonitor)
+  ;
+
 
 TypeId 
 FlowMonitor::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::FlowMonitor")
     .SetParent<Object> ()
-    .SetGroupName ("FlowMonitor")
     .AddConstructor<FlowMonitor> ()
     .AddAttribute ("MaxPerHopDelay", ("The maximum per-hop delay that should be considered.  "
                                       "Packets still not received after this delay are to be considered lost."),
@@ -88,12 +92,7 @@ FlowMonitor::FlowMonitor ()
 void
 FlowMonitor::DoDispose (void)
 {
-  for (std::list<Ptr<FlowClassifier> >::iterator iter = m_classifiers.begin ();
-      iter != m_classifiers.end ();
-      iter ++)
-    {
-      *iter = 0;
-    }
+  m_classifier = 0;
   for (uint32_t i = 0; i < m_flowProbes.size (); i++)
     {
       m_flowProbes[i]->Dispose ();
@@ -105,7 +104,7 @@ FlowMonitor::DoDispose (void)
 inline FlowMonitor::FlowStats&
 FlowMonitor::GetStatsForFlow (FlowId flowId)
 {
-  FlowStatsContainerI iter;
+  std::map<FlowId, FlowStats>::iterator iter;
   iter = m_flowStats.find (flowId);
   if (iter == m_flowStats.end ())
     {
@@ -280,7 +279,7 @@ FlowMonitor::ReportDrop (Ptr<FlowProbe> probe, uint32_t flowId, uint32_t packetI
     }
 }
 
-const FlowMonitor::FlowStatsContainer&
+std::map<FlowId, FlowMonitor::FlowStats>
 FlowMonitor::GetFlowStats () const
 {
   return m_flowStats;
@@ -298,7 +297,8 @@ FlowMonitor::CheckForLostPackets (Time maxDelay)
       if (now - iter->second.lastSeenTime >= maxDelay)
         {
           // packet is considered lost, add it to the loss statistics
-          FlowStatsContainerI flow = m_flowStats.find (iter->first.first);
+          std::map<FlowId, FlowStats>::iterator
+            flow = m_flowStats.find (iter->first.first);
           NS_ASSERT (flow != m_flowStats.end ());
           flow->second.lostPackets++;
 
@@ -338,8 +338,7 @@ FlowMonitor::AddProbe (Ptr<FlowProbe> probe)
   m_flowProbes.push_back (probe);
 }
 
-
-const FlowMonitor::FlowProbeContainer&
+std::vector< Ptr<FlowProbe> >
 FlowMonitor::GetAllProbes () const
 {
   return m_flowProbes;
@@ -392,24 +391,25 @@ FlowMonitor::StopRightNow ()
 }
 
 void
-FlowMonitor::AddFlowClassifier (Ptr<FlowClassifier> classifier)
+FlowMonitor::SetFlowClassifier (Ptr<FlowClassifier> classifier)
 {
-  m_classifiers.push_back (classifier);
+  m_classifier = classifier;
 }
 
 void
-FlowMonitor::SerializeToXmlStream (std::ostream &os, uint16_t indent, bool enableHistograms, bool enableProbes)
+FlowMonitor::SerializeToXmlStream (std::ostream &os, int indent, bool enableHistograms, bool enableProbes)
 {
   CheckForLostPackets ();
 
-  os << std::string ( indent, ' ' ) << "<FlowMonitor>\n";
+  INDENT (indent); os << "<FlowMonitor>\n";
   indent += 2;
-  os << std::string ( indent, ' ' ) << "<FlowStats>\n";
+  INDENT (indent); os << "<FlowStats>\n";
   indent += 2;
-  for (FlowStatsContainerCI flowI = m_flowStats.begin ();
+  for (std::map<FlowId, FlowStats>::const_iterator flowI = m_flowStats.begin ();
        flowI != m_flowStats.end (); flowI++)
     {
-      os << std::string ( indent, ' ' );
+
+      INDENT (indent);
 #define ATTRIB(name) << " " # name "=\"" << flowI->second.name << "\""
       os << "<Flow flowId=\"" << flowI->first << "\""
       ATTRIB (timeFirstTxPacket)
@@ -428,17 +428,18 @@ FlowMonitor::SerializeToXmlStream (std::ostream &os, uint16_t indent, bool enabl
       << ">\n";
 #undef ATTRIB
 
+
       indent += 2;
       for (uint32_t reasonCode = 0; reasonCode < flowI->second.packetsDropped.size (); reasonCode++)
         {
-          os << std::string ( indent, ' ' );
+          INDENT (indent);
           os << "<packetsDropped reasonCode=\"" << reasonCode << "\""
           << " number=\"" << flowI->second.packetsDropped[reasonCode]
           << "\" />\n";
         }
       for (uint32_t reasonCode = 0; reasonCode < flowI->second.bytesDropped.size (); reasonCode++)
         {
-          os << std::string ( indent, ' ' );
+          INDENT (indent);
           os << "<bytesDropped reasonCode=\"" << reasonCode << "\""
           << " bytes=\"" << flowI->second.bytesDropped[reasonCode]
           << "\" />\n";
@@ -452,37 +453,32 @@ FlowMonitor::SerializeToXmlStream (std::ostream &os, uint16_t indent, bool enabl
         }
       indent -= 2;
 
-      os << std::string ( indent, ' ' ) << "</Flow>\n";
+      INDENT (indent); os << "</Flow>\n";
     }
   indent -= 2;
-  os << std::string ( indent, ' ' ) << "</FlowStats>\n";
+  INDENT (indent); os << "</FlowStats>\n";
 
-  for (std::list<Ptr<FlowClassifier> >::iterator iter = m_classifiers.begin ();
-      iter != m_classifiers.end ();
-      iter ++)
-    {
-      (*iter)->SerializeToXmlStream (os, indent);
-    }
+  m_classifier->SerializeToXmlStream (os, indent);
 
   if (enableProbes)
     {
-      os << std::string ( indent, ' ' ) << "<FlowProbes>\n";
+      INDENT (indent); os << "<FlowProbes>\n";
       indent += 2;
       for (uint32_t i = 0; i < m_flowProbes.size (); i++)
         {
           m_flowProbes[i]->SerializeToXmlStream (os, indent, i);
         }
       indent -= 2;
-      os << std::string ( indent, ' ' ) << "</FlowProbes>\n";
+      INDENT (indent); os << "</FlowProbes>\n";
     }
 
   indent -= 2;
-  os << std::string ( indent, ' ' ) << "</FlowMonitor>\n";
+  INDENT (indent); os << "</FlowMonitor>\n";
 }
 
 
 std::string
-FlowMonitor::SerializeToXmlString (uint16_t indent, bool enableHistograms, bool enableProbes)
+FlowMonitor::SerializeToXmlString (int indent, bool enableHistograms, bool enableProbes)
 {
   std::ostringstream os;
   SerializeToXmlStream (os, indent, enableHistograms, enableProbes);

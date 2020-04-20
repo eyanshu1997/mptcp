@@ -26,14 +26,14 @@
 
 namespace ns3 {
 
-NS_OBJECT_ENSURE_REGISTERED (LtePhyTag);
+NS_OBJECT_ENSURE_REGISTERED (LtePhyTag)
+  ;
 
 TypeId
 LtePhyTag::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::LtePhyTag")
     .SetParent<Tag> ()
-    .SetGroupName("Lte")
     .AddConstructor<LtePhyTag> ()
   ;
   return tid;

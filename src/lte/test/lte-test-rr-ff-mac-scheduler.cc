@@ -48,9 +48,10 @@
 
 #include "lte-test-rr-ff-mac-scheduler.h"
 
-using namespace ns3;
-
 NS_LOG_COMPONENT_DEFINE ("LenaTestRrFfMacScheduler");
+
+namespace ns3 {
+
 
 LenaTestRrFfMacSchedulerSuite::LenaTestRrFfMacSchedulerSuite ()
   : TestSuite ("lte-rr-ff-mac-scheduler", SYSTEM)
@@ -147,22 +148,19 @@ LenaTestRrFfMacSchedulerSuite::LenaTestRrFfMacSchedulerSuite ()
   AddTestCase (new LenaRrFfMacSchedulerTestCase (12,20000,32000,12000,errorModel), TestCase::EXTENSIVE);
   AddTestCase (new LenaRrFfMacSchedulerTestCase (15,20000,25600,9600,errorModel), TestCase::EXTENSIVE);
 
-  // DOWNLINK - DISTANCE 100000 -> CQI == 0 -> out of range -> 0 bytes/sec
-  // UPLINK - DISTANCE 100000 -> CQI == 0 -> out of range -> 0 bytes/sec
-  AddTestCase (new LenaRrFfMacSchedulerTestCase (1,100000,0,0,errorModel), TestCase::QUICK);
 }
 
 static LenaTestRrFfMacSchedulerSuite lenaTestRrFfMacSchedulerSuite;
 
 std::string 
-LenaRrFfMacSchedulerTestCase::BuildNameString (uint16_t nUser, double dist)
+LenaRrFfMacSchedulerTestCase::BuildNameString (uint16_t nUser, uint16_t dist)
 {
   std::ostringstream oss;
   oss << nUser << " UEs, distance " << dist << " m";
   return oss.str ();
 }
 
-LenaRrFfMacSchedulerTestCase::LenaRrFfMacSchedulerTestCase (uint16_t nUser, double dist, double thrRefDl, double thrRefUl, bool errorModelEnabled)
+LenaRrFfMacSchedulerTestCase::LenaRrFfMacSchedulerTestCase (uint16_t nUser, uint16_t dist, double thrRefDl, double thrRefUl, bool errorModelEnabled)
   : TestCase (BuildNameString (nUser, dist)),              
     m_nUser (nUser),
     m_dist (dist),
@@ -189,9 +187,6 @@ LenaRrFfMacSchedulerTestCase::DoRun (void)
 
   // This is needed as the RR scheduler does not allocate resources properly for retransmission
   Config::SetDefault ("ns3::LteRlcAm::TxOpportunityForRetxAlwaysBigEnough", BooleanValue (true));
-
-  //Disable Uplink Power Control
-  Config::SetDefault ("ns3::LteUePhy::EnableUplinkPowerControl", BooleanValue (false));
 
   /**
    * Initialize Simulation Scenario: 1 eNB and m_nUser UEs
@@ -297,3 +292,7 @@ LenaRrFfMacSchedulerTestCase::DoRun (void)
 
   Simulator::Destroy ();
 }
+
+
+} // namespace ns3
+

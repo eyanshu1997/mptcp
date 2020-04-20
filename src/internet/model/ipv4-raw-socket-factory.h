@@ -28,7 +28,6 @@ class Socket;
 
 /**
  * \ingroup socket
- * \ingroup ipv4
  *
  * \brief API to create RAW socket instances 
  *

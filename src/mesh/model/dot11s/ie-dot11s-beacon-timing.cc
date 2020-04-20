@@ -65,7 +65,7 @@ IeBeaconTimingUnit::GetBeaconInterval () const
 WifiInformationElementId
 IeBeaconTiming::ElementId () const
 {
-  return IE_BEACON_TIMING;
+  return IE11S_BEACON_TIMING;
 }
 IeBeaconTiming::IeBeaconTiming () :
   m_numOfUnits (0)
@@ -130,13 +130,14 @@ IeBeaconTiming::GetInformationFieldSize () const
 void
 IeBeaconTiming::Print (std::ostream& os) const
 {
-  os << "BeaconTiming=(Number of units=" << (uint16_t) m_numOfUnits;
+  os << std::endl << "<information_element id=" << ElementId () << ">" << std::endl;
+  os << "Number of units: " << (uint16_t) m_numOfUnits << std::endl;
   for (NeighboursTimingUnitsList::const_iterator j = m_neighbours.begin (); j != m_neighbours.end (); j++)
     {
-      os << "(AID=" << (uint16_t)(*j)->GetAid () << ", Last beacon at=" << (*j)->GetLastBeacon ()
-         << ", with beacon interval=" << (*j)->GetBeaconInterval () << ")";
+      os << "AID=" << (uint16_t)(*j)->GetAid () << ", Last beacon was at " << (*j)->GetLastBeacon ()
+         << ", with beacon interval " << (*j)->GetBeaconInterval () << std::endl;
     }
-  os << ")";
+  os << "</information_element>" << std::endl;
 }
 void
 IeBeaconTiming::SerializeInformationField (Buffer::Iterator i) const
@@ -206,7 +207,7 @@ IeBeaconTiming::operator== (WifiInformationElement const & a) const
         }
       return true;
     }
-  catch (std::bad_cast&)
+  catch (std::bad_cast)
     {
       return false;
     }

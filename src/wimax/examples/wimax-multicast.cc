@@ -59,15 +59,15 @@
 #include "ns3/csma-module.h"
 #include <iostream>
 #include "ns3/global-route-manager.h"
+#include "ns3/mobility-module.h"
 #include "ns3/internet-module.h"
 #include "ns3/vector.h"
-
-using namespace ns3;
 
 NS_LOG_COMPONENT_DEFINE ("WimaxMulticastSimulation");
 
 #define MAXSS 1000
 #define MAXDIST 10 // km
+using namespace ns3;
 
 int main (int argc, char *argv[])
 {

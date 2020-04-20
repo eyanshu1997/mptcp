@@ -7,11 +7,7 @@
 #     (example_name, do_run, do_valgrind_run).
 #
 # See test.py for more information.
-cpp_examples = [
-    ("li-ion-energy-source", "True", "True"),
-    ("rv-battery-model-test", "True", "True"),
-    ("basic-energy-model-test", "True", "True"),
-]
+cpp_examples = []
 
 # A list of Python examples to run in order to ensure that they remain
 # runnable over time.  Each tuple in the list contains

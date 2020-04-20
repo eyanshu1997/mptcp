@@ -25,15 +25,8 @@
 #include "empty.h"
 #include "default-deleter.h"
 #include "assert.h"
-#include "unused.h"
 #include <stdint.h>
 #include <limits>
-
-/**
- * \file
- * \ingroup ptr
- * ns3::SimpleRefCount declaration and template implementation.
- */
 
 namespace ns3 {
 
@@ -43,9 +36,9 @@ namespace ns3 {
  *
  * This template can be used to give reference-counting powers
  * to a class. This template does not require this class to
- * have a virtual destructor or a specific (or any) parent class.
+ * have a virtual destructor or no parent class.
  * 
- * \note If you are moving to this template from the RefCountBase class,
+ * Note: if you are moving to this template from the RefCountBase class,
  * you need to be careful to mark appropriately your destructor virtual
  * if needed. i.e., if your class has subclasses, _do_ mark your destructor
  * virtual.
@@ -53,19 +46,17 @@ namespace ns3 {
  *
  * This template takes 3 arguments but only the first argument is
  * mandatory:
- *
- * \tparam T \explicit The typename of the subclass which derives
- *      from this template class. Yes, this is weird but it's a
- *      common C++ template pattern whose name is CRTP (Curiously
- *      Recursive Template Pattern)
- * \tparam PARENT \explicit The typename of the parent of this template.
- *      By default, this typename is "'ns3::empty'" which is an empty
- *      class: compilers which implement the RBCO optimization (empty
- *      base class optimization) will make this a no-op
- * \tparam DELETER \explicit The typename of a class which implements
- *      a public static method named 'Delete'. This method will be called
- *      whenever the SimpleRefCount template detects that no references
- *      to the object it manages exist anymore.
+ *    - T: the typename of the subclass which derives from this template
+ *      class. Yes, this is weird but it's a common C++ template pattern
+ *      whose name is CRTP (Curiously Recursive Template Pattern)
+ *    - PARENT: the typename of the parent of this template. By default,
+ *      this typename is "'ns3::empty'" which is an empty class: compilers
+ *      which implement the RBCO optimization (empty base class optimization)
+ *      will make this a no-op
+ *    - DELETER: the typename of a class which implements a public static 
+ *      method named 'Delete'. This method will be called whenever the
+ *      SimpleRefCount template detects that no references to the object
+ *      it manages exist anymore.
  *
  * Interesting users of this class include ns3::Object as well as ns3::Packet.
  */
@@ -73,27 +64,23 @@ template <typename T, typename PARENT = empty, typename DELETER = DefaultDeleter
 class SimpleRefCount : public PARENT
 {
 public:
-  /** Default constructor.  */
+  /**
+   * Constructor
+   */
   SimpleRefCount ()
     : m_count (1)
   {}
   /**
    * Copy constructor
-   * \param [in] o The object to copy into this one.
    */
   SimpleRefCount (const SimpleRefCount &o)
     : m_count (1)
-  {
-    NS_UNUSED (o);
-  }
+  {}
   /**
-   * Assignment operator
-   * \param [in] o The object to copy
-   * \returns The copy of \p o
+   * Assignment
    */
   SimpleRefCount &operator = (const SimpleRefCount &o)
   {
-    NS_UNUSED (o);
     return *this;
   }
   /**
@@ -125,22 +112,19 @@ public:
   /**
    * Get the reference count of the object.
    * Normally not needed; for language bindings.
-   *
-   * \return The reference count.
    */
   inline uint32_t GetReferenceCount (void) const
   {
     return m_count;
   }
 
-private:
   /**
-   * The reference count.
-   *
-   * \internal
-   * Note we make this mutable so that the const methods can still
-   * change it.
+   *  Noop
    */
+  static void Cleanup (void) {}
+private:
+  // Note we make this mutable so that the const methods can still
+  // change it.
   mutable uint32_t m_count;
 };
 

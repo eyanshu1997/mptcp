@@ -37,10 +37,9 @@
 #include "ss-scheduler.h"
 #include "ns3/buffer.h"
 #include "service-flow-record.h"
+NS_LOG_COMPONENT_DEFINE ("BsServiceFlowManager");
 
 namespace ns3 {
-
-NS_LOG_COMPONENT_DEFINE ("BsServiceFlowManager");
 
 BsServiceFlowManager::BsServiceFlowManager (Ptr<BaseStationNetDevice> device)
   : m_device (device),
@@ -52,18 +51,6 @@ BsServiceFlowManager::BsServiceFlowManager (Ptr<BaseStationNetDevice> device)
 
 BsServiceFlowManager::~BsServiceFlowManager (void)
 {
-}
-
-/* static */
-TypeId
-BsServiceFlowManager::GetTypeId (void)
-{
-  static TypeId tid = TypeId ("ns3::BsServiceFlowManager")
-    .SetParent<ServiceFlowManager> ()
-    .SetGroupName ("Wifi")
-    // No AddConstructor because this class has no default constructor.
-  ;
-  return tid;
 }
 
 void

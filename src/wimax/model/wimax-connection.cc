@@ -27,15 +27,14 @@
 
 namespace ns3 {
 
-NS_OBJECT_ENSURE_REGISTERED (WimaxConnection);
+NS_OBJECT_ENSURE_REGISTERED (WimaxConnection)
+  ;
 
 TypeId WimaxConnection::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::WimaxConnection")
 
     .SetParent<Object> ()
-
-    .SetGroupName("Wimax")
 
     .AddAttribute ("Type",
                    "Connection type",

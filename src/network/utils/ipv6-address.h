@@ -29,8 +29,6 @@
 #include "ns3/attribute-helper.h"
 #include "ns3/address.h"
 #include "ns3/ipv4-address.h"
-#include "ns3/deprecated.h"
-#include "mac8-address.h"
 
 namespace ns3 { 
 
@@ -44,7 +42,6 @@ class Mac64Address;
  * \class Ipv6Address
  * \brief Describes an IPv6 address.
  * \see Ipv6Prefix
- * \see attribute_Ipv6Address
  */
 class Ipv6Address
 {
@@ -142,9 +139,6 @@ public:
 
   /**
    * \brief Make the autoconfigured IPv6 address with Mac16Address.
-   *
-   * The EUI-64 scheme used is based on the \RFC{4944}.
-   *
    * \param addr the MAC address (16 bits).
    * \param prefix the IPv6 prefix
    * \return autoconfigured IPv6 address
@@ -153,9 +147,6 @@ public:
 
   /**
    * \brief Make the autoconfigured IPv6 address with Mac48Address.
-   *
-   * The EUI-64 scheme used is based on \RFC{2464}.
-   *
    * \param addr the MAC address (48 bits).
    * \param prefix the IPv6 prefix
    * \return autoconfigured IPv6 address
@@ -163,7 +154,7 @@ public:
   static Ipv6Address MakeAutoconfiguredAddress (Mac48Address addr, Ipv6Address prefix);
 
   /**
-   * \brief Make the autoconfigured IPv6 address with Mac64Address.
+   * \brief Make the autoconfigured IPv6 address with Mac48Address.
    * \param addr the MAC address (64 bits).
    * \param prefix the IPv6 prefix
    * \return autoconfigured IPv6 address
@@ -171,21 +162,7 @@ public:
   static Ipv6Address MakeAutoconfiguredAddress (Mac64Address addr, Ipv6Address prefix);
 
   /**
-   * \brief Make the autoconfigured IPv6 address with Mac8Address.
-   *
-   * The EUI-64 scheme used is loosely based on the \RFC{2464}.
-   *
-   * \param addr the Mac8Address address (8 bits).
-   * \param prefix the IPv6 prefix
-   * \return autoconfigured IPv6 address
-   */
-  static Ipv6Address MakeAutoconfiguredAddress (Mac8Address addr, Ipv6Address prefix);
-
-  /**
    * \brief Make the autoconfigured link-local IPv6 address with Mac16Address.
-   *
-   * The EUI-64 scheme used is based on the \RFC{4944}.
-   *
    * \param mac the MAC address (16 bits).
    * \return autoconfigured link-local IPv6 address
    */
@@ -193,30 +170,17 @@ public:
 
   /**
    * \brief Make the autoconfigured link-local IPv6 address with Mac48Address.
-   *
-   * The EUI-64 scheme used is based on \RFC{2464}.
-   *
    * \param mac the MAC address (48 bits).
    * \return autoconfigured link-local IPv6 address
    */
   static Ipv6Address MakeAutoconfiguredLinkLocalAddress (Mac48Address mac);
 
   /**
-   * \brief Make the autoconfigured link-local IPv6 address with Mac64Address.
+   * \brief Make the autoconfigured link-local IPv6 address with Mac48Address.
    * \param mac the MAC address (64 bits).
    * \return autoconfigured link-local IPv6 address
    */
   static Ipv6Address MakeAutoconfiguredLinkLocalAddress (Mac64Address mac);
-
-  /**
-   * \brief Make the autoconfigured link-local IPv6 address with Mac8Address.
-   *
-   * The EUI-64 scheme used is loosely based on the \RFC{2464}.
-   *
-   * \param mac the MAC address (8 bits).
-   * \return autoconfigured link-local IPv6 address
-   */
-  static Ipv6Address MakeAutoconfiguredLinkLocalAddress (Mac8Address mac);
 
   /**
    * \brief Print this address to the given output stream.
@@ -258,12 +222,8 @@ public:
 
   /**
    * \brief If the IPv6 address is "all hosts multicast" (ff02::3/8).
-   *
-   * \deprecated This function is deprecated because the address has been removed from RFCs.
-   *
    * \return true if "all hosts multicast", false otherwise
    */
-  NS_DEPRECATED
   bool IsAllHostsMulticast () const;
 
   /**
@@ -393,27 +353,27 @@ private:
   /**
    * \brief Equal to operator.
    *
-   * \param a the first operand.
-   * \param b the first operand.
-   * \returns true if the operands are equal.
+   * \param a the first operand
+   * \param b the first operand
+   * \returns true if the operands are equal
    */
   friend bool operator == (Ipv6Address const &a, Ipv6Address const &b);
 
   /**
    * \brief Not equal to operator.
    *
-   * \param a the first operand.
-   * \param b the first operand.
-   * \returns true if the operands are not equal.
+   * \param a the first operand
+   * \param b the first operand
+   * \returns true if the operands are not equal
    */
   friend bool operator != (Ipv6Address const &a, Ipv6Address const &b);
 
   /**
    * \brief Less than to operator.
    *
-   * \param a the first operand.
-   * \param b the first operand.
-   * \returns true if the first operand is less than the second.
+   * \param a the first operand
+   * \param b the first operand
+   * \returns true if the first operand is less than the second
    */
   friend bool operator < (Ipv6Address const &a, Ipv6Address const &b);
 };
@@ -423,7 +383,6 @@ private:
  * \class Ipv6Prefix
  * \brief Describes an IPv6 prefix. It is just a bitmask like Ipv4Mask.
  * \see Ipv6Address
- * \see attribute_Ipv6Prefix
  */
 class Ipv6Prefix
 {
@@ -547,8 +506,17 @@ private:
   friend bool operator != (Ipv6Prefix const &a, Ipv6Prefix const &b);
 };
 
-ATTRIBUTE_HELPER_HEADER (Ipv6Address);
-ATTRIBUTE_HELPER_HEADER (Ipv6Prefix);
+/**
+ * \class ns3::Ipv6AddressValue
+ * \brief Hold objects of type ns3::Ipv6Address
+ */
+ATTRIBUTE_HELPER_HEADER (Ipv6Address);  /// Macro to make help make class an ns-3 attribute
+
+/**
+ * \class ns3::Ipv6PrefixValue
+ * \brief Hold objects of type ns3::Ipv6Prefix
+ */
+ATTRIBUTE_HELPER_HEADER (Ipv6Prefix);   /// Macro to make help make class an ns-3 attribute
 
 /**
  * \brief Stream insertion operator.

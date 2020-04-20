@@ -19,20 +19,21 @@
  */
 
 #include "ns3/log.h"
+#include "ns3/assert.h"
+#include "ns3/abort.h"
 #include "ns3/simulator.h"
+#include "ns3/nstime.h"
 #include "ns3/config.h"
-#include "ns3/wifi-mode.h"
-#include "ns3/wifi-preamble.h"
-#include "ns3/wifi-phy-state.h"
-#include "ns3/net-device-container.h"
-#include "ns3/node-container.h"
 #include "athstats-helper.h"
 #include <iomanip>
+#include <iostream>
 #include <fstream>
+
+
+NS_LOG_COMPONENT_DEFINE ("Athstats");
 
 namespace ns3 {
 
-NS_LOG_COMPONENT_DEFINE ("Athstats");
 
 AthstatsHelper::AthstatsHelper ()
   : m_interval (Seconds (1.0))
@@ -73,6 +74,7 @@ AthstatsHelper::EnableAthstats (std::string filename, Ptr<NetDevice> nd)
   EnableAthstats (filename, nd->GetNode ()->GetId (), nd->GetIfIndex ());
 }
 
+
 void
 AthstatsHelper::EnableAthstats (std::string filename, NetDeviceContainer d)
 {
@@ -83,6 +85,7 @@ AthstatsHelper::EnableAthstats (std::string filename, NetDeviceContainer d)
     }
 }
 
+
 void
 AthstatsHelper::EnableAthstats (std::string filename, NodeContainer n)
 {
@@ -90,7 +93,7 @@ AthstatsHelper::EnableAthstats (std::string filename, NodeContainer n)
   for (NodeContainer::Iterator i = n.Begin (); i != n.End (); ++i)
     {
       Ptr<Node> node = *i;
-      for (std::size_t j = 0; j < node->GetNDevices (); ++j)
+      for (uint32_t j = 0; j < node->GetNDevices (); ++j)
         {
           devs.Add (node->GetDevice (j));
         }
@@ -98,14 +101,18 @@ AthstatsHelper::EnableAthstats (std::string filename, NodeContainer n)
   EnableAthstats (filename, devs);
 }
 
-NS_OBJECT_ENSURE_REGISTERED (AthstatsWifiTraceSink);
+
+
+
+
+NS_OBJECT_ENSURE_REGISTERED (AthstatsWifiTraceSink)
+  ;
 
 TypeId
 AthstatsWifiTraceSink::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::AthstatsWifiTraceSink")
     .SetParent<Object> ()
-    .SetGroupName ("Wifi")
     .AddConstructor<AthstatsWifiTraceSink> ()
     .AddAttribute ("Interval",
                    "Time interval between reports",
@@ -182,6 +189,7 @@ AthstatsWifiTraceSink::DevRxTrace (std::string context, Ptr<const Packet> p)
   ++m_rxCount;
 }
 
+
 void
 AthstatsWifiTraceSink::TxRtsFailedTrace (std::string context, Mac48Address address)
 {
@@ -210,10 +218,12 @@ AthstatsWifiTraceSink::TxFinalDataFailedTrace (std::string context, Mac48Address
   ++m_exceededRetryCount;
 }
 
+
+
 void
-AthstatsWifiTraceSink::PhyRxOkTrace (std::string context, Ptr<const Packet> packet, double snr, WifiMode mode, WifiPreamble preamble)
+AthstatsWifiTraceSink::PhyRxOkTrace (std::string context, Ptr<const Packet> packet, double snr, WifiMode mode, enum WifiPreamble preamble)
 {
-  NS_LOG_FUNCTION (this << context << packet << " mode=" << mode << " snr=" << snr << "preamble=" << preamble);
+  NS_LOG_FUNCTION (this << context << packet << " mode=" << mode << " snr=" << snr );
   ++m_phyRxOkCount;
 }
 
@@ -227,15 +237,19 @@ AthstatsWifiTraceSink::PhyRxErrorTrace (std::string context, Ptr<const Packet> p
 void
 AthstatsWifiTraceSink::PhyTxTrace (std::string context, Ptr<const Packet> packet, WifiMode mode, WifiPreamble preamble, uint8_t txPower)
 {
-  NS_LOG_FUNCTION (this << context << packet << "PHYTX mode=" << mode << "Preamble=" << preamble << "Power=" << txPower);
+  NS_LOG_FUNCTION (this << context << packet << "PHYTX mode=" << mode );
   ++m_phyTxCount;
 }
 
+
 void
-AthstatsWifiTraceSink::PhyStateTrace (std::string context, Time start, Time duration, WifiPhyState state)
+AthstatsWifiTraceSink::PhyStateTrace (std::string context, Time start, Time duration, enum WifiPhy::State state)
 {
   NS_LOG_FUNCTION (this << context << start << duration << state);
+
 }
+
+
 
 void
 AthstatsWifiTraceSink::Open (std::string const &name)
@@ -256,25 +270,26 @@ AthstatsWifiTraceSink::Open (std::string const &name)
   NS_LOG_LOGIC ("Writer opened successfully");
 }
 
+
 void
 AthstatsWifiTraceSink::WriteStats ()
 {
-  NS_LOG_FUNCTION (this);
-  //The comments below refer to how each value maps to madwifi's athstats
-  //I know C strings are ugly but that's the quickest way to use exactly the same format as in madwifi
+  NS_ABORT_MSG_UNLESS (this, "function called with null this pointer, now=" << Now () );
+  // the comments below refer to how each value maps to madwifi's athstats
+  // I know C strings are ugly but that's the quickest way to use exactly the same format as in madwifi
   char str[200];
   snprintf (str, 200, "%8u %8u %7u %7u %7u %6u %6u %6u %7u %4u %3uM\n",
-            (unsigned int) m_txCount, // /proc/net/dev transmitted packets to which we should subtract mgmt frames
+            (unsigned int) m_txCount, // /proc/net/dev transmitted packets to which we should subract mgmt frames
             (unsigned int) m_rxCount, // /proc/net/dev received packets but subracts mgmt frames from it
-            (unsigned int) 0, // ast_tx_altrate
-            (unsigned int) m_shortRetryCount, // ast_tx_shortretry
-            (unsigned int) m_longRetryCount, // ast_tx_longretry
-            (unsigned int) m_exceededRetryCount, // ast_tx_xretries
-            (unsigned int) m_phyRxErrorCount,    // ast_rx_crcerr
-            (unsigned int) 0, // ast_rx_badcrypt
-            (unsigned int) 0, // ast_rx_phyerr
-            (unsigned int) 0, // ast_rx_rssi
-            (unsigned int) 0 // rate
+            (unsigned int) 0,        // ast_tx_altrate,
+            (unsigned int) m_shortRetryCount,    // ast_tx_shortretry,
+            (unsigned int) m_longRetryCount,     // ast_tx_longretry,
+            (unsigned int) m_exceededRetryCount, // ast_tx_xretries,
+            (unsigned int) m_phyRxErrorCount,    // ast_rx_crcerr,
+            (unsigned int) 0,        // ast_rx_badcrypt,
+            (unsigned int) 0,        // ast_rx_phyerr,
+            (unsigned int) 0,        // ast_rx_rssi,
+            (unsigned int) 0         // rate
             );
 
   if (m_writer)
@@ -287,4 +302,9 @@ AthstatsWifiTraceSink::WriteStats ()
     }
 }
 
-} //namespace ns3
+
+
+
+} // namespace ns3
+
+

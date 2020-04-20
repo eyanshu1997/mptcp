@@ -33,11 +33,11 @@
 #include "ns3/cost231-propagation-loss-model.h"
 #include "simple-ofdm-send-param.h"
 
-namespace ns3 {
-
 NS_LOG_COMPONENT_DEFINE ("simpleOfdmWimaxChannel");
-  
-// NS_OBJECT_ENSURE_REGISTERED (simpleOfdmWimaxChannel);
+
+namespace ns3 {
+// NS_OBJECT_ENSURE_REGISTERED (simpleOfdmWimaxChannel)
+//   ;
 
 
 SimpleOfdmWimaxChannel::SimpleOfdmWimaxChannel (void)
@@ -48,18 +48,6 @@ SimpleOfdmWimaxChannel::SimpleOfdmWimaxChannel (void)
 SimpleOfdmWimaxChannel::~SimpleOfdmWimaxChannel (void)
 {
   m_phyList.clear ();
-}
-
-/* static */
-TypeId
-SimpleOfdmWimaxChannel::GetTypeId (void)
-{
-  static TypeId tid = TypeId ("ns3::SimpleOfdmWimaxChannel")
-    .SetParent<WimaxChannel> ()
-    .SetGroupName ("Wimax")
-    .AddConstructor<SimpleOfdmWimaxChannel> ()
-    ;
-  return tid;
 }
 
 SimpleOfdmWimaxChannel::SimpleOfdmWimaxChannel (PropModel propModel)
@@ -121,16 +109,16 @@ SimpleOfdmWimaxChannel::DoAttach (Ptr<WimaxPhy> phy)
   m_phyList.push_back (o_phy);
 }
 
-std::size_t
+uint32_t
 SimpleOfdmWimaxChannel::DoGetNDevices (void) const
 {
   return m_phyList.size ();
 }
 
 Ptr<NetDevice>
-SimpleOfdmWimaxChannel::DoGetDevice (std::size_t index) const
+SimpleOfdmWimaxChannel::DoGetDevice (uint32_t index) const
 {
-  std::size_t j = 0;
+  uint32_t j = 0;
   for (std::list<Ptr<SimpleOfdmWimaxPhy> >::const_iterator iter = m_phyList.begin (); iter != m_phyList.end (); ++iter)
     {
       if (j == index)

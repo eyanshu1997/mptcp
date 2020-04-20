@@ -25,14 +25,14 @@
 
 namespace ns3 {
 using namespace dot11s;
-NS_OBJECT_ENSURE_REGISTERED (Dot11sStack);
+NS_OBJECT_ENSURE_REGISTERED (Dot11sStack)
+  ;
   
 TypeId
 Dot11sStack::GetTypeId ()
 {
   static TypeId tid = TypeId ("ns3::Dot11sStack")
-    .SetParent<MeshStack> ()
-    .SetGroupName ("Mesh")
+    .SetParent<Object> ()
     .AddConstructor<Dot11sStack> ()
     .AddAttribute ("Root", 
                    "The MAC address of root mesh point.",

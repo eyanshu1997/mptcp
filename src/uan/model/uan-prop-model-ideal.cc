@@ -24,7 +24,8 @@
 
 namespace ns3 {
 
-NS_OBJECT_ENSURE_REGISTERED (UanPropModelIdeal);
+NS_OBJECT_ENSURE_REGISTERED (UanPropModelIdeal)
+  ;
 
 UanPropModelIdeal::UanPropModelIdeal ()
 {
@@ -39,7 +40,6 @@ UanPropModelIdeal::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::UanPropModelIdeal")
     .SetParent<UanPropModel> ()
-    .SetGroupName ("Uan")
     .AddConstructor<UanPropModelIdeal> ()
   ;
   return tid;

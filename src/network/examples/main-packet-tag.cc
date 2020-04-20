@@ -24,17 +24,10 @@
 
 using namespace ns3;
 
-/**
- * \ingroup network
- * A simple example of an Tag implementation
- */
+// define this class in a public header
 class MyTag : public Tag
 {
 public:
-  /**
-   * \brief Get the type ID.
-   * \return the object TypeId
-   */
   static TypeId GetTypeId (void);
   virtual TypeId GetInstanceTypeId (void) const;
   virtual uint32_t GetSerializedSize (void) const;
@@ -43,18 +36,10 @@ public:
   virtual void Print (std::ostream &os) const;
 
   // these are our accessors to our tag structure
-  /**
-   * Set the tag value
-   * \param value The tag value.
-   */
   void SetSimpleValue (uint8_t value);
-  /**
-   * Get the tag value
-   * \return the tag value.
-   */
   uint8_t GetSimpleValue (void) const;
 private:
-  uint8_t m_simpleValue;  //!< tag value
+  uint8_t m_simpleValue;
 };
 
 TypeId 

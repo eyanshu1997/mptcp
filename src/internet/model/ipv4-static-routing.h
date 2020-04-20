@@ -44,7 +44,11 @@ class Ipv4MulticastRoutingTableEntry;
 class Node;
 
 /**
- * \ingroup ipv4Routing
+ * \ingroup internet
+ * \defgroup ipv4StaticRouting Ipv4StaticRouting
+ */
+/**
+ * \ingroup ipv4StaticRouting
  * 
  * \brief Static routing protocol for IP version 4 stacks.
  *
@@ -85,7 +89,7 @@ public:
   virtual void NotifyAddAddress (uint32_t interface, Ipv4InterfaceAddress address);
   virtual void NotifyRemoveAddress (uint32_t interface, Ipv4InterfaceAddress address);
   virtual void SetIpv4 (Ptr<Ipv4> ipv4);
-  virtual void PrintRoutingTable (Ptr<OutputStreamWrapper> stream, Time::Unit unit = Time::S) const;
+  virtual void PrintRoutingTable (Ptr<OutputStreamWrapper> stream) const;
 
 /**
  * \brief Add a network route to the static routing table.
@@ -412,6 +416,14 @@ private:
    */
   Ptr<Ipv4MulticastRoute> LookupStatic (Ipv4Address origin, Ipv4Address group,
                                         uint32_t interface);
+
+  /**
+   * \brief Choose the source address to use with destination address.
+   * \param interface interface index
+   * \param dest IPv4 destination address
+   * \return IPv4 source address to use
+   */
+  Ipv4Address SourceAddressSelection (uint32_t interface, Ipv4Address dest);
 
   /**
    * \brief the forwarding table for network.

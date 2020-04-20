@@ -29,9 +29,11 @@
 #include <ns3/enum.h>
 
 
-using namespace ns3;
+namespace ns3 {
 
-NS_LOG_COMPONENT_DEFINE ("Kun2600MhzPropagationLossModelTest");
+NS_LOG_COMPONENT_DEFINE ("Kun2600MhzPropagationLossModelTest")
+  ;
+
 
 class Kun2600MhzPropagationLossModelTestCase : public TestCase
 {
@@ -112,3 +114,7 @@ Kun2600MhzPropagationLossModelTestSuite::Kun2600MhzPropagationLossModelTestSuite
 
 
 static Kun2600MhzPropagationLossModelTestSuite g_kun2600MhzTestSuite;
+
+
+
+}   // namespace ns3

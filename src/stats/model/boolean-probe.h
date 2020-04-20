@@ -98,6 +98,8 @@ private:
    *
    * \param oldData previous value of the bool
    * \param newData new value of the bool
+   *
+   * \internal
    */
   void TraceSink (bool oldData, bool newData);
 

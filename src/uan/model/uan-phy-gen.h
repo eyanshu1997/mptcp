@@ -28,7 +28,6 @@
 #include "ns3/nstime.h"
 #include "ns3/device-energy-model.h"
 #include "ns3/random-variable-stream.h"
-#include "ns3/event-id.h"
 #include <list>
 
 namespace ns3 {
@@ -54,18 +53,19 @@ public:
    * \return The TypeId.
    */
   static TypeId GetTypeId (void);
-
+  
   virtual double CalcPer (Ptr<Packet> pkt, double sinrDb, UanTxMode mode);
 private:
+  
   double m_thresh;  //!< SINR threshold.
 
 };  // class UanPhyPerGenDefault
 
-
+  
 /**
  * \ingroup uan
  *
- * Packet error rate calculation assuming WHOI Micromodem-like PHY (FH-FSK)
+ * Packet error rate calculation assuming WHOI Micromodem-like PHY.
  *
  * Calculates PER assuming rate 1/2 convolutional code with
  * constraint length 9 with soft decision viterbi decoding and
@@ -118,45 +118,6 @@ private:
 /**
  * \ingroup uan
  *
- * Packet error rate calculation for common tx modes based on UanPhyPerUmodem
- *
- * Calculates PER for common UanTxMode modulations, by deriving
- * PER from the BER taken from well known literature's formulas.
- */
-class UanPhyPerCommonModes : public UanPhyPer
-{
-public:
-  /** Constructor */
-  UanPhyPerCommonModes ();
-  /** Destructor */
-  virtual ~UanPhyPerCommonModes ();
-
-  /**
-   * Register this type.
-   * \return The TypeId.
-   */
-  static TypeId GetTypeId (void);
-
-  /**
-   * Calculate the Packet ERror probability based on
-   * SINR at the receiver and a tx mode.
-   *
-   * This implementation calculates PER for common UanTxMode modulations,
-   * by deriving PER from the BER taken from literature's formulas.
-   *
-   * \param pkt Packet which is under consideration.
-   * \param sinrDb SINR at receiver.
-   * \param mode TX mode used to transmit packet.
-   * \return Probability of packet error.
-   */
-  virtual double CalcPer (Ptr<Packet> pkt, double sinrDb, UanTxMode mode);
-
-};  // class UanPhyPerCommonModes
-
-
-/**
- * \ingroup uan
- *
  * Default SINR calculator for UanPhyGen.
  *
  * The default ignores mode data and assumes that all rxpower transmitted is
@@ -171,13 +132,13 @@ public:
   UanPhyCalcSinrDefault ();
   /** Destructor */
   virtual ~UanPhyCalcSinrDefault ();
-
+  
   /**
    * Register this type.
    * \return The TypeId.
    */
   static TypeId GetTypeId (void);
-
+  
   /**
    * Calculate the SINR value for a packet.
    *
@@ -215,14 +176,6 @@ public:
  * clearing time between symbols transmitted on the same frequency.
  * This clearing time combats ISI from channel delay spread and also has
  * a byproduct of possibly reducing interference from other transmitted packets.
- * 
- * Thanks to Randall Plate for the latest model revision based on the following 
- * papers:
- * <ul> 
- * <li>Parrish, "System Design Considerations for Undersea Networks: Link and Multiple Access Protocols"
- * <li>Siderius, "Effects of Ocean Thermocline Variability on Noncoherent Underwater Acoustic Communications"
- * <li>Rao, "Channel Coding Techniques for Wireless Communications", ch 2
- * </ul>
  */
 class UanPhyCalcSinrFhFsk : public UanPhyCalcSinr
 {
@@ -232,7 +185,7 @@ public:
   UanPhyCalcSinrFhFsk ();
   /** Destructor */
   virtual ~UanPhyCalcSinrFhFsk ();
-
+  
   /**
    * Register this type.
    * \return The TypeId.
@@ -277,6 +230,7 @@ public:
    */
   static UanModesList GetDefaultModes (void);
 
+  
   /**
    * Register this type.
    * \return The TypeId.
@@ -286,7 +240,6 @@ public:
   // Inherited methods
   virtual void SetEnergyModelCallback (DeviceEnergyModel::ChangeStateCallback cb);
   virtual void EnergyDepletionHandler (void);
-  virtual void EnergyRechargeHandler (void);
   virtual void SendPacket (Ptr<Packet> pkt, uint32_t modeNum);
   virtual void RegisterListener (UanPhyListener *listener);
   virtual void StartRxPacket (Ptr<Packet> pkt, double rxPowerDb, UanTxMode txMode, UanPdp pdp);
@@ -298,14 +251,16 @@ public:
   virtual bool IsStateRx (void);
   virtual bool IsStateTx (void);
   virtual bool IsStateCcaBusy (void);
+  virtual void SetRxGainDb (double gain);
   virtual void SetTxPowerDb (double txpwr);
   virtual void SetRxThresholdDb (double thresh);
   virtual void SetCcaThresholdDb (double thresh);
+  virtual double GetRxGainDb (void);
   virtual double GetTxPowerDb (void);
   virtual double GetRxThresholdDb (void);
   virtual double GetCcaThresholdDb (void);
   virtual Ptr<UanChannel> GetChannel (void) const;
-  virtual Ptr<UanNetDevice> GetDevice (void) const;
+  virtual Ptr<UanNetDevice> GetDevice (void);
   virtual Ptr<UanTransducer> GetTransducer (void);
   virtual void SetChannel (Ptr<UanChannel> channel);
   virtual void SetDevice (Ptr<UanNetDevice> device);
@@ -337,22 +292,20 @@ private:
   Ptr<UanPhyPer> m_per;             //!< Error model.
   Ptr<UanPhyCalcSinr> m_sinr;       //!< SINR calculator.
 
+  double m_rxGainDb;                //!< Receive gain.
   double m_txPwrDb;                 //!< Transmit power.
   double m_rxThreshDb;              //!< Receive SINR threshold.
   double m_ccaThreshDb;             //!< CCA busy threshold.
 
   Ptr<Packet> m_pktRx;              //!< Received packet.
-  Ptr<Packet> m_pktTx;              //!< Sent packet.
   double m_minRxSinrDb;             //!< Minimum receive SINR during packet reception.
   double m_rxRecvPwrDb;             //!< Receiver power.
   Time m_pktRxArrTime;              //!< Packet arrival time.
-  UanPdp m_pktRxPdp;                //!< Power delay profile of packet.
+  UanPdp m_pktRxPdp;                //!< Power delay profile of pakket.
   UanTxMode m_pktRxMode;            //!< Packet transmission mode at receiver.
 
   bool m_cleared;                   //!< Flag when we've been cleared.
-
-  EventId m_txEndEvent;             //!< Tx event
-  EventId m_rxEndEvent;             //!< Rx event
+  bool m_disabled;                  //!< Energy depleted. 
 
   /** Provides uniform random variables. */
   Ptr<UniformRandomVariable> m_pg;
@@ -360,11 +313,11 @@ private:
   /** Energy model callback. */
   DeviceEnergyModel::ChangeStateCallback m_energyCallback;
   /** A packet destined for this Phy was received without error. */
-  ns3::TracedCallback<Ptr<const Packet>, double, UanTxMode > m_rxOkLogger;
+  TracedCallback<Ptr<const Packet>, double, UanTxMode > m_rxOkLogger;
   /** A packet destined for this Phy was received with error. */
-  ns3::TracedCallback<Ptr<const Packet>, double, UanTxMode > m_rxErrLogger;
+  TracedCallback<Ptr<const Packet>, double, UanTxMode > m_rxErrLogger;
   /** A packet was sent from this Phy. */
-  ns3::TracedCallback<Ptr<const Packet>, double, UanTxMode > m_txLogger;
+  TracedCallback<Ptr<const Packet>, double, UanTxMode > m_txLogger;
 
   /**
    * Calculate the SINR value for a packet.
@@ -427,7 +380,7 @@ private:
 
 
   /** Call UanListener::NotifyRxStart on all listeners. */
-  void NotifyListenersRxStart (void);
+  void NotifyListenersRxStart (void);  
   /** Call UanListener::NotifyRxEndOk on all listeners. */
   void NotifyListenersRxGood (void);
   /** Call UanListener::NotifyRxEndError on all listeners. */

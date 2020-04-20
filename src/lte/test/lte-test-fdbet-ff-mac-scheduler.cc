@@ -51,9 +51,9 @@
 
 #include "lte-test-fdbet-ff-mac-scheduler.h"
 
-using namespace ns3;
-
 NS_LOG_COMPONENT_DEFINE ("LenaTestFdBetFfMacScheduler");
+
+namespace ns3 {
 
 LenaTestFdBetFfMacSchedulerSuite::LenaTestFdBetFfMacSchedulerSuite ()
   : TestSuite ("lte-fdbet-ff-mac-scheduler", SYSTEM)
@@ -145,13 +145,9 @@ LenaTestFdBetFfMacSchedulerSuite::LenaTestFdBetFfMacSchedulerSuite ()
   AddTestCase (new LenaFdBetFfMacSchedulerTestCase1 (6,20000,67000,22000,errorModel), TestCase::EXTENSIVE);
   AddTestCase (new LenaFdBetFfMacSchedulerTestCase1 (12,20000,32000,12000,errorModel), TestCase::EXTENSIVE);
 
-  // DOWNLINK - DISTANCE 100000 -> CQI == 0 -> out of range -> 0 bytes/sec
-  // UPLINK - DISTANCE 100000 -> CQI == 0 -> out of range -> 0 bytes/sec
-  AddTestCase (new LenaFdBetFfMacSchedulerTestCase1 (1,100000,0,0,errorModel), TestCase::QUICK);
-
   // Test Case 2: fairness check
 
-  std::vector<double> dist;
+  std::vector<uint16_t> dist;
   dist.push_back (0);       // User 0 distance --> MCS 28
   dist.push_back (4800);    // User 1 distance --> MCS 22
   dist.push_back (6000);    // User 2 distance --> MCS 14
@@ -179,14 +175,14 @@ static LenaTestFdBetFfMacSchedulerSuite lenaTestFdBetFfMacSchedulerSuite;
 
 
 std::string 
-LenaFdBetFfMacSchedulerTestCase1::BuildNameString (uint16_t nUser, double dist)
+LenaFdBetFfMacSchedulerTestCase1::BuildNameString (uint16_t nUser, uint16_t dist)
 {
   std::ostringstream oss;
   oss << nUser << " UEs, distance " << dist << " m";
   return oss.str ();
 }
 
-LenaFdBetFfMacSchedulerTestCase1::LenaFdBetFfMacSchedulerTestCase1 (uint16_t nUser, double dist, double thrRefDl, double thrRefUl, bool errorModelEnabled)
+LenaFdBetFfMacSchedulerTestCase1::LenaFdBetFfMacSchedulerTestCase1 (uint16_t nUser, uint16_t dist, double thrRefDl, double thrRefUl, bool errorModelEnabled)
   : TestCase (BuildNameString (nUser, dist)),
     m_nUser (nUser),
     m_dist (dist),
@@ -210,9 +206,6 @@ LenaFdBetFfMacSchedulerTestCase1::DoRun (void)
     }
 
   Config::SetDefault ("ns3::LteHelper::UseIdealRrc", BooleanValue (true));
-
-  //Disable Uplink Power Control
-  Config::SetDefault ("ns3::LteUePhy::EnableUplinkPowerControl", BooleanValue (false));
 
   /**
    * Initialize Simulation Scenario: 1 eNB and m_nUser UEs
@@ -320,7 +313,7 @@ LenaFdBetFfMacSchedulerTestCase1::DoRun (void)
     }
   /**
   * Check that the assignation is done in a "FD blind equal throughput" manner among users
-  * with equal SINRs: the bandwidth should be distributed according to the 
+  * with equal SINRs: the bandwidht should be distributed according to the 
   * ratio of the estimated throughput per TTI of each user; therefore equally 
   * partitioning the whole bandwidth achievable from a single users in a TTI
   */
@@ -338,11 +331,11 @@ LenaFdBetFfMacSchedulerTestCase1::DoRun (void)
 
 
 std::string 
-LenaFdBetFfMacSchedulerTestCase2::BuildNameString (uint16_t nUser, std::vector<double> dist)
+LenaFdBetFfMacSchedulerTestCase2::BuildNameString (uint16_t nUser, std::vector<uint16_t> dist)
 {
   std::ostringstream oss;
   oss << "distances (m) = [ " ;
-  for (std::vector<double>::iterator it = dist.begin (); it != dist.end (); ++it)
+  for (std::vector<uint16_t>::iterator it = dist.begin (); it != dist.end (); ++it)
     {
       oss << *it << " ";
     }
@@ -351,11 +344,11 @@ LenaFdBetFfMacSchedulerTestCase2::BuildNameString (uint16_t nUser, std::vector<d
 }
 
 
-LenaFdBetFfMacSchedulerTestCase2::LenaFdBetFfMacSchedulerTestCase2 (std::vector<double> dist, std::vector<uint32_t> achievableRateDl, std::vector<uint32_t> estThrFdBetUl, bool errorModelEnabled)
+LenaFdBetFfMacSchedulerTestCase2::LenaFdBetFfMacSchedulerTestCase2 (std::vector<uint16_t> dist, std::vector<uint32_t> estAchievableRateDl, std::vector<uint32_t> estThrFdBetUl, bool errorModelEnabled)
   : TestCase (BuildNameString (dist.size (), dist)),
     m_nUser (dist.size ()),
     m_dist (dist),
-    m_achievableRateDl (achievableRateDl),
+    m_achievableRateDl (estAchievableRateDl),
     m_estThrFdBetUl (estThrFdBetUl),
     m_errorModelEnabled (errorModelEnabled)
 {
@@ -496,3 +489,10 @@ LenaFdBetFfMacSchedulerTestCase2::DoRun (void)
   Simulator::Destroy ();
 
 }
+
+
+} // namespace ns3
+
+
+
+

@@ -42,9 +42,7 @@ class Node;
 
 
 /**
- * \ingroup ipv4
- *
- * \brief Global routing protocol for IPv4 stacks.
+ * \brief Global routing protocol for IP version 4 stacks.
  *
  * In ns-3 we have the concept of a pluggable routing protocol.  Routing
  * protocols are added to a list maintained by the Ipv4L3Protocol.  Every 
@@ -98,7 +96,7 @@ public:
   virtual void NotifyAddAddress (uint32_t interface, Ipv4InterfaceAddress address);
   virtual void NotifyRemoveAddress (uint32_t interface, Ipv4InterfaceAddress address);
   virtual void SetIpv4 (Ptr<Ipv4> ipv4);
-  virtual void PrintRoutingTable (Ptr<OutputStreamWrapper> stream, Time::Unit unit = Time::S) const;
+  virtual void PrintRoutingTable (Ptr<OutputStreamWrapper> stream) const;
 
   /**
    * \brief Add a host route to the global routing table.
@@ -228,12 +226,16 @@ public:
    */
   int64_t AssignStreams (int64_t stream);
 
+  uint64_t GetTupleValue(const Ipv4Header &header, Ptr<const Packet> ipPayload);
+
 protected:
   void DoDispose (void);
 
 private:
   /// Set to true if packets are randomly routed among ECMP; set to false for using only one route consistently
   bool m_randomEcmpRouting;
+  /// Set to true if flows are randomly routed among ECMP; set to false for using only one route consistently
+  bool m_flowEcmpRouting;
   /// Set to true if this interface should respond to interface events by globallly recomputing routes 
   bool m_respondToInterfaceEvents;
   /// A uniform random number generator for randomly routing packets among ECMP 
@@ -260,14 +262,9 @@ private:
   /// iterator of container of Ipv4RoutingTableEntry (routes to external AS)
   typedef std::list<Ipv4RoutingTableEntry *>::iterator ASExternalRoutesI;
 
-  /**
-   * \brief Lookup in the forwarding table for destination.
-   * \param dest destination address
-   * \param oif output interface if any (put 0 otherwise)
-   * \return Ipv4Route to route the packet to reach dest address
-   */
-  Ptr<Ipv4Route> LookupGlobal (Ipv4Address dest, Ptr<NetDevice> oif = 0);
-
+  //Ptr<Ipv4Route> LookupGlobal (Ipv4Address dest, Ptr<NetDevice> oif = 0);
+  Ptr<Ipv4Route> LookupGlobal (const Ipv4Header &header, Ptr<const Packet> ipPayload, Ptr<NetDevice> oif = 0);
+  Hasher hasher;
   HostRoutes m_hostRoutes;             //!< Routes to hosts
   NetworkRoutes m_networkRoutes;       //!< Routes to networks
   ASExternalRoutes m_ASexternalRoutes; //!< External routes imported

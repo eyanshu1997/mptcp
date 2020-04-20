@@ -28,16 +28,16 @@
 
 namespace ns3 {
 
-NS_LOG_COMPONENT_DEFINE ("GnuplotAggregator");
-
-NS_OBJECT_ENSURE_REGISTERED (GnuplotAggregator);
+NS_LOG_COMPONENT_DEFINE ("GnuplotAggregator")
+  ;
+NS_OBJECT_ENSURE_REGISTERED (GnuplotAggregator)
+  ;
 
 TypeId
 GnuplotAggregator::GetTypeId ()
 {
   static TypeId tid = TypeId ("ns3::GnuplotAggregator")
     .SetParent<DataCollectionObject> ()
-    .SetGroupName ("Stats")
   ;
 
   return tid;
@@ -318,7 +318,7 @@ void
 GnuplotAggregator::SetKeyLocation (enum GnuplotAggregator::KeyLocation keyLocation)
 {
   NS_LOG_FUNCTION (this << keyLocation);
-  // Set the specified key location.
+  // Set the specifed key location.
   switch (keyLocation)
     {
     case NO_KEY:

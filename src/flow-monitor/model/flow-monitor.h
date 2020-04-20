@@ -143,12 +143,12 @@ public:
    * \return the object TypeId
    */
   static TypeId GetTypeId ();
-  virtual TypeId GetInstanceTypeId () const;
+  TypeId GetInstanceTypeId () const;
   FlowMonitor ();
 
-  /// Add a FlowClassifier to be used by the flow monitor.
+  /// Set the FlowClassifier to be used by the flow monitor.
   /// \param classifier the FlowClassifier
-  void AddFlowClassifier (Ptr<FlowClassifier> classifier);
+  void SetFlowClassifier (Ptr<FlowClassifier> classifier);
 
   /// Set the time, counting from the current time, from which to start monitoring flows.
   /// \param time delta time to start
@@ -211,45 +211,29 @@ public:
   void CheckForLostPackets (Time maxDelay);
 
   // --- methods to get the results ---
-
-  /// Container: FlowId, FlowStats
-  typedef std::map<FlowId, FlowStats> FlowStatsContainer;
-  /// Container Iterator: FlowId, FlowStats
-  typedef std::map<FlowId, FlowStats>::iterator FlowStatsContainerI;
-  /// Container Const Iterator: FlowId, FlowStats
-  typedef std::map<FlowId, FlowStats>::const_iterator FlowStatsContainerCI;
-  /// Container: FlowProbe
-  typedef std::vector< Ptr<FlowProbe> > FlowProbeContainer;
-  /// Container Iterator: FlowProbe
-  typedef std::vector< Ptr<FlowProbe> >::iterator FlowProbeContainerI;
-  /// Container Const Iterator: FlowProbe
-  typedef std::vector< Ptr<FlowProbe> >::const_iterator FlowProbeContainerCI;
-
   /// Retrieve all collected the flow statistics.  Note, if the
   /// FlowMonitor has not stopped monitoring yet, you should call
   /// CheckForLostPackets() to make sure all possibly lost packets are
   /// accounted for.
   /// \returns the flows statistics
-  const FlowStatsContainer& GetFlowStats () const;
+  std::map<FlowId, FlowStats> GetFlowStats () const;
 
   /// Get a list of all FlowProbe's associated with this FlowMonitor
   /// \returns a list of all the probes
-  const FlowProbeContainer& GetAllProbes () const;
+  std::vector< Ptr<FlowProbe> > GetAllProbes () const;
 
   /// Serializes the results to an std::ostream in XML format
   /// \param os the output stream
   /// \param indent number of spaces to use as base indentation level
   /// \param enableHistograms if true, include also the histograms in the output
   /// \param enableProbes if true, include also the per-probe/flow pair statistics in the output
-  void SerializeToXmlStream (std::ostream &os, uint16_t indent, bool enableHistograms, bool enableProbes);
-
+  void SerializeToXmlStream (std::ostream &os, int indent, bool enableHistograms, bool enableProbes);
   /// Same as SerializeToXmlStream, but returns the output as a std::string
   /// \param indent number of spaces to use as base indentation level
   /// \param enableHistograms if true, include also the histograms in the output
   /// \param enableProbes if true, include also the per-probe/flow pair statistics in the output
   /// \return the XML output as string
-  std::string SerializeToXmlString (uint16_t indent, bool enableHistograms, bool enableProbes);
-
+  std::string SerializeToXmlString (int indent, bool enableHistograms, bool enableProbes);
   /// Same as SerializeToXmlStream, but writes to a file instead
   /// \param fileName name or path of the output file that will be created
   /// \param enableHistograms if true, include also the histograms in the output
@@ -273,16 +257,16 @@ private:
   };
 
   /// FlowId --> FlowStats
-  FlowStatsContainer m_flowStats;
+  std::map<FlowId, FlowStats> m_flowStats;
 
   /// (FlowId,PacketId) --> TrackedPacket
   typedef std::map< std::pair<FlowId, FlowPacketId>, TrackedPacket> TrackedPacketMap;
   TrackedPacketMap m_trackedPackets; //!< Tracked packets
   Time m_maxPerHopDelay; //!< Minimum per-hop delay
-  FlowProbeContainer m_flowProbes; //!< all the FlowProbes
+  std::vector< Ptr<FlowProbe> > m_flowProbes; //!< all the FlowProbes
 
   // note: this is needed only for serialization
-  std::list<Ptr<FlowClassifier> > m_classifiers; //!< the FlowClassifiers
+  Ptr<FlowClassifier> m_classifier; //!< the FlowClassifier
 
   EventId m_startEvent;     //!< Start event
   EventId m_stopEvent;      //!< Stop event

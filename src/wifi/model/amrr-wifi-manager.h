@@ -17,12 +17,11 @@
  *
  * Author: Mathieu Lacage <mathieu.lacage@sophia.inria.fr>
  */
-
 #ifndef AMRR_WIFI_MANAGER_H
 #define AMRR_WIFI_MANAGER_H
 
-#include "ns3/traced-value.h"
 #include "wifi-remote-station-manager.h"
+#include "ns3/nstime.h"
 
 namespace ns3 {
 
@@ -36,46 +35,32 @@ struct AmrrWifiRemoteStation;
  * was initially described in <i>IEEE 802.11 Rate Adaptation:
  * A Practical Approach</i>, by M. Lacage, M.H. Manshaei, and
  * T. Turletti.
- *
- * This RAA does not support HT, VHT nor HE modes and will error
- * exit if the user tries to configure this RAA with a Wi-Fi MAC
- * that has VhtSupported, HtSupported or HeSupported set.
  */
 class AmrrWifiManager : public WifiRemoteStationManager
 {
 public:
-  /**
-   * \brief Get the type ID.
-   * \return the object TypeId
-   */
   static TypeId GetTypeId (void);
 
   AmrrWifiManager ();
-  virtual ~AmrrWifiManager ();
-
-  // Inherited from WifiRemoteStationManager
-  void SetHtSupported (bool enable);
-  void SetVhtSupported (bool enable);
-  void SetHeSupported (bool enable);
-
 
 private:
-  //overridden from base class
-  WifiRemoteStation * DoCreateStation (void) const;
-  void DoReportRxOk (WifiRemoteStation *station,
-                     double rxSnr, WifiMode txMode);
-  void DoReportRtsFailed (WifiRemoteStation *station);
-  void DoReportDataFailed (WifiRemoteStation *station);
-  void DoReportRtsOk (WifiRemoteStation *station,
-                      double ctsSnr, WifiMode ctsMode, double rtsSnr);
-  void DoReportDataOk (WifiRemoteStation *station,
-                       double ackSnr, WifiMode ackMode, double dataSnr);
-  void DoReportFinalRtsFailed (WifiRemoteStation *station);
-  void DoReportFinalDataFailed (WifiRemoteStation *station);
-  WifiTxVector DoGetDataTxVector (WifiRemoteStation *station);
-  WifiTxVector DoGetRtsTxVector (WifiRemoteStation *station);
-  bool IsLowLatency (void) const;
+  // overriden from base class
+  virtual WifiRemoteStation * DoCreateStation (void) const;
+  virtual void DoReportRxOk (WifiRemoteStation *station,
+                             double rxSnr, WifiMode txMode);
+  virtual void DoReportRtsFailed (WifiRemoteStation *station);
+  virtual void DoReportDataFailed (WifiRemoteStation *station);
+  virtual void DoReportRtsOk (WifiRemoteStation *station,
+                              double ctsSnr, WifiMode ctsMode, double rtsSnr);
+  virtual void DoReportDataOk (WifiRemoteStation *station,
+                               double ackSnr, WifiMode ackMode, double dataSnr);
+  virtual void DoReportFinalRtsFailed (WifiRemoteStation *station);
+  virtual void DoReportFinalDataFailed (WifiRemoteStation *station);
+  virtual WifiTxVector DoGetDataTxVector (WifiRemoteStation *station, uint32_t size);
+  virtual WifiTxVector DoGetRtsTxVector (WifiRemoteStation *station);
+  virtual bool IsLowLatency (void) const;
 
+  //void UpdateRetry (AmrrWifiRemoteStation *station);
   /**
    * Update the mode used to send to the given station.
    *
@@ -105,7 +90,6 @@ private:
    * minimum rate.
    *
    * \param station
-   *
    * \return true if the current rate is the minimum rate,
    *         false otherwise
    */
@@ -115,7 +99,6 @@ private:
    * maximum rate.
    *
    * \param station
-   *
    * \return true if the current rate is the maximum rate,
    *         false otherwise
    */
@@ -125,7 +108,6 @@ private:
    * is less than the number of successful transmission (times ratio).
    *
    * \param station
-   *
    * \return true if the number of retransmission and transmission error
    *              is less than the number of successful transmission
    *              (times ratio), false otherwise
@@ -136,7 +118,6 @@ private:
    * is greater than the number of successful transmission (times ratio).
    *
    * \param station
-   *
    * \return true if the number of retransmission and transmission error
    *              is less than the number of successful transmission
    *              (times ratio), false otherwise
@@ -153,15 +134,13 @@ private:
    */
   bool IsEnough (AmrrWifiRemoteStation *station) const;
 
-  Time m_updatePeriod; ///< update period
-  double m_failureRatio; ///< failure ratio
-  double m_successRatio; ///< success ratio
-  uint32_t m_maxSuccessThreshold; ///< maximum success threshold
-  uint32_t m_minSuccessThreshold; ///< mnimum success threshold
-
-  TracedValue<uint64_t> m_currentRate; //!< Trace rate changes
+  Time m_updatePeriod;
+  double m_failureRatio;
+  double m_successRatio;
+  uint32_t m_maxSuccessThreshold;
+  uint32_t m_minSuccessThreshold;
 };
 
-} //namespace ns3
+} // namespace ns3
 
 #endif /* AMRR_WIFI_MANAGER_H */

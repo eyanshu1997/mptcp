@@ -49,7 +49,6 @@ struct LteSpectrumSignalParameters : public SpectrumSignalParameters
 
   /**
    * copy constructor
-   * \param p the LteSpectrumSignalParameters to copy
    */
   LteSpectrumSignalParameters (const LteSpectrumSignalParameters& p);
 
@@ -80,7 +79,6 @@ struct LteSpectrumSignalParametersDataFrame : public SpectrumSignalParameters
   
   /**
   * copy constructor
-  * \param p the LteSpectrumSignalParametersDataFrame to copy
   */
   LteSpectrumSignalParametersDataFrame (const LteSpectrumSignalParametersDataFrame& p);
   
@@ -89,9 +87,9 @@ struct LteSpectrumSignalParametersDataFrame : public SpectrumSignalParameters
   */
   Ptr<PacketBurst> packetBurst;
   
-  std::list<Ptr<LteControlMessage> > ctrlMsgList; ///< the control message list
+  std::list<Ptr<LteControlMessage> > ctrlMsgList;
   
-  uint16_t cellId; ///< cell ID
+  uint16_t cellId;
 };
 
 
@@ -113,15 +111,14 @@ struct LteSpectrumSignalParametersDlCtrlFrame : public SpectrumSignalParameters
   
   /**
   * copy constructor
-  * \param p the LteSpectrumSignalParametersDlCtrlFrame to copy
   */
   LteSpectrumSignalParametersDlCtrlFrame (const LteSpectrumSignalParametersDlCtrlFrame& p);
 
 
-  std::list<Ptr<LteControlMessage> > ctrlMsgList; ///< control message list
+  std::list<Ptr<LteControlMessage> > ctrlMsgList;
   
-  uint16_t cellId; ///< cell ID
-  bool pss; ///< primary synchronization signal
+  uint16_t cellId;
+  bool pss; // primary synchronization signal
 };
 
 
@@ -144,11 +141,10 @@ struct LteSpectrumSignalParametersUlSrsFrame : public SpectrumSignalParameters
   
   /**
   * copy constructor
-  * \param p the LteSpectrumSignalParametersUlSrsFrame to copy
   */
   LteSpectrumSignalParametersUlSrsFrame (const LteSpectrumSignalParametersUlSrsFrame& p);
   
-  uint16_t cellId; ///< cell ID
+  uint16_t cellId;
 };
 
 

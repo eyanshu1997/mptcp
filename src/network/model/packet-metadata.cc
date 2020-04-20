@@ -27,9 +27,9 @@
 #include "header.h"
 #include "trailer.h"
 
-namespace ns3 {
-
 NS_LOG_COMPONENT_DEFINE ("PacketMetadata");
+
+namespace ns3 {
 
 bool PacketMetadata::m_enable = false;
 bool PacketMetadata::m_enableChecking = false;
@@ -188,9 +188,9 @@ PacketMetadata::ReadUleb128 (const uint8_t **pBuffer) const
 {
   NS_LOG_FUNCTION (this << &pBuffer);
   const uint8_t *buffer = *pBuffer;
-  uint32_t result;
+  uint32_t result = 0;
   uint8_t byte;
-
+  result = 0;
   byte = buffer[0];
   result = (byte & (~0x80));
   if (!(byte & 0x80))
@@ -263,6 +263,7 @@ PacketMetadata::AppendValueExtra (uint32_t value, uint8_t *buffer)
       byte = value & (~0x80);
       buffer[1] = 0x80 | byte;
       value >>= 7;
+      byte = value & (~0x80);
       buffer[2] = value;
       return;
     }
@@ -446,6 +447,12 @@ PacketMetadata::AddBig (uint32_t next, uint32_t prev,
   return n;
 }
 
+/**
+ * \param item the item data to write
+ * \param extraItem the extra item data to write
+ * \param available the number of bytes which can 
+ *        be written without having to rewrite the buffer entirely.
+ */
 void
 PacketMetadata::ReplaceTail (PacketMetadata::SmallItem *item, 
                              PacketMetadata::ExtraItem *extraItem,
@@ -523,7 +530,12 @@ PacketMetadata::ReplaceTail (PacketMetadata::SmallItem *item,
   *this = h;
 }
 
-
+/**
+ * \param current the offset we should start reading the data from
+ * \param item pointer to where we should store the data to return to the caller
+ * \param extraItem pointer to where we should store the data to return to the caller
+ * \returns the number of bytes read.
+ */
 uint32_t
 PacketMetadata::ReadItems (uint16_t current, 
                            struct PacketMetadata::SmallItem *item,
@@ -585,8 +597,8 @@ PacketMetadata::Create (uint32_t size)
           data->m_count = 1;
           return data;
         }
-      NS_LOG_LOGIC ("create dealloc size="<<data->m_size);
       PacketMetadata::Deallocate (data);
+      NS_LOG_LOGIC ("create dealloc size="<<data->m_size);
     }
   NS_LOG_LOGIC ("create alloc size="<<m_maxSize);
   return PacketMetadata::Allocate (m_maxSize);
@@ -1108,8 +1120,10 @@ PacketMetadata::ItemIterator::Next (void)
       item.type = PacketMetadata::Item::HEADER;
       if (!item.isFragment)
         {
-          item.current = m_buffer.Begin ();
-          item.current.Next (m_offset);
+          ns3::Buffer tmp = m_buffer;
+          tmp.RemoveAtStart (m_offset);
+          tmp.RemoveAtEnd (tmp.GetSize () - item.currentSize);
+          item.current = tmp.Begin ();
         }
     }
   else if (tid.IsChildOf (Trailer::GetTypeId ()))
@@ -1117,8 +1131,10 @@ PacketMetadata::ItemIterator::Next (void)
       item.type = PacketMetadata::Item::TRAILER;
       if (!item.isFragment)
         {
-          item.current = m_buffer.End ();
-          item.current.Prev (m_buffer.GetSize () - (m_offset + smallItem.size));
+          ns3::Buffer tmp = m_buffer;
+          tmp.RemoveAtEnd (tmp.GetSize () - (m_offset + smallItem.size));
+          tmp.RemoveAtStart (tmp.GetSize () - item.currentSize);
+          item.current = tmp.End ();
         }
     }
   else 

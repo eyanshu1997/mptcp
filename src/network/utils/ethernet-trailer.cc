@@ -24,11 +24,12 @@
 #include "ethernet-trailer.h"
 #include "crc32.h"
 
-namespace ns3 {
-
 NS_LOG_COMPONENT_DEFINE ("EthernetTrailer");
 
-NS_OBJECT_ENSURE_REGISTERED (EthernetTrailer);
+namespace ns3 {
+
+NS_OBJECT_ENSURE_REGISTERED (EthernetTrailer)
+  ;
 
 EthernetTrailer::EthernetTrailer ()
   : m_calcFcs (false),
@@ -90,7 +91,7 @@ EthernetTrailer::SetFcs (uint32_t fcs)
 }
 
 uint32_t
-EthernetTrailer::GetFcs (void) const
+EthernetTrailer::GetFcs (void)
 {
   NS_LOG_FUNCTION (this);
   return m_fcs;
@@ -108,7 +109,6 @@ EthernetTrailer::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::EthernetTrailer")
     .SetParent<Trailer> ()
-    .SetGroupName("Network")
     .AddConstructor<EthernetTrailer> ()
   ;
   return tid;

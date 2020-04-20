@@ -19,11 +19,15 @@
 */
 
 #include "ns3/simulator.h"
+
 #include "ns3/log.h"
+
 #include "ns3/spectrum-test.h"
+
 #include "ns3/lte-phy-tag.h"
 #include "ns3/lte-test-ue-phy.h"
-#include "ns3/lte-chunk-processor.h"
+#include "ns3/lte-sinr-chunk-processor.h"
+
 #include "ns3/lte-test-fading.h"
 #include <ns3/buildings-propagation-loss-model.h>
 #include <ns3/node-container.h>
@@ -38,13 +42,18 @@
 #include <ns3/lte-ue-net-device.h>
 #include <ns3/lte-enb-net-device.h>
 #include <ns3/lte-ue-rrc.h>
+#include <ns3/lte-helper.h>
 #include <ns3/lte-enb-phy.h>
 #include <ns3/lte-ue-phy.h>
 #include "lte-test-sinr-chunk-processor.h"
 
-using namespace ns3;
+// #include <ns3/trace-fading-loss-model.h>
+// #include <ns3/spectrum-value.h>
 
 NS_LOG_COMPONENT_DEFINE ("LteFadingTest");
+
+namespace ns3 {
+
 
 /**
 * Test 1.1 Fading compound test
@@ -157,7 +166,7 @@ LteFadingTestCase::DoRun (void)
   // 
   //   LogComponentEnable ("LteSpectrumPhy", logLevel);
   //   LogComponentEnable ("LteInterference", logLevel);
-  //   LogComponentEnable ("LteChunkProcessor", logLevel);
+  //   LogComponentEnable ("LteSinrChunkProcessor", logLevel);
   // 
   //   LogComponentEnable ("LtePropagationLossModel", logLevel);
   //   LogComponentEnable ("LossModel", logLevel);
@@ -231,7 +240,7 @@ LteFadingTestCase::DoRun (void)
       sum.at (i) = 0.;
       sumSquared.at (i) = 0.;
     }
-  for (std::vector<SpectrumValue>::size_type i = 0; i != m_fadingSamples.size (); i++)
+  for (uint i = 0; i < m_fadingSamples.size (); i++)
   {
     NS_LOG_INFO ("Sample time " << time << " : " << m_fadingSamples.at(i)[0] << " " << m_fadingSamples.at(i)[1]);
     time += samplingInterval;
@@ -286,3 +295,6 @@ LteFadingTestCase::GetFadingSample ()
   (*outPsd1)[1] = (10 * std::log10 (180000*(*outPsd1)[1])) - (10 * std::log10 (180000*(*inPsd1)[1]));
   m_fadingSamples.push_back ((*outPsd1));
 }
+
+} // namespace ns3
+

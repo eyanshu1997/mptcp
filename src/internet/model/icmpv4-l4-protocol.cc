@@ -1,23 +1,3 @@
-/* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
-/*
- * Copyright (c) 2008 INRIA
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation;
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- *
- * Author: Mathieu Lacage <mathieu.lacage@cutebugs.net>
- */
-
 #include "icmpv4-l4-protocol.h"
 #include "ipv4-raw-socket-factory-impl.h"
 #include "ipv4-interface.h"
@@ -28,13 +8,14 @@
 #include "ns3/packet.h"
 #include "ns3/boolean.h"
 #include "ns3/ipv4-route.h"
-#include "ns3/ipv6-interface.h"
 
 namespace ns3 {
 
-NS_LOG_COMPONENT_DEFINE ("Icmpv4L4Protocol");
+NS_LOG_COMPONENT_DEFINE ("Icmpv4L4Protocol")
+  ;
 
-NS_OBJECT_ENSURE_REGISTERED (Icmpv4L4Protocol);
+NS_OBJECT_ENSURE_REGISTERED (Icmpv4L4Protocol)
+  ;
 
 // see rfc 792
 const uint8_t Icmpv4L4Protocol::PROT_NUMBER = 1;
@@ -44,7 +25,6 @@ Icmpv4L4Protocol::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::Icmpv4L4Protocol")
     .SetParent<IpL4Protocol> ()
-    .SetGroupName ("Internet")
     .AddConstructor<Icmpv4L4Protocol> ()
   ;
   return tid;
@@ -93,7 +73,7 @@ Icmpv4L4Protocol::NotifyNewAggregate ()
             }
         }
     }
-  IpL4Protocol::NotifyNewAggregate ();
+  Object::NotifyNewAggregate ();
 }
 
 uint16_t 
@@ -155,14 +135,14 @@ Icmpv4L4Protocol::SendDestUnreachFragNeeded (Ipv4Header header,
                                              uint16_t nextHopMtu)
 {
   NS_LOG_FUNCTION (this << header << *orgData << nextHopMtu);
-  SendDestUnreach (header, orgData, Icmpv4DestinationUnreachable::ICMPV4_FRAG_NEEDED, nextHopMtu);
+  SendDestUnreach (header, orgData, Icmpv4DestinationUnreachable::FRAG_NEEDED, nextHopMtu);
 }
 void 
 Icmpv4L4Protocol::SendDestUnreachPort (Ipv4Header header, 
                                        Ptr<const Packet> orgData)
 {
   NS_LOG_FUNCTION (this << header << *orgData);
-  SendDestUnreach (header, orgData, Icmpv4DestinationUnreachable::ICMPV4_PORT_UNREACHABLE, 0);
+  SendDestUnreach (header, orgData, Icmpv4DestinationUnreachable::PORT_UNREACHABLE, 0);
 }
 void 
 Icmpv4L4Protocol::SendDestUnreach (Ipv4Header header, Ptr<const Packet> orgData, 
@@ -175,11 +155,11 @@ Icmpv4L4Protocol::SendDestUnreach (Ipv4Header header, Ptr<const Packet> orgData,
   unreach.SetHeader (header);
   unreach.SetData (orgData);
   p->AddHeader (unreach);
-  SendMessage (p, header.GetSource (), Icmpv4Header::ICMPV4_DEST_UNREACH, code);
+  SendMessage (p, header.GetSource (), Icmpv4Header::DEST_UNREACH, code);
 }
 
 void 
-Icmpv4L4Protocol::SendTimeExceededTtl (Ipv4Header header, Ptr<const Packet> orgData, bool isFragment)
+Icmpv4L4Protocol::SendTimeExceededTtl (Ipv4Header header, Ptr<const Packet> orgData)
 {
   NS_LOG_FUNCTION (this << header << *orgData);
   Ptr<Packet> p = Create<Packet> ();
@@ -187,14 +167,7 @@ Icmpv4L4Protocol::SendTimeExceededTtl (Ipv4Header header, Ptr<const Packet> orgD
   time.SetHeader (header);
   time.SetData (orgData);
   p->AddHeader (time);
-  if (!isFragment)
-    {
-      SendMessage (p, header.GetSource (), Icmpv4Header::ICMPV4_TIME_EXCEEDED, Icmpv4TimeExceeded::ICMPV4_TIME_TO_LIVE);
-    }
-  else
-    {
-      SendMessage (p, header.GetSource (), Icmpv4Header::ICMPV4_TIME_EXCEEDED, Icmpv4TimeExceeded::ICMPV4_FRAGMENT_REASSEMBLY);
-    }
+  SendMessage (p, header.GetSource (), Icmpv4Header::TIME_EXCEEDED, Icmpv4TimeExceeded::TIME_TO_LIVE);
 }
 
 void
@@ -209,7 +182,7 @@ Icmpv4L4Protocol::HandleEcho (Ptr<Packet> p,
   Icmpv4Echo echo;
   p->RemoveHeader (echo);
   reply->AddHeader (echo);
-  SendMessage (reply, destination, source, Icmpv4Header::ICMPV4_ECHO_REPLY, 0, 0);
+  SendMessage (reply, destination, source, Icmpv4Header::ECHO_REPLY, 0, 0);
 }
 void
 Icmpv4L4Protocol::Forward (Ipv4Address source, Icmpv4Header icmp,
@@ -268,13 +241,13 @@ Icmpv4L4Protocol::Receive (Ptr<Packet> p,
   Icmpv4Header icmp;
   p->RemoveHeader (icmp);
   switch (icmp.GetType ()) {
-    case Icmpv4Header::ICMPV4_ECHO:
+    case Icmpv4Header::ECHO:
       HandleEcho (p, icmp, header.GetSource (), header.GetDestination ());
       break;
-    case Icmpv4Header::ICMPV4_DEST_UNREACH:
+    case Icmpv4Header::DEST_UNREACH:
       HandleDestUnreach (p, icmp, header.GetSource (), header.GetDestination ());
       break;
-    case Icmpv4Header::ICMPV4_TIME_EXCEEDED:
+    case Icmpv4Header::TIME_EXCEEDED:
       HandleTimeExceeded (p, icmp, header.GetSource (), header.GetDestination ());
       break;
     default:

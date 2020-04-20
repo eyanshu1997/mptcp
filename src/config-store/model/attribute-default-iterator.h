@@ -25,11 +25,6 @@
 
 namespace ns3 {
 
-/**
- * \ingroup configstore
- *
- * \brief Iterator to iterate on the default values of attributes of an ns3::Object
- */
 class AttributeDefaultIterator
 {
 public:

@@ -36,7 +36,7 @@ namespace ns3 {
  * \brief Topology file reader (Inet-format type).
  *
  * This class takes an input file in Inet format and extracts all
- * the information needed to build the topology
+ * the informations needed to build the topology
  * (i.e.number of nodes, links and links structure).
  * It have been tested with Inet 3.0
  * http://topology.eecs.umich.edu/inet/
@@ -49,7 +49,7 @@ class InetTopologyReader : public TopologyReader
 public:
   /**
    * \brief Get the type ID.
-   * \return the object TypeId.
+   * \return the object TypeId
    */
   static TypeId GetTypeId (void);
 
@@ -62,11 +62,11 @@ public:
    * This method opens an input stream and reads the Inet-format file.
    * From the first line it takes the total number of nodes and links.
    * Then discards a number of rows equals to total nodes (containing
-   * useless geographical information).
+   * useless geographical informations).
    * Then reads until the end of the file (total links number rows) and saves
    * the structure of every single link in the topology.
    *
-   * \return The container of the nodes created (or empty container if there was an error)
+   * \return the container of the nodes created (or empty container if there was an error)
    */
   virtual NodeContainer Read (void);
 
@@ -74,13 +74,13 @@ private:
   /**
    * \brief Copy constructor
    *
-   * Defined and unimplemented to avoid misuse.
+   * Defined and unimplemented to avoid misuse
    */
   InetTopologyReader (const InetTopologyReader&);
   /**
    * \brief Copy constructor
    *
-   * Defined and unimplemented to avoid misuse.
+   * Defined and unimplemented to avoid misuse
    * \returns
    */
   InetTopologyReader& operator= (const InetTopologyReader&);

@@ -23,6 +23,7 @@
 #include <iostream>
 #include <sstream>
 #include <string>
+
 #include <ns3/object.h>
 #include <ns3/spectrum-interference.h>
 #include <ns3/spectrum-error-model.h>
@@ -49,9 +50,12 @@
 #include <ns3/boolean.h>
 #include <ns3/enum.h>
 
-using namespace ns3;
+
+#include "lte-test-tta-ff-mac-scheduler.h"
 
 NS_LOG_COMPONENT_DEFINE ("LenaTestTtaFfMacScheduler");
+
+using namespace ns3;
 
 LenaTestTtaFfMacSchedulerSuite::LenaTestTtaFfMacSchedulerSuite ()
   : TestSuite ("lte-tta-ff-mac-scheduler", SYSTEM)
@@ -147,9 +151,6 @@ LenaTestTtaFfMacSchedulerSuite::LenaTestTtaFfMacSchedulerSuite ()
   AddTestCase (new LenaTtaFfMacSchedulerTestCase (6,20000,421000,22000,errorModel), TestCase::EXTENSIVE);
   AddTestCase (new LenaTtaFfMacSchedulerTestCase (12,20000,421000,12000,errorModel), TestCase::EXTENSIVE);
 
-  // DOWNLINK - DISTANCE 100000 -> CQI == 0 -> out of range -> 0 bytes/sec
-  // UPLINK - DISTANCE 100000 -> CQI == 0 -> out of range -> 0 bytes/sec
-  AddTestCase (new LenaTtaFfMacSchedulerTestCase (1,100000,0,0,errorModel), TestCase::QUICK);
 }
 
 static LenaTestTtaFfMacSchedulerSuite lenaTestTtaFfMacSchedulerSuite;
@@ -158,14 +159,14 @@ static LenaTestTtaFfMacSchedulerSuite lenaTestTtaFfMacSchedulerSuite;
 // --------------- T E S T - C A S E ------------------------------
 
 std::string 
-LenaTtaFfMacSchedulerTestCase::BuildNameString (uint16_t nUser, double dist)
+LenaTtaFfMacSchedulerTestCase::BuildNameString (uint16_t nUser, uint16_t dist)
 {
   std::ostringstream oss;
   oss << nUser << " UEs, distance " << dist << " m";
   return oss.str ();
 }
 
-LenaTtaFfMacSchedulerTestCase::LenaTtaFfMacSchedulerTestCase (uint16_t nUser, double dist, double thrRefDl, double thrRefUl, bool errorModelEnabled)
+LenaTtaFfMacSchedulerTestCase::LenaTtaFfMacSchedulerTestCase (uint16_t nUser, uint16_t dist, double thrRefDl, double thrRefUl, bool errorModelEnabled)
   : TestCase (BuildNameString (nUser, dist)),
     m_nUser (nUser),
     m_dist (dist),
@@ -193,9 +194,6 @@ LenaTtaFfMacSchedulerTestCase::DoRun (void)
     }
 
   Config::SetDefault ("ns3::LteHelper::UseIdealRrc", BooleanValue (true));
-
-  //Disable Uplink Power Control
-  Config::SetDefault ("ns3::LteUePhy::EnableUplinkPowerControl", BooleanValue (false));
 
   /**
    * Initialize Simulation Scenario: 1 eNB and m_nUser UEs
@@ -316,7 +314,7 @@ LenaTtaFfMacSchedulerTestCase::DoRun (void)
     }
   /**
   * Check that the assignation is done in a "proportional fair" manner among users
-  * with equal SINRs: the bandwidth should be distributed according to the 
+  * with equal SINRs: the bandwidht should be distributed according to the 
   * ratio of the estimated throughput per TTI of each user; therefore equally 
   * partitioning the whole bandwidth achievable from a single users in a TTI
   */

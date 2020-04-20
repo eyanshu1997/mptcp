@@ -20,15 +20,10 @@
 #include "attribute-construction-list.h"
 #include "log.h"
 
-/**
- * \file
- * \ingroup object
- * ns3::AttributeConstructionList implementation.
- */
-
 namespace ns3 {
 
-NS_LOG_COMPONENT_DEFINE("AttributeConstructionList");
+NS_LOG_COMPONENT_DEFINE("AttributeConstructionList")
+  ;
 
 AttributeConstructionList::AttributeConstructionList ()
 {

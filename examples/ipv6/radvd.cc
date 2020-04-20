@@ -35,7 +35,7 @@
 #include "ns3/core-module.h"
 #include "ns3/internet-module.h"
 #include "ns3/csma-module.h"
-#include "ns3/internet-apps-module.h"
+#include "ns3/applications-module.h"
 
 #include "ns3/radvd.h"
 #include "ns3/radvd-interface.h"
@@ -97,6 +97,7 @@ int main (int argc, char** argv)
   tmp2.Add (d1.Get (1)); /* R */
   Ipv6InterfaceContainer iicr1 = ipv6.Assign (tmp2); /* R interface to the first subnet is just statically assigned */
   iicr1.SetForwarding (0, true);
+  iicr1.SetDefaultRouteInAllNodes (0);
   iic1.Add (iicr1);
 
   /* second subnet R - n1 */
@@ -105,6 +106,7 @@ int main (int argc, char** argv)
   tmp3.Add (d2.Get (0)); /* R */
   Ipv6InterfaceContainer iicr2 = ipv6.Assign (tmp3); /* R interface */
   iicr2.SetForwarding (0, true);
+  iicr2.SetDefaultRouteInAllNodes (0);
 
   NetDeviceContainer tmp4;
   tmp4.Add (d2.Get (1)); /* n1 */
@@ -113,15 +115,10 @@ int main (int argc, char** argv)
 
   /* radvd configuration */
   RadvdHelper radvdHelper;
-
   /* R interface (n0 - R) */
-  /* n0 will receive unsolicited (periodic) RA */
-  radvdHelper.AddAnnouncedPrefix (iic1.GetInterfaceIndex (1), Ipv6Address("2001:1::0"), 64);
-
+  radvdHelper.AddAnnouncedPrefix(iic1.GetInterfaceIndex (1), Ipv6Address("2001:1::0"), 64);
   /* R interface (R - n1) */
-  /* n1 will have to use RS, as RA are not sent automatically */
   radvdHelper.AddAnnouncedPrefix(iic2.GetInterfaceIndex (1), Ipv6Address("2001:2::0"), 64);
-  radvdHelper.GetRadvdInterface (iic2.GetInterfaceIndex (1))->SetSendAdvert (false);
 
   ApplicationContainer radvdApps = radvdHelper.Install (r);
   radvdApps.Start (Seconds (1.0));

@@ -22,14 +22,15 @@
 #include <list>
 #include "ns3/ipv4-routing-protocol.h"
 #include "ns3/simulator.h"
-#include "ns3/nstime.h"
 
 namespace ns3 {
 
 /**
- * \ingroup ipv4Routing
- *
- * \brief IPv4 list routing.
+ * \ingroup internet 
+ * \defgroup ipv4ListRouting Ipv4 List Routing
+ */
+/**
+ * \ingroup ipv4ListRouting
  *
  * This class is a specialization of Ipv4RoutingProtocol that allows 
  * other instances of Ipv4RoutingProtocol to be inserted in a 
@@ -89,11 +90,11 @@ public:
   virtual void NotifyAddAddress (uint32_t interface, Ipv4InterfaceAddress address);
   virtual void NotifyRemoveAddress (uint32_t interface, Ipv4InterfaceAddress address);
   virtual void SetIpv4 (Ptr<Ipv4> ipv4);
-  virtual void PrintRoutingTable (Ptr<OutputStreamWrapper> stream, Time::Unit unit = Time::S) const;
+  virtual void PrintRoutingTable (Ptr<OutputStreamWrapper> stream) const;
 
 protected:
-  virtual void DoDispose (void);
-  virtual void DoInitialize (void);
+  void DoDispose (void);
+  void DoInitialize (void);
 private:
   /**
    * \brief Container identifying an IPv4 Routing Protocol entry in the list.

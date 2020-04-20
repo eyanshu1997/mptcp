@@ -15,10 +15,10 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * Author: Dean Armstrong <deanarm@gmail.com>
+ * Authors: Dean Armstrong <deanarm@gmail.com>
  */
 
-#include "wifi-information-element.h"
+#include "ns3/wifi-information-element.h"
 
 namespace ns3 {
 
@@ -52,8 +52,8 @@ WifiInformationElement::Deserialize (Buffer::Iterator i)
 {
   Buffer::Iterator start = i;
   i = DeserializeIfPresent (i);
-  //This IE was not optional, so confirm that we did actually
-  //deserialise something.
+  // This IE was not optional, so confirm that we did actually
+  // deserialise something.
   NS_ASSERT (i.GetDistanceFrom (start) != 0);
   return i;
 }
@@ -61,16 +61,12 @@ WifiInformationElement::Deserialize (Buffer::Iterator i)
 Buffer::Iterator
 WifiInformationElement::DeserializeIfPresent (Buffer::Iterator i)
 {
-  if (i.IsEnd ())
-    {
-      return i;
-    }
   Buffer::Iterator start = i;
   uint8_t elementId = i.ReadU8 ();
 
-  //If the element here isn't the one we're after then we immediately
-  //return the iterator we were passed indicating that we haven't
-  //taken anything from the buffer.
+  // If the element here isn't the one we're after then we immediately
+  // return the iterator we were passed indicating that we haven't
+  // taken anything from the buffer.
   if (elementId != ElementId ())
     {
       return start;
@@ -82,6 +78,13 @@ WifiInformationElement::DeserializeIfPresent (Buffer::Iterator i)
   i.Next (length);
 
   return i;
+}
+
+
+bool
+WifiInformationElement::operator< (WifiInformationElement const & a) const
+{
+  return (ElementId () < a.ElementId ());
 }
 
 bool
@@ -109,4 +112,4 @@ WifiInformationElement::operator== (WifiInformationElement const & a) const
   return (memcmp (myIe.PeekData (), hisIe.PeekData (), ieSize) == 0);
 }
 
-} //namespace ns3
+}

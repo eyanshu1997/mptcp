@@ -36,8 +36,7 @@ namespace ns3
 {
 
 /**
- * \ingroup ipv6HeaderExt
- *
+ * \class Ipv6Option
  * \brief IPv6 Option base
  * 
  * If you want to implement a new IPv6 option, all you have to do is
@@ -89,8 +88,7 @@ private:
 };
 
 /**
- * \ingroup ipv6HeaderExt
- *
+ * \class Ipv6OptionPad1
  * \brief IPv6 Option Pad1
  */
 class Ipv6OptionPad1 : public Ipv6Option
@@ -137,8 +135,7 @@ public:
 };
 
 /**
- * \ingroup ipv6HeaderExt
- *
+ * \class Ipv6OptionPadn
  * \brief IPv6 Option Padn
  */
 class Ipv6OptionPadn : public Ipv6Option
@@ -185,8 +182,7 @@ public:
 };
 
 /**
- * \ingroup ipv6HeaderExt
- *
+ * \class Ipv6OptionJumbogram
  * \brief IPv6 Option Jumbogram
  */
 class Ipv6OptionJumbogram : public Ipv6Option
@@ -232,8 +228,7 @@ public:
 };
 
 /**
- * \ingroup ipv6HeaderExt
- *
+ * \class Ipv6OptionRouterAlert
  * \brief IPv6 Option Router Alert
  */
 class Ipv6OptionRouterAlert : public Ipv6Option

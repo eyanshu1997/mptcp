@@ -16,8 +16,6 @@
  * Author: Josh Pelkey <jpelkey@gatech.edu>
  */
 
-// Define an object to create a grid topology.
-
 #ifndef POINT_TO_POINT_GRID_HELPER_H
 #define POINT_TO_POINT_GRID_HELPER_H
 
@@ -48,7 +46,7 @@ public:
    *
    * \param nRows total number of rows in the grid
    *
-   * \param nCols total number of columns in the grid
+   * \param nCols total number of colums in the grid
    *
    * \param pointToPoint the PointToPointHelper which is used 
    *                     to connect all of the nodes together 
@@ -119,7 +117,7 @@ public:
    *              to all of the row interfaces in the grid
    *
    * \param colIp the Ipv4AddressHelper used to assign Ipv4 addresses 
-   *              to all of the column interfaces in the grid
+   *              to all of the row interfaces in the grid
    */
   void AssignIpv4Addresses (Ipv4AddressHelper rowIp, Ipv4AddressHelper colIp);
 
@@ -144,15 +142,15 @@ public:
   void BoundingBox (double ulx, double uly, double lrx, double lry);
 
 private:
-  uint32_t m_xSize;   //!< X size of the grid (number of columns)
-  uint32_t m_ySize;   //!< Y size of the grid (number of rows)
-  std::vector<NetDeviceContainer> m_rowDevices;         //!< NetDevices in a row
-  std::vector<NetDeviceContainer> m_colDevices;         //!< NetDevices in a column
-  std::vector<Ipv4InterfaceContainer> m_rowInterfaces;  //!< IPv4 interfaces in a row
-  std::vector<Ipv4InterfaceContainer> m_colInterfaces;  //!< IPv4 interfaces in a column
-  std::vector<Ipv6InterfaceContainer> m_rowInterfaces6; //!< IPv6 interfaces in a row
-  std::vector<Ipv6InterfaceContainer> m_colInterfaces6; //!< IPv6 interfaces in a column
-  std::vector<NodeContainer> m_nodes; //!< all the nodes in the grid
+  uint32_t m_xSize;
+  uint32_t m_ySize;
+  std::vector<NetDeviceContainer> m_rowDevices;
+  std::vector<NetDeviceContainer> m_colDevices;
+  std::vector<Ipv4InterfaceContainer> m_rowInterfaces;
+  std::vector<Ipv4InterfaceContainer> m_colInterfaces;
+  std::vector<Ipv6InterfaceContainer> m_rowInterfaces6;
+  std::vector<Ipv6InterfaceContainer> m_colInterfaces6;
+  std::vector<NodeContainer> m_nodes;
 };
 
 } // namespace ns3

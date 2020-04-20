@@ -28,8 +28,9 @@
 #include "ns3/ipv4-raw-socket-factory.h"
 #include "ns3/udp-socket-factory.h"
 #include "ns3/simulator.h"
+#include "error-channel.h"
 #include "ns3/simple-net-device.h"
-#include "ns3/simple-net-device-helper.h"
+#include "ns3/drop-tail-queue.h"
 #include "ns3/socket.h"
 #include "ns3/udp-socket.h"
 
@@ -44,8 +45,6 @@
 #include "ns3/ipv4-list-routing.h"
 #include "ns3/ipv4-static-routing.h"
 #include "ns3/udp-l4-protocol.h"
-#include "ns3/internet-stack-helper.h"
-#include "ns3/error-channel.h"
 
 #include <string>
 #include <limits>
@@ -55,60 +54,42 @@ using namespace ns3;
 
 class UdpSocketImpl;
 
-/**
- * \ingroup internet-test
- * \ingroup tests
- *
- * \brief Tag used in IPv4 Fragmentation Test
- */
-class IPv4TestTag : public Tag {
-private:
-  uint64_t token; //!< Token carried by the tag.
-public:
-  /**
-   * \brief Get the type ID.
-   * \return the object TypeId
-   */
-  static TypeId GetTypeId () {
-    static TypeId tid = TypeId ("ns3::IPv4TestTag").SetParent<Tag> ().AddConstructor<IPv4TestTag> ();
-    return tid;
-  }
-  virtual TypeId GetInstanceTypeId () const { return GetTypeId (); }
-  virtual uint32_t GetSerializedSize () const { return sizeof (token); }
-  virtual void Serialize (TagBuffer buffer) const { buffer.WriteU64 (token); }
-  virtual void Deserialize (TagBuffer buffer) { token = buffer.ReadU64 (); }
-  virtual void Print (std::ostream &os) const { os << "token=" << token; }
-  /**
-   * \brief Set the token.
-   * \param token The token.
-   */
-  void SetToken (uint64_t token) { this->token = token; }
-  /**
-   * \brief Get the token.
-   * \returns The token.
-   */
-  uint64_t GetToken () { return token; }
-};
+static void
+AddInternetStack (Ptr<Node> node)
+{
+  //ARP
+  Ptr<ArpL3Protocol> arp = CreateObject<ArpL3Protocol> ();
+  node->AggregateObject(arp);
+  //IPV4
+  Ptr<Ipv4L3Protocol> ipv4 = CreateObject<Ipv4L3Protocol> ();
+  //Routing for Ipv4
+  Ptr<Ipv4ListRouting> ipv4Routing = CreateObject<Ipv4ListRouting> ();
+  ipv4->SetRoutingProtocol (ipv4Routing);
+  Ptr<Ipv4StaticRouting> ipv4staticRouting = CreateObject<Ipv4StaticRouting> ();
+  ipv4Routing->AddRoutingProtocol (ipv4staticRouting, 0);
+  node->AggregateObject(ipv4);
+  //ICMP
+  Ptr<Icmpv4L4Protocol> icmp = CreateObject<Icmpv4L4Protocol> ();
+  node->AggregateObject(icmp);
+  // //Ipv4Raw
+  Ptr<UdpL4Protocol> udp = CreateObject<UdpL4Protocol> ();
+  node->AggregateObject(udp);
+}
 
-/**
- * \ingroup internet-test
- * \ingroup tests
- *
- * \brief IPv4 Fragmentation Test
- */
+
 class Ipv4FragmentationTest: public TestCase
 {
-  Ptr<Packet> m_sentPacketClient;      //!< Packet sent by client.
-  Ptr<Packet> m_receivedPacketClient;  //!< Packet received by client.
-  Ptr<Packet> m_receivedPacketServer;  //!< Packet received by server.
+  Ptr<Packet> m_sentPacketClient;
+  Ptr<Packet> m_receivedPacketClient;
+  Ptr<Packet> m_receivedPacketServer;
 
 
-  Ptr<Socket> m_socketServer;   //!< Server socket.
-  Ptr<Socket> m_socketClient;   //!< Client socket.
-  uint32_t m_dataSize;    //!< Data size.
-  uint8_t *m_data;        //!< Data.
-  uint32_t m_size;        //!< packet size.
-  uint8_t m_icmpType;     //!< ICMP type.
+  Ptr<Socket> m_socketServer;
+  Ptr<Socket> m_socketClient;
+  uint32_t m_dataSize;
+  uint8_t *m_data;
+  uint32_t m_size;
+  uint8_t m_icmpType;
 
 public:
   virtual void DoRun (void);
@@ -116,56 +97,20 @@ public:
   ~Ipv4FragmentationTest ();
 
   // server part
-
-  /**
-   * \brief Start the server.
-   * \param ServerNode The server.
-   */
   void StartServer (Ptr<Node> ServerNode);
-  /**
-   * \brief Handle incoming packets.
-   * \param socket The receiving socket.
-   */
   void HandleReadServer (Ptr<Socket> socket);
 
   // client part
-
-  /**
-   * \brief Start the client.
-   * \param ClientNode The client.
-   */
   void StartClient (Ptr<Node> ClientNode);
-  /**
-   * \brief Handle incoming packets.
-   * \param socket The receiving socket.
-   */
   void HandleReadClient (Ptr<Socket> socket);
-  /**
-   * \brief Handle incoming ICMP packets.
-   * \param icmpSource The ICMP sender.
-   * \param icmpTtl The ICMP TTL.
-   * \param icmpType The ICMP Type.
-   * \param icmpCode The ICMP Code.
-   * \param icmpInfo The ICMP Info.
-   */
   void HandleReadIcmpClient (Ipv4Address icmpSource, uint8_t icmpTtl, uint8_t icmpType,
-                             uint8_t icmpCode, uint32_t icmpInfo);
+                             uint8_t icmpCode,uint32_t icmpInfo);
 
-  /**
-   * \brief Set the packet fill.
-   * \param fill The fill.
-   * \param fillSize The fill size.
-   * \param dataSize The packet size.
-   */
   void SetFill (uint8_t *fill, uint32_t fillSize, uint32_t dataSize);
-
-  /**
-   * \brief Send a packet.
-   * \returns The sent packet.
-   */
   Ptr<Packet> SendClient (void);
 
 };
+
 
 Ipv4FragmentationTest::Ipv4FragmentationTest ()
   : TestCase ("Verify the IPv4 layer 3 protocol fragmentation and reassembly")
@@ -173,8 +118,6 @@ Ipv4FragmentationTest::Ipv4FragmentationTest ()
   m_socketServer = 0;
   m_data = 0;
   m_dataSize = 0;
-  m_size = 0;
-  m_icmpType = 0;
 }
 
 Ipv4FragmentationTest::~Ipv4FragmentationTest ()
@@ -218,6 +161,9 @@ Ipv4FragmentationTest::HandleReadServer (Ptr<Socket> socket)
     {
       if (InetSocketAddress::IsMatchingType (from))
         {
+          packet->RemoveAllPacketTags ();
+          packet->RemoveAllByteTags ();
+
           m_receivedPacketServer = packet->Copy();
         }
     }
@@ -301,11 +247,6 @@ Ptr<Packet> Ipv4FragmentationTest::SendClient (void)
     {
       p = Create<Packet> (m_size);
     }
-  IPv4TestTag tag;
-  tag.SetToken (42);
-  p->AddPacketTag (tag);
-  p->AddByteTag (tag);
-
   m_socketClient->Send (p);
 
   return p;
@@ -320,52 +261,52 @@ Ipv4FragmentationTest::DoRun (void)
 
   // Create topology
   
-   // Receiver Node
+  // Receiver Node
   Ptr<Node> serverNode = CreateObject<Node> ();
+  AddInternetStack (serverNode);
+  Ptr<SimpleNetDevice> serverDev;
+  Ptr<BinaryErrorModel> serverDevErrorModel = CreateObject<BinaryErrorModel> ();
+  {
+    serverDev = CreateObject<SimpleNetDevice> ();
+    serverDev->SetAddress (Mac48Address::ConvertFrom (Mac48Address::Allocate ()));
+    serverDev->SetMtu(1500);
+    serverDev->SetReceiveErrorModel(serverDevErrorModel);
+    serverDevErrorModel->Disable();
+    serverNode->AddDevice (serverDev);
+    Ptr<Ipv4> ipv4 = serverNode->GetObject<Ipv4> ();
+    uint32_t netdev_idx = ipv4->AddInterface (serverDev);
+    Ipv4InterfaceAddress ipv4Addr = Ipv4InterfaceAddress (Ipv4Address ("10.0.0.1"), Ipv4Mask (0xffff0000U));
+    ipv4->AddAddress (netdev_idx, ipv4Addr);
+    ipv4->SetUp (netdev_idx);
+  }
+  StartServer(serverNode);
+
   // Sender Node
   Ptr<Node> clientNode = CreateObject<Node> ();
-
-  NodeContainer nodes (serverNode, clientNode);
-
-  Ptr<ErrorChannel> channel = CreateObject<ErrorChannel> ();
-  channel->SetJumpingTime (Seconds (0.5));
-
-  SimpleNetDeviceHelper helperChannel;
-  helperChannel.SetNetDevicePointToPointMode (true);
-  NetDeviceContainer net = helperChannel.Install (nodes, channel);
-
-  InternetStackHelper internet;
-  internet.Install (nodes);
-
-  Ptr<Ipv4> ipv4;
-  uint32_t netdev_idx;
-  Ipv4InterfaceAddress ipv4Addr;
-
-  // Receiver Node
-  ipv4 = serverNode->GetObject<Ipv4> ();
-  netdev_idx = ipv4->AddInterface (net.Get (0));
-  ipv4Addr = Ipv4InterfaceAddress (Ipv4Address ("10.0.0.1"), Ipv4Mask (0xffff0000U));
-  ipv4->AddAddress (netdev_idx, ipv4Addr);
-  ipv4->SetUp (netdev_idx);
-  Ptr<BinaryErrorModel> serverDevErrorModel = CreateObject<BinaryErrorModel> ();
-  Ptr<SimpleNetDevice> serverDev = DynamicCast<SimpleNetDevice> (net.Get (0));
-  serverDevErrorModel->Disable ();
-  serverDev->SetMtu(1500);
-  serverDev->SetReceiveErrorModel (serverDevErrorModel);
-  StartServer (serverNode);
-
-  // Sender Node
-  ipv4 = clientNode->GetObject<Ipv4> ();
-  netdev_idx = ipv4->AddInterface (net.Get (1));
-  ipv4Addr = Ipv4InterfaceAddress (Ipv4Address ("10.0.0.2"), Ipv4Mask (0xffff0000U));
-  ipv4->AddAddress (netdev_idx, ipv4Addr);
-  ipv4->SetUp (netdev_idx);
+  AddInternetStack (clientNode);
+  Ptr<SimpleNetDevice> clientDev;
   Ptr<BinaryErrorModel> clientDevErrorModel = CreateObject<BinaryErrorModel> ();
-  Ptr<SimpleNetDevice> clientDev = DynamicCast<SimpleNetDevice> (net.Get (1));
-  clientDevErrorModel->Disable ();
-  clientDev->SetMtu(1500);
-  clientDev->SetReceiveErrorModel (clientDevErrorModel);
-  StartClient (clientNode);
+  {
+    clientDev = CreateObject<SimpleNetDevice> ();
+    clientDev->SetAddress (Mac48Address::ConvertFrom (Mac48Address::Allocate ()));
+    clientDev->SetMtu(1000);
+    clientDev->SetReceiveErrorModel(clientDevErrorModel);
+    clientDevErrorModel->Disable();
+    clientNode->AddDevice (clientDev);
+    Ptr<Ipv4> ipv4 = clientNode->GetObject<Ipv4> ();
+    uint32_t netdev_idx = ipv4->AddInterface (clientDev);
+    Ipv4InterfaceAddress ipv4Addr = Ipv4InterfaceAddress (Ipv4Address ("10.0.0.2"), Ipv4Mask (0xffff0000U));
+    ipv4->AddAddress (netdev_idx, ipv4Addr);
+    ipv4->SetUp (netdev_idx);
+  }
+  StartClient(clientNode);
+
+  // link the two nodes
+  Ptr<ErrorChannel> channel = CreateObject<ErrorChannel> ();
+  serverDev->SetChannel (channel);
+  clientDev->SetChannel (channel);
+  channel->SetJumpingTime(Seconds(0.5));
+
 
   // some small packets, some rather big ones
   uint32_t packetSizes[5] = {1000, 2000, 5000, 10000, 65000};
@@ -457,77 +398,15 @@ Ipv4FragmentationTest::DoRun (void)
       NS_TEST_EXPECT_MSG_EQ ((m_icmpType == 11), true, "Client did not receive ICMP::TIME_EXCEEDED");
     }
 
-  // Fourth test: normal channel, no errors, no delays.
-  // We check tags
-  clientDevErrorModel->Disable ();
-  serverDevErrorModel->Disable ();
-  for (int i= 0; i<5; i++)
-    {
-      uint32_t packetSize = packetSizes[i];
-
-      SetFill (fillData, 78, packetSize);
-
-      m_receivedPacketServer = Create<Packet> ();
-      Simulator::ScheduleWithContext (m_socketClient->GetNode ()->GetId (), Seconds (0),
-                                      &Ipv4FragmentationTest::SendClient, this);
-      Simulator::Run ();
-
-      IPv4TestTag packetTag;
-      bool found = m_receivedPacketServer->PeekPacketTag (packetTag);
-
-      NS_TEST_EXPECT_MSG_EQ (found, true, "PacketTag not found");
-      NS_TEST_EXPECT_MSG_EQ (packetTag.GetToken (), 42, "PacketTag value not correct");
-
-      ByteTagIterator iter = m_receivedPacketServer->GetByteTagIterator ();
-
-      uint32_t end = 0;
-      uint32_t tagStart = 0;
-      uint32_t tagEnd = 0;
-      while (iter.HasNext ())
-        {
-          ByteTagIterator::Item item = iter.Next ();
-          NS_TEST_EXPECT_MSG_EQ (item.GetTypeId ().GetName (), "ns3::IPv4TestTag", "ByteTag name not correct");
-          tagStart = item.GetStart ();
-          tagEnd = item.GetEnd ();
-          if (end == 0)
-            {
-              NS_TEST_EXPECT_MSG_EQ (tagStart, 0, "First ByteTag Start not correct");
-            }
-          if (end != 0)
-            {
-              NS_TEST_EXPECT_MSG_EQ (tagStart, end, "ByteTag End not correct");
-            }
-          end = tagEnd;
-          IPv4TestTag *byteTag = dynamic_cast<IPv4TestTag *> (item.GetTypeId ().GetConstructor () ());
-          NS_TEST_EXPECT_MSG_NE (byteTag, 0, "ByteTag not found");
-          item.GetTag (*byteTag);
-          NS_TEST_EXPECT_MSG_EQ (byteTag->GetToken (), 42, "ByteTag value not correct");
-          delete byteTag;
-        }
-      NS_TEST_EXPECT_MSG_EQ (end, m_receivedPacketServer->GetSize (), "trivial");
-    }
-
 
   Simulator::Destroy ();
 }
-
-
-/**
- * \ingroup internet-test
- * \ingroup tests
- *
- * \brief IPv4 Fragmentation TestSuite
- */
+//-----------------------------------------------------------------------------
 class Ipv4FragmentationTestSuite : public TestSuite
 {
 public:
-  Ipv4FragmentationTestSuite ();
-};
-
-Ipv4FragmentationTestSuite::Ipv4FragmentationTestSuite ()
-  : TestSuite ("ipv4-fragmentation", UNIT)
-{
-  AddTestCase (new Ipv4FragmentationTest, TestCase::QUICK);
-}
-
-static Ipv4FragmentationTestSuite g_ipv4fragmentationTestSuite; //!< Static variable for test initialization
+  Ipv4FragmentationTestSuite () : TestSuite ("ipv4-fragmentation", UNIT)
+  {
+    AddTestCase (new Ipv4FragmentationTest, TestCase::QUICK);
+  }
+} g_ipv4fragmentationTestSuite;

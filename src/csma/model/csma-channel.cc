@@ -24,18 +24,18 @@
 #include "ns3/simulator.h"
 #include "ns3/log.h"
 
-namespace ns3 {
-
 NS_LOG_COMPONENT_DEFINE ("CsmaChannel");
 
-NS_OBJECT_ENSURE_REGISTERED (CsmaChannel);
+namespace ns3 {
+
+NS_OBJECT_ENSURE_REGISTERED (CsmaChannel)
+  ;
 
 TypeId
 CsmaChannel::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::CsmaChannel")
     .SetParent<Channel> ()
-    .SetGroupName ("Csma")
     .AddConstructor<CsmaChannel> ()
     .AddAttribute ("DataRate", 
                    "The transmission data rate to be provided to devices connected to the channel",
@@ -170,7 +170,7 @@ CsmaChannel::Detach (Ptr<CsmaNetDevice> device)
 }
 
 bool
-CsmaChannel::TransmitStart (Ptr<const Packet> p, uint32_t srcId)
+CsmaChannel::TransmitStart (Ptr<Packet> p, uint32_t srcId)
 {
   NS_LOG_FUNCTION (this << p << srcId);
   NS_LOG_INFO ("UID is " << p->GetUid () << ")");
@@ -188,7 +188,7 @@ CsmaChannel::TransmitStart (Ptr<const Packet> p, uint32_t srcId)
     }
 
   NS_LOG_LOGIC ("switch to TRANSMITTING");
-  m_currentPkt = p->Copy ();
+  m_currentPkt = p;
   m_currentSrc = srcId;
   m_state = TRANSMITTING;
   return true;
@@ -268,16 +268,17 @@ CsmaChannel::GetNumActDevices (void)
   return numActDevices;
 }
 
-std::size_t
+uint32_t
 CsmaChannel::GetNDevices (void) const
 {
-  return m_deviceList.size ();
+  return (m_deviceList.size ());
 }
 
 Ptr<CsmaNetDevice>
-CsmaChannel::GetCsmaDevice (std::size_t i) const
+CsmaChannel::GetCsmaDevice (uint32_t i) const
 {
-  return m_deviceList[i].devicePtr;
+  Ptr<CsmaNetDevice> netDevice = m_deviceList[i].devicePtr;
+  return netDevice;
 }
 
 int32_t
@@ -335,7 +336,7 @@ CsmaChannel::GetState (void)
 }
 
 Ptr<NetDevice>
-CsmaChannel::GetDevice (std::size_t i) const
+CsmaChannel::GetDevice (uint32_t i) const
 {
   return GetCsmaDevice (i);
 }

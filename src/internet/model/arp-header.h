@@ -73,25 +73,25 @@ public:
    * \brief Returns the source hardware address
    * \returns the source hardware address
    */
-  Address GetSourceHardwareAddress (void) const;
+  Address GetSourceHardwareAddress (void);
 
   /**
    * \brief Returns the destination hardware address
    * \returns the destination hardware address
    */
-  Address GetDestinationHardwareAddress (void) const;
+  Address GetDestinationHardwareAddress (void);
 
   /**
    * \brief Returns the source IP address
    * \returns the source IP address
    */
-  Ipv4Address GetSourceIpv4Address (void) const;
+  Ipv4Address GetSourceIpv4Address (void);
 
   /**
    * \brief Returns the destination IP address
    * \returns the destination IP address
    */
-  Ipv4Address GetDestinationIpv4Address (void) const;
+  Ipv4Address GetDestinationIpv4Address (void);
 
   /**
    * \brief Get the type ID.

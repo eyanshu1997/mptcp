@@ -31,18 +31,18 @@
 #include "ns3/tcp-socket-factory.h"
 #include "bulk-send-application.h"
 
-namespace ns3 {
-
 NS_LOG_COMPONENT_DEFINE ("BulkSendApplication");
 
-NS_OBJECT_ENSURE_REGISTERED (BulkSendApplication);
+namespace ns3 {
+
+NS_OBJECT_ENSURE_REGISTERED (BulkSendApplication)
+  ;
 
 TypeId
 BulkSendApplication::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::BulkSendApplication")
     .SetParent<Application> ()
-    .SetGroupName("Applications") 
     .AddConstructor<BulkSendApplication> ()
     .AddAttribute ("SendSize", "The amount of data to send each time.",
                    UintegerValue (512),
@@ -59,14 +59,13 @@ BulkSendApplication::GetTypeId (void)
                    "that there is no limit.",
                    UintegerValue (0),
                    MakeUintegerAccessor (&BulkSendApplication::m_maxBytes),
-                   MakeUintegerChecker<uint64_t> ())
+                   MakeUintegerChecker<uint32_t> ())
     .AddAttribute ("Protocol", "The type of protocol to use.",
                    TypeIdValue (TcpSocketFactory::GetTypeId ()),
                    MakeTypeIdAccessor (&BulkSendApplication::m_tid),
                    MakeTypeIdChecker ())
     .AddTraceSource ("Tx", "A new packet is created and is sent",
-                     MakeTraceSourceAccessor (&BulkSendApplication::m_txTrace),
-                     "ns3::Packet::TracedCallback")
+                     MakeTraceSourceAccessor (&BulkSendApplication::m_txTrace))
   ;
   return tid;
 }
@@ -86,7 +85,7 @@ BulkSendApplication::~BulkSendApplication ()
 }
 
 void
-BulkSendApplication::SetMaxBytes (uint64_t maxBytes)
+BulkSendApplication::SetMaxBytes (uint32_t maxBytes)
 {
   NS_LOG_FUNCTION (this << maxBytes);
   m_maxBytes = maxBytes;
@@ -130,17 +129,11 @@ void BulkSendApplication::StartApplication (void) // Called at time specified by
 
       if (Inet6SocketAddress::IsMatchingType (m_peer))
         {
-          if (m_socket->Bind6 () == -1)
-            {
-              NS_FATAL_ERROR ("Failed to bind socket");
-            }
+          m_socket->Bind6 ();
         }
       else if (InetSocketAddress::IsMatchingType (m_peer))
         {
-          if (m_socket->Bind () == -1)
-            {
-              NS_FATAL_ERROR ("Failed to bind socket");
-            }
+          m_socket->Bind ();
         }
 
       m_socket->Connect (m_peer);
@@ -181,24 +174,19 @@ void BulkSendApplication::SendData (void)
 
   while (m_maxBytes == 0 || m_totBytes < m_maxBytes)
     { // Time to send more
-
-      // uint64_t to allow the comparison later.
-      // the result is in a uint32_t range anyway, because
-      // m_sendSize is uint32_t.
-      uint64_t toSend = m_sendSize;
+      uint32_t toSend = m_sendSize;
       // Make sure we don't send too many
       if (m_maxBytes > 0)
         {
-          toSend = std::min (toSend, m_maxBytes - m_totBytes);
+          toSend = std::min (m_sendSize, m_maxBytes - m_totBytes);
         }
-
       NS_LOG_LOGIC ("sending packet at " << Simulator::Now ());
       Ptr<Packet> packet = Create<Packet> (toSend);
+      m_txTrace (packet);
       int actual = m_socket->Send (packet);
       if (actual > 0)
         {
           m_totBytes += actual;
-          m_txTrace (packet);
         }
       // We exit this loop when actual < toSend as the send side
       // buffer is full. The "DataSent" callback will pop when
@@ -236,7 +224,7 @@ void BulkSendApplication::DataSend (Ptr<Socket>, uint32_t)
 
   if (m_connected)
     { // Only send new data if the connection has completed
-      SendData ();
+      Simulator::ScheduleNow (&BulkSendApplication::SendData, this);
     }
 }
 

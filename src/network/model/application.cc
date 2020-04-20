@@ -27,11 +27,12 @@
 #include "ns3/nstime.h"
 #include "ns3/simulator.h"
 
-namespace ns3 {
-
 NS_LOG_COMPONENT_DEFINE ("Application");
 
-NS_OBJECT_ENSURE_REGISTERED (Application);
+namespace ns3 {
+
+NS_OBJECT_ENSURE_REGISTERED (Application)
+  ;
 
 // Application Methods
 
@@ -40,7 +41,6 @@ Application::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::Application")
     .SetParent<Object> ()
-    .SetGroupName("Network")
     .AddAttribute ("StartTime", "Time at which the application will start",
                    TimeValue (Seconds (0.0)),
                    MakeTimeAccessor (&Application::m_startTime),

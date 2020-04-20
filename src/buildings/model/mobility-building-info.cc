@@ -26,18 +26,19 @@
 #include <ns3/log.h>
 #include <ns3/assert.h>
 
-namespace ns3 {
-
 NS_LOG_COMPONENT_DEFINE ("MobilityBuildingInfo");
 
-NS_OBJECT_ENSURE_REGISTERED (MobilityBuildingInfo);
+namespace ns3 {
+
+NS_OBJECT_ENSURE_REGISTERED (MobilityBuildingInfo)
+  ;
 
 TypeId
 MobilityBuildingInfo::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::MobilityBuildingInfo")
     .SetParent<Object> ()
-    .SetGroupName ("Buildings")
+    .SetGroupName ("Building")
     .AddConstructor<MobilityBuildingInfo> ();
 
   return tid;

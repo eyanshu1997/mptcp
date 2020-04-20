@@ -32,17 +32,17 @@ Dot11sMeshCapability::Dot11sMeshCapability () :
 uint8_t
 Dot11sMeshCapability::GetSerializedSize () const
 {
-  return 1; 
+  return 2;
 }
-uint8_t  
-Dot11sMeshCapability::GetUint8 () const  //IEEE 802.11-2012 8.4.2.100.8 Mesh Capability 
+uint16_t
+Dot11sMeshCapability::GetUint16 () const
 {
-  uint8_t result = 0;  
+  uint16_t result = 0;
   if (acceptPeerLinks)
     {
-      result |= 1 << 0; //The Accepting Additional Mesh Peerings subfield is set to 1 if the mesh STA is willing to establish additional mesh peerings   with other mesh STAs and set to 0 otherwise
+      result |= 1 << 0;
     }
-  if (MCCASupported) // The MCCA Supported subfield is set to 1 if the mesh STA implements MCCA and set to 0 otherwise
+  if (MCCASupported)
     {
       result |= 1 << 1;
     }
@@ -71,13 +71,13 @@ Dot11sMeshCapability::GetUint8 () const  //IEEE 802.11-2012 8.4.2.100.8 Mesh Cap
 Buffer::Iterator
 Dot11sMeshCapability::Serialize (Buffer::Iterator i) const
 {
-  i.WriteU8 (GetUint8 ());
+  i.WriteHtolsbU16 (GetUint16 ());
   return i;
 }
 Buffer::Iterator
 Dot11sMeshCapability::Deserialize (Buffer::Iterator i)
 {
-  uint8_t cap = i.ReadU8 ();
+  uint16_t cap = i.ReadLsbtohU16 ();
   acceptPeerLinks = Is (cap, 0);
   MCCASupported = Is (cap, 1);
   MCCAEnabled = Is (cap, 2);
@@ -88,7 +88,7 @@ Dot11sMeshCapability::Deserialize (Buffer::Iterator i)
   return i;
 }
 bool
-Dot11sMeshCapability::Is (uint8_t cap, uint8_t n) const
+Dot11sMeshCapability::Is (uint16_t cap, uint8_t n) const
 {
   uint16_t mask = 1 << n;
   return (cap & mask);
@@ -96,7 +96,7 @@ Dot11sMeshCapability::Is (uint8_t cap, uint8_t n) const
 WifiInformationElementId
 IeConfiguration::ElementId () const
 {
-  return IE_MESH_CONFIGURATION;
+  return IE11S_MESH_CONFIGURATION;
 }
 
 IeConfiguration::IeConfiguration () :
@@ -107,28 +107,29 @@ IeConfiguration::IeConfiguration () :
 uint8_t
 IeConfiguration::GetInformationFieldSize () const
 {
-   return 0   // Version
-         + 1  // APSPId
-         + 1 // APSMId
-         + 1 // CCMId
-         + 1 // SPId
-         + 1 // APId
+  return 1 // Version
+         + 4 // APSPId
+         + 4 // APSMId
+         + 4 // CCMId
+         + 4 // SPId
+         + 4 // APId
          + 1 // Mesh formation info (see 7.3.2.86.6 of 802.11s draft 3.0)
          + m_meshCap.GetSerializedSize ();
 }
 void
 IeConfiguration::SerializeInformationField (Buffer::Iterator i) const
 {
+  i.WriteU8 (1); //Version
   // Active Path Selection Protocol ID:
-  i.WriteU8 (m_APSPId);
+  i.WriteHtolsbU32 (m_APSPId);
   // Active Path Metric ID:
-  i.WriteU8 (m_APSMId);
+  i.WriteHtolsbU32 (m_APSMId);
   // Congestion Control Mode ID:
-  i.WriteU8 (m_CCMId);
+  i.WriteHtolsbU32 (m_CCMId);
   // Sync:
-  i.WriteU8 (m_SPId);
+  i.WriteHtolsbU32 (m_SPId);
   // Auth:
-  i.WriteU8 (m_APId);
+  i.WriteHtolsbU32 (m_APId);
   i.WriteU8 (m_neighbors << 1);
   m_meshCap.Serialize (i);
 }
@@ -136,14 +137,20 @@ uint8_t
 IeConfiguration::DeserializeInformationField (Buffer::Iterator i, uint8_t length)
 {
   Buffer::Iterator start = i;
+  uint8_t version;
+  version = i.ReadU8 ();
+  if (version != 1)
+    {
+      NS_FATAL_ERROR ("Other versions not supported yet");
+    }
   // Active Path Selection Protocol ID:
-  m_APSPId = (dot11sPathSelectionProtocol) i.ReadU8 ();
+  m_APSPId = (dot11sPathSelectionProtocol) i.ReadLsbtohU32 ();
   // Active Path Metric ID:
-  m_APSMId = (dot11sPathSelectionMetric) i.ReadU8 ();
+  m_APSMId = (dot11sPathSelectionMetric) i.ReadLsbtohU32 ();
   // Congestion Control Mode ID:
-  m_CCMId = (dot11sCongestionControlMode) i.ReadU8 ();
-  m_SPId = (dot11sSynchronizationProtocolIdentifier) i.ReadU8 ();
-  m_APId = (dot11sAuthenticationProtocol) i.ReadU8 ();
+  m_CCMId = (dot11sCongestionControlMode) i.ReadLsbtohU32 ();
+  m_SPId = (dot11sSynchronizationProtocolIdentifier) i.ReadLsbtohU32 ();
+  m_APId = (dot11sAuthenticationProtocol) i.ReadLsbtohU32 ();
   m_neighbors = (i.ReadU8 () >> 1) & 0xF;
   i = m_meshCap.Deserialize (i);
   return i.GetDistanceFrom (start);
@@ -151,14 +158,15 @@ IeConfiguration::DeserializeInformationField (Buffer::Iterator i, uint8_t length
 void
 IeConfiguration::Print (std::ostream& os) const
 {
-  os << "MeshConfiguration=(neighbors=" << (uint16_t) m_neighbors
-     << ", Active Path Selection Protocol ID=" << (uint32_t) m_APSPId
-     << ", Active Path Selection Metric ID=" << (uint32_t) m_APSMId
-     << ", Congestion Control Mode ID=" << (uint32_t) m_CCMId
-     << ", Synchronize protocol ID=" << (uint32_t) m_SPId
-     << ", Authentication protocol ID=" << (uint32_t) m_APId
-     << ", Capabilities=" << m_meshCap.GetUint8 ();
-  os << ")";
+  os << std::endl << "<information_element id=" << ElementId () << ">" << std::endl;
+  os << "Number of neighbors:               = " << (uint16_t) m_neighbors
+     << std::endl << "Active Path Selection Protocol ID: = " << (uint32_t) m_APSPId
+     << std::endl << "Active Path Selection Metric ID:   = " << (uint32_t) m_APSMId
+     << std::endl << "Congestion Control Mode ID:        = " << (uint32_t) m_CCMId
+     << std::endl << "Synchronize protocol ID:           = " << (uint32_t) m_SPId
+     << std::endl << "Authentication protocol ID:        = " << (uint32_t) m_APId
+     << std::endl << "Capabilities:                      = " << m_meshCap.GetUint16 () << std::endl;
+  os << "</information_element>" << std::endl;
 }
 void
 IeConfiguration::SetRouting (dot11sPathSelectionProtocol routingId)

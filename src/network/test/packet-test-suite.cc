@@ -35,69 +35,30 @@ using namespace ns3;
 //-----------------------------------------------------------------------------
 namespace {
 
-/**
- * \ingroup network-test
- * \ingroup tests
- *
- * \brief Base class for Test tags
- *
- * \note Class internal to packet-test-suite.cc
- */
 class ATestTagBase : public Tag
 {
 public:
   ATestTagBase () : m_error (false), m_data (0) {}
-  /// Constructor
-  /// \param data Tag data
   ATestTagBase (uint8_t data) : m_error (false), m_data (data) {}
-  /**
-   * Register this type.
-   * \return The TypeId.
-   */
-  static TypeId GetTypeId (void)
-  {
-    static TypeId tid = TypeId ("ATestTagBase")
-      .SetParent<Tag> ()
-      .SetGroupName ("Network")
-      .HideFromDocumentation ()
-    // No AddConstructor because this is an abstract class.
-      ;
-    return tid;
-  }
-  /// Get the tag data.
-  /// \return the tag data.
-  int GetData () const {
+  virtual int GetData () const {
     int result = (int)m_data;
     return result;
   }
-  bool m_error;   //!< Error in the Tag
-  uint8_t m_data; //!< Tag data
+  bool m_error;
+  uint8_t m_data;
 };
 
-/**
- * \ingroup network-test
- * \ingroup tests
- *
- * \brief Template class for Test tags
- *
- * \note Class internal to packet-test-suite.cc
- */
 template <int N>
 class ATestTag : public ATestTagBase
 {
 public:
-  /**
-   * Register this type.
-   * \return The TypeId.
-   */
   static TypeId GetTypeId (void) {
     std::ostringstream oss;
     oss << "anon::ATestTag<" << N << ">";
     static TypeId tid = TypeId (oss.str ().c_str ())
-      .SetParent<ATestTagBase> ()
-      .SetGroupName ("Network")
-      .HideFromDocumentation ()
+      .SetParent<Tag> ()
       .AddConstructor<ATestTag<N> > ()
+      .HideFromDocumentation ()
     ;
     return tid;
   }
@@ -130,132 +91,28 @@ public:
   }
   ATestTag ()
     : ATestTagBase () {}
-  /// Constructor
-  /// \param data Tag data
   ATestTag (uint8_t data)
     : ATestTagBase (data) {}
 };
 
-// Previous versions of ns-3 limited the tag size to 20 bytes or less
-// static const uint8_t LARGE_TAG_BUFFER_SIZE = 64;
-#define LARGE_TAG_BUFFER_SIZE 64
-
-/**
- * \ingroup network-test
- * \ingroup tests
- *
- * \brief Template class for Large Test tags
- *
- * \see Bug 2221: Expanding packet tag maximum size
- *
- * \note Class internal to packet-test-suite.cc
- */
-class ALargeTestTag : public Tag
-{
-public:
-  ALargeTestTag () {
-    for (uint8_t i = 0; i < (LARGE_TAG_BUFFER_SIZE - 1); i++)
-      {
-        m_data.push_back (i);
-      }
-    m_size = LARGE_TAG_BUFFER_SIZE;
-  }
-  /**
-   * Register this type.
-   * \return The TypeId.
-   */
-  static TypeId GetTypeId (void)
-  {
-    static TypeId tid = TypeId ("ALargeTestTag")
-      .SetParent<Tag> ()
-      .SetGroupName ("Network")
-      .HideFromDocumentation ()
-      .AddConstructor<ALargeTestTag> ()
-      ;
-    return tid;
-  }
-  virtual TypeId GetInstanceTypeId (void) const {
-    return GetTypeId ();
-  }
-  virtual uint32_t GetSerializedSize (void) const {
-    return (uint32_t) m_size;
-  }
-  virtual void Serialize (TagBuffer buf) const {
-    buf.WriteU8 (m_size);
-    for (uint8_t i = 0; i < (m_size - 1); ++i)
-      {
-        buf.WriteU8 (m_data[i]);
-      }
-  }
-  virtual void Deserialize (TagBuffer buf) {
-    m_size = buf.ReadU8 ();
-    for (uint8_t i = 0; i < (m_size - 1); ++i)
-      {
-        uint8_t v = buf.ReadU8 ();
-        m_data.push_back (v);
-      }
-  }
-  virtual void Print (std::ostream &os) const {
-    os << "(" << (uint16_t) m_size << ")";
-  }
-private:
-  uint8_t m_size;   //!< Packet size
-  std::vector<uint8_t> m_data;  //!< Tag data
-};
-
-/**
- * \ingroup network-test
- * \ingroup tests
- *
- * \brief Base class for Test headers
- *
- * \note Class internal to packet-test-suite.cc
- */
 class ATestHeaderBase : public Header
 {
 public:
   ATestHeaderBase () : Header (), m_error (false) {}
-  /**
-   * Register this type.
-   * \return The TypeId.
-   */
-  static TypeId GetTypeId (void)
-  {
-    static TypeId tid = TypeId ("ATestHeaderBase")
-      .SetParent<Header> ()
-      .SetGroupName ("Network")
-      .HideFromDocumentation ()
-      // No AddConstructor because this is an abstract class.
-      ;
-    return tid;
-  }
-  bool m_error;   //!< Error in the Header
+  bool m_error;
 };
 
-/**
- * \ingroup network-test
- * \ingroup tests
- *
- * \brief Template class for Test headers
- *
- * \note Class internal to packet-test-suite.cc
- */
 template <int N>
 class ATestHeader : public ATestHeaderBase
 {
 public:
-  /**
-   * Register this type.
-   * \return The TypeId.
-   */
   static TypeId GetTypeId (void) {
     std::ostringstream oss;
     oss << "anon::ATestHeader<" << N << ">";
     static TypeId tid = TypeId (oss.str ().c_str ())
-      .SetParent<ATestHeaderBase> ()
-      .SetGroupName ("Network")
-      .HideFromDocumentation ()
+      .SetParent<Header> ()
       .AddConstructor<ATestHeader<N> > ()
+      .HideFromDocumentation ()
     ;
     return tid;
   }
@@ -289,59 +146,24 @@ public:
 
 };
 
-/**
- * \ingroup network-test
- * \ingroup tests
- *
- * \brief Base class for Test trailers
- *
- * \note Class internal to packet-test-suite.cc
- */
 class ATestTrailerBase : public Trailer
 {
 public:
   ATestTrailerBase () : Trailer (), m_error (false) {}
-  /**
-   * Register this type.
-   * \return The TypeId.
-   */
-  static TypeId GetTypeId (void)
-  {
-    static TypeId tid = TypeId ("ATestTrailerBase")
-      .SetParent<Trailer> ()
-      .SetGroupName ("Network")
-      .HideFromDocumentation ()
-    // No AddConstructor because this is an abstract class.
-      ;
-    return tid;
-  }
-  bool m_error;   //!< Error in the Trailer
+  bool m_error;
 };
 
-/**
- * \ingroup network-test
- * \ingroup tests
- *
- * \brief Template class for Test trailers
- *
- * \note Class internal to packet-test-suite.cc
- */
 template <int N>
 class ATestTrailer : public ATestTrailerBase
 {
 public:
-  /**
-   * Register this type.
-   * \return The TypeId.
-   */
   static TypeId GetTypeId (void) {
     std::ostringstream oss;
     oss << "anon::ATestTrailer<" << N << ">";
     static TypeId tid = TypeId (oss.str ().c_str ())
-      .SetParent<ATestTrailerBase> ()
-      .SetGroupName ("Network")
-      .HideFromDocumentation ()
+      .SetParent<Header> ()
       .AddConstructor<ATestTrailer<N> > ()
+      .HideFromDocumentation ()
     ;
     return tid;
   }
@@ -377,28 +199,15 @@ public:
 
 };
 
-/**
- * \ingroup network-test
- * \ingroup tests
- *
- * \brief Struct to hold the expected data in the packet
- *
- * \note Class internal to packet-test-suite.cc
- */
+
 struct Expected
 {
-  /**
-   * Constructor
-   * \param n_ Number of elements
-   * \param start_ Start
-   * \param end_ End
-   */
   Expected (uint32_t n_, uint32_t start_, uint32_t end_)
     : n (n_), start (start_), end (end_) {}
 
-  uint32_t n;     //!< Number of elements
-  uint32_t start; //!< Start
-  uint32_t end;   //!< End
+  uint32_t n;
+  uint32_t start;
+  uint32_t end;
 };
 
 }
@@ -409,26 +218,12 @@ struct Expected
 #define CHECK(p, n, ...)                                \
   DoCheck (p, __FILE__, __LINE__, n, __VA_ARGS__)
 
-/**
- * \ingroup network-test
- * \ingroup tests
- *
- * Packet unit tests.
- */
 class PacketTest : public TestCase
 {
 public:
   PacketTest ();
   virtual void DoRun (void);
 private:
-  /**
-   * Checks the packet
-   * \param p The packet
-   * \param file The file name
-   * \param line The line number
-   * \param n The number of variable arguments
-   * \param ... The variable arguments
-   */
   void DoCheck (Ptr<const Packet> p, const char *file, int line, uint32_t n, ...);
 };
 
@@ -656,95 +451,8 @@ PacketTest::DoRun (void)
     CHECK (tmp, 1, E (20, 1, 1001));
 #endif
   }
-
-  /* Test reducing tagged packet size and increasing it back. */
-  {
-    Ptr<Packet> tmp = Create<Packet> (0);
-    tmp->AddHeader (ATestHeader<100> ());
-    tmp->AddByteTag (ATestTag<25> ());
-    CHECK (tmp, 1, E (25, 0, 100));
-    tmp->RemoveAtStart (50);
-    CHECK (tmp, 1, E (25, 0, 50));
-    tmp->AddHeader (ATestHeader<50> ());
-    CHECK (tmp, 1, E (25, 50, 100));
-  }
-
-  /* Similar test case, but using trailer instead of header. */
-  {
-    Ptr<Packet> tmp = Create<Packet> (0);
-    tmp->AddTrailer (ATestTrailer<100> ());
-    tmp->AddByteTag (ATestTag<25> ());
-    CHECK (tmp, 1, E (25, 0, 100));
-    tmp->RemoveAtEnd (50);
-    CHECK (tmp, 1, E (25, 0, 50));
-    tmp->AddTrailer (ATestTrailer<50> ());
-    CHECK (tmp, 1, E (25, 0, 50));
-  }
-
-  /* Test reducing tagged packet size and increasing it by half. */
-  {
-    Ptr<Packet> tmp = Create<Packet> (0);
-    tmp->AddHeader (ATestHeader<100> ());
-    tmp->AddByteTag (ATestTag<25> ());
-    CHECK (tmp, 1, E (25, 0, 100));
-    tmp->RemoveAtStart (50);
-    CHECK (tmp, 1, E (25, 0, 50));
-    tmp->AddHeader (ATestHeader<25> ());
-    CHECK (tmp, 1, E (25, 25, 75));
-  }
-
-  /* Similar test case, but using trailer instead of header. */
-  {
-    Ptr<Packet> tmp = Create<Packet> (0);
-    tmp->AddTrailer (ATestTrailer<100> ());
-    tmp->AddByteTag (ATestTag<25> ());
-    CHECK (tmp, 1, E (25, 0, 100));
-    tmp->RemoveAtEnd (50);
-    CHECK (tmp, 1, E (25, 0, 50));
-    tmp->AddTrailer (ATestTrailer<25> ());
-    CHECK (tmp, 1, E (25, 0, 50));
-  }
-
-  /* Test AddPaddingAtEnd. */
-  {
-    Ptr<Packet> tmp = Create<Packet> (0);
-    tmp->AddTrailer (ATestTrailer<100> ());
-    tmp->AddByteTag (ATestTag<25> ());
-    CHECK (tmp, 1, E (25, 0, 100));
-    tmp->RemoveAtEnd (50);
-    CHECK (tmp, 1, E (25, 0, 50));
-    tmp->AddPaddingAtEnd (50);
-    CHECK (tmp, 1, E (25, 0, 50));
-  }
-
-  /* Test reducing tagged packet size and increasing it back,
-   * now using padding bytes to avoid triggering dirty state
-   * in virtual buffer
-   */
-  {
-    Ptr<Packet> tmp = Create<Packet> (100);
-    tmp->AddByteTag (ATestTag<25> ());
-    CHECK (tmp, 1, E (25, 0, 100));
-    tmp->RemoveAtEnd (50);
-    CHECK (tmp, 1, E (25, 0, 50));
-    tmp->AddPaddingAtEnd (50);
-    CHECK (tmp, 1, E (25, 0, 50));
-  }
-
-  /* Test ALargeTestTag */
-  {
-    Ptr<Packet> tmp = Create<Packet> (0);
-    ALargeTestTag a;
-    tmp->AddPacketTag (a); 
-  }
 }
-
-/**
- * \ingroup network-test
- * \ingroup tests
- *
- * Packet Tag list unit tests.
- */
+//--------------------------------------
 class PacketTagListTest : public TestCase
 {
 public:
@@ -752,43 +460,16 @@ public:
   virtual ~PacketTagListTest ();
 private:
   void DoRun (void);
-  /**
-   * Checks against a reference PacketTagList
-   * \param ref Reference
-   * \param t List to test
-   * \param msg Message
-   * \param miss Expected miss/hit
-   */
   void CheckRef (const PacketTagList & ref,
                  ATestTagBase & t,
                  const char * msg,
                  bool miss = false);
-  /**
-   * Checks against a reference PacketTagList
-   * \param ref Reference
-   * \param msg Message
-   * \param miss Expected miss/hit
-   */
   void CheckRefList (const PacketTagList & ref,
                      const char * msg,
                      int miss = 0);
-
-  /**
-   * Prints the remove time
-   * \param ref Reference.
-   * \param t List to test.
-   * \param msg Message - prints on cout if msg is not null.
-   * \return the ticks to remove the tags.
-   */
   int RemoveTime (const PacketTagList & ref,
                   ATestTagBase & t,
                   const char * msg = 0);
-
-  /**
-   * Prints the remove time
-   * \param verbose prints on cout if verbose is true.
-   * \return the ticks to remove the tags.
-   */
   int AddRemoveTime (const bool verbose = false);
 };
 
@@ -865,7 +546,7 @@ PacketTagListTest::RemoveTime (const PacketTagList & ref,
     std::cout << GetName () << "remove time: " << msg << ": " << std::setw (8)
               << delta      << " ticks to remove "
               << reps       << " times"
-              << std::endl;
+            << std::endl;
   }
   return delta;
 }
@@ -887,7 +568,7 @@ PacketTagListTest::AddRemoveTime (const bool verbose /* = false */)
     std::cout << GetName () << "add/remove time: " << std::setw (8)
               << delta      << " ticks to add+remove "
               << reps       << " times"
-              << std::endl;
+            << std::endl;
   }
   return delta;
 }
@@ -1035,12 +716,7 @@ PacketTagListTest::DoRun (void)
     
 }
 
-/**
- * \ingroup network-test
- * \ingroup tests
- *
- * \brief Packet TestSuite
- */
+//-----------------------------------------------------------------------------
 class PacketTestSuite : public TestSuite
 {
 public:
@@ -1054,4 +730,4 @@ PacketTestSuite::PacketTestSuite ()
   AddTestCase (new PacketTagListTest, TestCase::QUICK);
 }
 
-static PacketTestSuite g_packetTestSuite; //!< Static variable for test initialization
+static PacketTestSuite g_packetTestSuite;

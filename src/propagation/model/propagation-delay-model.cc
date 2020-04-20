@@ -25,14 +25,14 @@
 
 namespace ns3 {
 
-NS_OBJECT_ENSURE_REGISTERED (PropagationDelayModel);
+NS_OBJECT_ENSURE_REGISTERED (PropagationDelayModel)
+  ;
 
 TypeId 
 PropagationDelayModel::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::PropagationDelayModel")
     .SetParent<Object> ()
-    .SetGroupName ("Propagation")
   ;
   return tid;
 }
@@ -49,14 +49,14 @@ PropagationDelayModel::AssignStreams (int64_t stream)
 
 // ------------------------------------------------------------------------- //
 
-NS_OBJECT_ENSURE_REGISTERED (RandomPropagationDelayModel);
+NS_OBJECT_ENSURE_REGISTERED (RandomPropagationDelayModel)
+  ;
 
 TypeId
 RandomPropagationDelayModel::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::RandomPropagationDelayModel")
     .SetParent<PropagationDelayModel> ()
-    .SetGroupName ("Propagation")
     .AddConstructor<RandomPropagationDelayModel> ()
     .AddAttribute ("Variable",
                    "The random variable which generates random delays (s).",
@@ -86,17 +86,17 @@ RandomPropagationDelayModel::DoAssignStreams (int64_t stream)
   return 1;
 }
 
-NS_OBJECT_ENSURE_REGISTERED (ConstantSpeedPropagationDelayModel);
+NS_OBJECT_ENSURE_REGISTERED (ConstantSpeedPropagationDelayModel)
+  ;
 
 TypeId
 ConstantSpeedPropagationDelayModel::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::ConstantSpeedPropagationDelayModel")
     .SetParent<PropagationDelayModel> ()
-    .SetGroupName ("Propagation")
     .AddConstructor<ConstantSpeedPropagationDelayModel> ()
-    .AddAttribute ("Speed", "The propagation speed (m/s) in the propagation medium being considered. The default value is the propagation speed of light in the vacuum.",
-                   DoubleValue (299792458),
+    .AddAttribute ("Speed", "The speed (m/s)",
+                   DoubleValue (300000000.0),
                    MakeDoubleAccessor (&ConstantSpeedPropagationDelayModel::m_speed),
                    MakeDoubleChecker<double> ())
   ;

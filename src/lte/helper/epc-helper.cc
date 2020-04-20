@@ -24,13 +24,14 @@
 #include <ns3/log.h>
 #include <ns3/node.h>
 #include <ns3/ipv4-address.h>
-#include <ns3/ipv6-address.h>
 
 namespace ns3 {
 
-NS_LOG_COMPONENT_DEFINE ("EpcHelper");
+NS_LOG_COMPONENT_DEFINE ("EpcHelper")
+  ;
 
-NS_OBJECT_ENSURE_REGISTERED (EpcHelper);
+NS_OBJECT_ENSURE_REGISTERED (EpcHelper)
+  ;
 
 
 EpcHelper::EpcHelper () 
@@ -48,7 +49,6 @@ EpcHelper::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::EpcHelper")
     .SetParent<Object> ()
-    .SetGroupName("Lte")
     ;
   return tid;
 }

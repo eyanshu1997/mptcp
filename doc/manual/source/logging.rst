@@ -320,7 +320,7 @@ How to add logging to your code
 Adding logging to your code is very simple:
 
 1. Invoke the ``NS_LOG_COMPONENT_DEFINE (...);`` macro
-   inside of ``namespace ns3``.
+   outside of ``namespace ns3``.
 
   Create a unique string identifier (usually based on the name of the file
   and/or class defined within the file) and register it with a macro call
@@ -328,9 +328,9 @@ Adding logging to your code is very simple:
 
   ::
 
-    namespace ns3 {
-    
     NS_LOG_COMPONENT_DEFINE ("Ipv4L3Protocol");
+
+    namespace ns3 {
     ...
 
   This registers ``Ipv4L3Protocol`` as a log component.
@@ -341,88 +341,6 @@ Adding logging to your code is very simple:
   at file global scope.)
 
 2. Add logging statements (macro calls) to your functions and function bodies.
-
-In case you want to add logging statements to the methods of your template class
-(which are defined in an header file):
-
-1. Invoke the ``NS_LOG_TEMPLATE_DECLARE;`` macro in the private section of
-   your class declaration. For instance:
-
-  ::
-
-    template <typename Item>
-    class Queue : public QueueBase
-    {
-    ...
-    private:
-      std::list<Ptr<Item> > m_packets;          //!< the items in the queue
-      NS_LOG_TEMPLATE_DECLARE;                  //!< the log component
-    };
-
-  This requires you to perform these steps for all the subclasses of your class.
-
-2. Invoke the ``NS_LOG_TEMPLATE_DEFINE (...);`` macro in the constructor of
-   your class by providing the name of a log component registered by calling
-   the ``NS_LOG_COMPONENT_DEFINE (...);`` macro in some module. For instance:
-
-  ::
-
-    template <typename Item>
-    Queue<Item>::Queue ()
-      : NS_LOG_TEMPLATE_DEFINE ("Queue")
-    {
-    }
-
-3. Add logging statements (macro calls) to the methods of your class.
-
-In case you want to add logging statements to a static member template
-(which is defined in an header file):
-
-1. Invoke the ``NS_LOG_STATIC_TEMPLATE_DEFINE (...);`` macro in your static
-   method by providing the name of a log component registered by calling
-   the ``NS_LOG_COMPONENT_DEFINE (...);`` macro in some module. For instance:
-
-  ::
-
-    template <typename Item>
-    void
-    NetDeviceQueue::PacketEnqueued (Ptr<Queue<Item> > queue,
-                                    Ptr<NetDeviceQueueInterface> ndqi,
-                                    uint8_t txq, Ptr<const Item> item)
-    {
-
-      NS_LOG_STATIC_TEMPLATE_DEFINE ("NetDeviceQueueInterface");
-    ...
-
-2. Add logging statements (macro calls) to your static method.
-
-Controlling timestamp precision
-*******************************
-
-Timestamps are printed out in units of seconds.  When used with the default
-|ns3| time resolution of nanoseconds, the default timestamp precision is 9 
-digits, with fixed format, to allow for 9 digits to be consistently printed 
-to the right of the decimal point.  Example:
-
-::
-
-  +0.000123456s RandomVariableStream:SetAntithetic(0x805040, 0)
-
-When the |ns3| simulation uses higher time resolution such as picoseconds
-or femtoseconds, the precision is expanded accordingly; e.g. for picosecond:
-
-::
-
-  +0.000123456789s RandomVariableStream:SetAntithetic(0x805040, 0)
-
-When the |ns3| simulation uses a time resolution lower than microseconds,
-the default C++ precision is used.
- 
-An example program at ``src\core\examples\sample-log-time-format.cc``
-demonstrates how to change the timestamp formatting.
-
-The maximum useful precision is 20 decimal digits, since Time is signed 64 
-bits.
 
 Logging Macros
 ==============
@@ -506,11 +424,6 @@ Guidelines
   Run some example programs with all log components turned on (e.g. 
   ``NS_LOG="***"``).
 
-* Use an explicit cast for any variable of type uint8_t or int8_t, 
-  e.g., ``NS_LOG_LOGIC ("Variable i is " << static_cast<int> (i));``.
-  Without the cast, the integer is interpreted as a char, and the result
-  will be most likely not in line with the expectations.
-  This is a well documented C++ 'feature'.
 
 
 

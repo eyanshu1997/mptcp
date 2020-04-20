@@ -18,15 +18,20 @@
  * Author: Mathieu Lacage <mathieu.lacage@sophia.inria.fr>
  */
 
-#include "ns3/log.h"
-#include "ns3/sequence-number.h"
-#include "ns3/packet.h"
 #include "mac-rx-middle.h"
 #include "wifi-mac-header.h"
 
-namespace ns3 {
+#include "ns3/assert.h"
+#include "ns3/log.h"
+#include "ns3/packet.h"
+#include "ns3/simulator.h"
+#include "ns3/sequence-number.h"
+#include <list>
 
 NS_LOG_COMPONENT_DEFINE ("MacRxMiddle");
+
+namespace ns3 {
+
 
 /**
  * A class to keep track of the packet originator status.
@@ -44,11 +49,9 @@ private:
    */
   typedef std::list<Ptr<const Packet> >::const_iterator FragmentsCI;
 
-  bool m_defragmenting; ///< flag to indicate whether we are defragmenting
-  uint16_t m_lastSequenceControl; ///< last sequence control
-  Fragments m_fragments; ///< fragments
-
-
+  bool m_defragmenting;
+  uint16_t m_lastSequenceControl;
+  Fragments m_fragments;
 public:
   OriginatorRxStatus ()
   {
@@ -66,7 +69,7 @@ public:
    * \return true if we are de-fragmenting packets,
    *         false otherwise
    */
-  bool IsDeFragmenting (void) const
+  bool IsDeFragmenting (void)
   {
     return m_defragmenting;
   }
@@ -89,7 +92,6 @@ public:
    * and return the full packet.
    *
    * \param packet the last fragment
-   *
    * \return the fully reconstructed packet
    */
   Ptr<Packet> AccumulateLastFragment (Ptr<const Packet> packet)
@@ -121,11 +123,10 @@ public:
    * in order.
    *
    * \param sequenceControl the raw sequence control
-   *
    * \return true if the sequence control is in order,
    *         false otherwise
    */
-  bool IsNextFragment (uint16_t sequenceControl) const
+  bool IsNextFragment (uint16_t sequenceControl)
   {
     if ((sequenceControl >> 4) == (m_lastSequenceControl >> 4)
         && (sequenceControl & 0x0f) == ((m_lastSequenceControl & 0x0f) + 1))
@@ -142,7 +143,7 @@ public:
    *
    * \return the last sequence control
    */
-  uint16_t GetLastSequenceControl (void) const
+  uint16_t GetLastSequenceControl (void)
   {
     return m_lastSequenceControl;
   }
@@ -150,11 +151,12 @@ public:
    * Set the last sequence control we received.
    *
    * \param sequenceControl the last sequence control we received
-   */
+   */ 
   void SetSequenceControl (uint16_t sequenceControl)
   {
     m_lastSequenceControl = sequenceControl;
   }
+
 };
 
 
@@ -300,13 +302,9 @@ MacRxMiddle::Receive (Ptr<Packet> packet, const WifiMacHeader *hdr)
 {
   NS_LOG_FUNCTION (packet << hdr);
   NS_ASSERT (hdr->IsData () || hdr->IsMgt ());
-  if (!m_pcfCallback.IsNull ())
-    {
-      m_pcfCallback ();
-    }
   OriginatorRxStatus *originator = Lookup (hdr);
   /**
-   * The check below is really unneeded because it can fail in a lot of
+   * The check below is really uneeded because it can fail in a lot of
    * normal cases. Specifically, it is possible for sequence numbers to
    * loop back to zero once they reach 0xfff0 and to go up to 0xf7f0 in
    * which case the check below will report the two sequence numbers to
@@ -319,7 +317,7 @@ MacRxMiddle::Receive (Ptr<Packet> packet, const WifiMacHeader *hdr)
       NS_LOG_DEBUG ("Sequence numbers have looped back. last recorded=" << originator->GetLastSequenceControl () <<
                     " currently seen=" << hdr->GetSequenceControl ());
     }
-  //filter duplicates.
+  // filter duplicates.
   if (IsDuplicate (hdr, originator))
     {
       NS_LOG_DEBUG ("duplicate from=" << hdr->GetAddr2 () <<
@@ -327,8 +325,8 @@ MacRxMiddle::Receive (Ptr<Packet> packet, const WifiMacHeader *hdr)
                     ", frag=" << hdr->GetFragmentNumber ());
       return;
     }
-  Ptr<Packet> aggregate = HandleFragments (packet, hdr, originator);
-  if (aggregate == 0)
+  Ptr<Packet> agregate = HandleFragments (packet, hdr, originator);
+  if (agregate == 0)
     {
       return;
     }
@@ -339,13 +337,7 @@ MacRxMiddle::Receive (Ptr<Packet> packet, const WifiMacHeader *hdr)
     {
       originator->SetSequenceControl (hdr->GetSequenceControl ());
     }
-  m_callback (aggregate, hdr);
+  m_callback (agregate, hdr);
 }
 
-void
-MacRxMiddle::SetPcfCallback (Callback<void> callback)
-{
-  m_pcfCallback = callback;
-}
-
-} //namespace ns3
+} // namespace ns3

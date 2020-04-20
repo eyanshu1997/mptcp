@@ -1,7 +1,7 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
  * Copyright (c) 2010 Hajime Tazaki
- *
+ * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
  * published by the Free Software Foundation;
@@ -25,6 +25,7 @@
 #include "ns3/simulator.h"
 #include "ns3/simple-channel.h"
 #include "ns3/simple-net-device.h"
+#include "ns3/drop-tail-queue.h"
 #include "ns3/socket.h"
 
 #include "ns3/log.h"
@@ -37,8 +38,6 @@
 #include "ns3/icmpv4-l4-protocol.h"
 #include "ns3/ipv4-list-routing.h"
 #include "ns3/ipv4-static-routing.h"
-#include "ns3/traffic-control-layer.h"
-#include "ns3/internet-stack-helper.h"
 
 #include <string>
 #include <sstream>
@@ -49,57 +48,47 @@
 
 using namespace ns3;
 
+static void
+AddInternetStack (Ptr<Node> node)
+{
+  //ARP
+  Ptr<ArpL3Protocol> arp = CreateObject<ArpL3Protocol> ();
+  node->AggregateObject (arp);
+  //IPV4
+  Ptr<Ipv4L3Protocol> ipv4 = CreateObject<Ipv4L3Protocol> ();
+  //Routing for Ipv4
+  Ptr<Ipv4ListRouting> ipv4Routing = CreateObject<Ipv4ListRouting> ();
+  ipv4->SetRoutingProtocol (ipv4Routing);
+  Ptr<Ipv4StaticRouting> ipv4staticRouting = CreateObject<Ipv4StaticRouting> ();
+  ipv4Routing->AddRoutingProtocol (ipv4staticRouting, 0);
+  node->AggregateObject (ipv4);
+  //ICMP
+  Ptr<Icmpv4L4Protocol> icmp = CreateObject<Icmpv4L4Protocol> ();
+  node->AggregateObject (icmp);
+  // //Ipv4Raw
+  // Ptr<Ipv4UdpL4Protocol> udp = CreateObject<UdpL4Protocol> ();
+  // node->AggregateObject(udp); 
+}
 
-/**
- * \ingroup internet-test
- * \ingroup tests
- *
- * \brief IPv4 Header Test
- */
+
 class Ipv4HeaderTest : public TestCase
 {
-  Ptr<Packet> m_receivedPacket; //!< Received packet.
-  Ipv4Header m_receivedHeader;  //!< Received header.
-
-  /**
-   * \brief Send a packet with speciic DSCP and ECN fields.
-   * \param socket The source socket.
-   * \param to The destination address.
-   * \param dscp The DSCP field.
-   * \param ecn The ECN field.
-   */
-  void DoSendData_IpHdr_Dscp (Ptr<Socket> socket, std::string to, Ipv4Header::DscpType dscp, Ipv4Header::EcnType ecn);
-
-  /**
-   * \brief Send a packet with speciic DSCP and ECN fields.
-   * \param socket The source socket.
-   * \param to The destination address.
-   * \param dscp The DSCP field.
-   * \param ecn The ECN field.
-   */
-  void SendData_IpHdr_Dscp (Ptr<Socket> socket, std::string to, Ipv4Header::DscpType dscp, Ipv4Header::EcnType ecn);
+  Ptr<Packet> m_receivedPacket;
+  Ipv4Header m_receivedHeader;
+  void DoSendData_IpHdr_Dscp (Ptr<Socket> socket, std::string to, Ipv4Header::DscpType dscp,Ipv4Header::EcnType);
+  void SendData_IpHdr_Dscp (Ptr<Socket> socket, std::string to, Ipv4Header::DscpType dscp, Ipv4Header::EcnType);
 
 public:
   virtual void DoRun (void);
   Ipv4HeaderTest ();
 
-  /**
-   * \brief Receives a packet.
-   * \param socket The receiving socket.
-   * \param packet The packet.
-   * \param from The source address.
-   */
   void ReceivePacket (Ptr<Socket> socket, Ptr<Packet> packet, const Address &from);
-  /**
-   * \brief Receives a packet.
-   * \param socket The receiving socket.
-   */
   void ReceivePkt (Ptr<Socket> socket);
 };
 
 
 Ipv4HeaderTest::Ipv4HeaderTest ()
-  : TestCase ("IPv4 Header Test")
+  : TestCase ("IPv4 Header Test") 
 {
 }
 
@@ -107,6 +96,7 @@ void Ipv4HeaderTest::ReceivePacket (Ptr<Socket> socket, Ptr<Packet> packet, cons
 {
   m_receivedPacket = packet;
 }
+
 
 void Ipv4HeaderTest::ReceivePkt (Ptr<Socket> socket)
 {
@@ -118,6 +108,8 @@ void Ipv4HeaderTest::ReceivePkt (Ptr<Socket> socket)
   NS_ASSERT (availableData == m_receivedPacket->GetSize ());
   m_receivedPacket->PeekHeader (m_receivedHeader);
 }
+
+
 
 void
 Ipv4HeaderTest::DoSendData_IpHdr_Dscp (Ptr<Socket> socket, std::string to, Ipv4Header::DscpType dscp, Ipv4Header::EcnType ecn)
@@ -154,13 +146,9 @@ Ipv4HeaderTest::DoRun (void)
 {
   // Create topology
 
-  InternetStackHelper internet;
-  internet.SetIpv6StackInstall (false);
-
   // Receiver Node
   Ptr<Node> rxNode = CreateObject<Node> ();
-  internet.Install (rxNode);
-
+  AddInternetStack (rxNode);
   Ptr<SimpleNetDevice> rxDev1, rxDev2;
   { // first interface
     rxDev1 = CreateObject<SimpleNetDevice> ();
@@ -173,9 +161,10 @@ Ipv4HeaderTest::DoRun (void)
     ipv4->SetUp (netdev_idx);
   }
 
+
   // Sender Node
   Ptr<Node> txNode = CreateObject<Node> ();
-  internet.Install (txNode);
+  AddInternetStack (txNode);
   Ptr<SimpleNetDevice> txDev1;
   {
     txDev1 = CreateObject<SimpleNetDevice> ();
@@ -242,7 +231,7 @@ Ipv4HeaderTest::DoRun (void)
       m_receivedPacket->RemoveAllByteTags ();
       m_receivedPacket = 0;
     }
-
+ 
   // Ecn tests
   std::cout << "Ecn Test\n";
   std::vector <Ipv4Header::EcnType> vEcnTypes;
@@ -250,7 +239,7 @@ Ipv4HeaderTest::DoRun (void)
   vEcnTypes.push_back (Ipv4Header::ECN_ECT1);
   vEcnTypes.push_back (Ipv4Header::ECN_ECT0);
   vEcnTypes.push_back (Ipv4Header::ECN_CE);
-
+  
   for (uint32_t i = 0; i < vEcnTypes.size (); i++)
     {
       SendData_IpHdr_Dscp (txSocket, "10.0.0.1", Ipv4Header::DscpDefault, vEcnTypes [i]);
@@ -262,15 +251,11 @@ Ipv4HeaderTest::DoRun (void)
       m_receivedPacket = 0;
     }
 
+
+ 
   Simulator::Destroy ();
 }
-
-/**
- * \ingroup internet-test
- * \ingroup tests
- *
- * \brief IPv4 Header TestSuite
- */
+//-----------------------------------------------------------------------------
 class Ipv4HeaderTestSuite : public TestSuite
 {
 public:
@@ -278,6 +263,4 @@ public:
   {
     AddTestCase (new Ipv4HeaderTest, TestCase::QUICK);
   }
-};
-
-static Ipv4HeaderTestSuite g_ipv4HeaderTestSuite; //!< Static variable for test initialization
+} g_ipv4HeaderTestSuite;

@@ -30,28 +30,22 @@
 
 #include <cmath>
 
-
-/**
- * \file
- * \ingroup simulator
- * ns3::DefaultSimulatorImpl implementation.
- */
-
-namespace ns3 {
-
 // Note:  Logging in this file is largely avoided due to the
 // number of calls that are made to these functions and the possibility
 // of causing recursions leading to stack overflow
+
 NS_LOG_COMPONENT_DEFINE ("DefaultSimulatorImpl");
 
-NS_OBJECT_ENSURE_REGISTERED (DefaultSimulatorImpl);
+namespace ns3 {
+
+NS_OBJECT_ENSURE_REGISTERED (DefaultSimulatorImpl)
+  ;
 
 TypeId
 DefaultSimulatorImpl::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::DefaultSimulatorImpl")
     .SetParent<SimulatorImpl> ()
-    .SetGroupName ("Core")
     .AddConstructor<DefaultSimulatorImpl> ()
   ;
   return tid;
@@ -69,7 +63,7 @@ DefaultSimulatorImpl::DefaultSimulatorImpl ()
   // before ::Run is entered, the m_currentUid will be zero
   m_currentUid = 0;
   m_currentTs = 0;
-  m_currentContext = Simulator::NO_CONTEXT;
+  m_currentContext = 0xffffffff;
   m_unscheduledEvents = 0;
   m_eventsWithContextEmpty = true;
   m_main = SystemThread::Self();
@@ -84,8 +78,6 @@ void
 DefaultSimulatorImpl::DoDispose (void)
 {
   NS_LOG_FUNCTION (this);
-  ProcessEventsWithContext ();
-
   while (!m_events->IsEmpty ())
     {
       Scheduler::Event next = m_events->RemoveNext ();
@@ -215,24 +207,25 @@ DefaultSimulatorImpl::Stop (void)
 }
 
 void 
-DefaultSimulatorImpl::Stop (Time const &delay)
+DefaultSimulatorImpl::Stop (Time const &time)
 {
-  NS_LOG_FUNCTION (this << delay.GetTimeStep ());
-  Simulator::Schedule (delay, &Simulator::Stop);
+  NS_LOG_FUNCTION (this << time.GetTimeStep ());
+  Simulator::Schedule (time, &Simulator::Stop);
 }
 
 //
 // Schedule an event for a _relative_ time in the future.
 //
 EventId
-DefaultSimulatorImpl::Schedule (Time const &delay, EventImpl *event)
+DefaultSimulatorImpl::Schedule (Time const &time, EventImpl *event)
 {
-  NS_LOG_FUNCTION (this << delay.GetTimeStep () << event);
+  NS_LOG_FUNCTION (this << time.GetTimeStep () << event);
   NS_ASSERT_MSG (SystemThread::Equals (m_main), "Simulator::Schedule Thread-unsafe invocation!");
 
-  NS_ASSERT_MSG (delay.IsPositive (), "DefaultSimulatorImpl::Schedule(): Negative delay");
-  Time tAbsolute = delay + TimeStep (m_currentTs);
+  Time tAbsolute = time + TimeStep (m_currentTs);
 
+  NS_ASSERT (tAbsolute.IsPositive ());
+  NS_ASSERT (tAbsolute >= TimeStep (m_currentTs));
   Scheduler::Event ev;
   ev.impl = event;
   ev.key.m_ts = (uint64_t) tAbsolute.GetTimeStep ();
@@ -245,13 +238,13 @@ DefaultSimulatorImpl::Schedule (Time const &delay, EventImpl *event)
 }
 
 void
-DefaultSimulatorImpl::ScheduleWithContext (uint32_t context, Time const &delay, EventImpl *event)
+DefaultSimulatorImpl::ScheduleWithContext (uint32_t context, Time const &time, EventImpl *event)
 {
-  NS_LOG_FUNCTION (this << context << delay.GetTimeStep () << event);
+  NS_LOG_FUNCTION (this << context << time.GetTimeStep () << event);
 
   if (SystemThread::Equals (m_main))
     {
-      Time tAbsolute = delay + TimeStep (m_currentTs);
+      Time tAbsolute = time + TimeStep (m_currentTs);
       Scheduler::Event ev;
       ev.impl = event;
       ev.key.m_ts = (uint64_t) tAbsolute.GetTimeStep ();
@@ -265,8 +258,7 @@ DefaultSimulatorImpl::ScheduleWithContext (uint32_t context, Time const &delay, 
     {
       EventWithContext ev;
       ev.context = context;
-      // Current time added in ProcessEventsWithContext()
-      ev.timestamp = delay.GetTimeStep ();
+      ev.timestamp = time.GetTimeStep ();
       ev.event = event;
       {
         CriticalSection cs (m_eventsWithContextMutex);
@@ -366,30 +358,30 @@ DefaultSimulatorImpl::Cancel (const EventId &id)
 }
 
 bool
-DefaultSimulatorImpl::IsExpired (const EventId &id) const
+DefaultSimulatorImpl::IsExpired (const EventId &ev) const
 {
-  if (id.GetUid () == 2)
+  if (ev.GetUid () == 2)
     {
-      if (id.PeekEventImpl () == 0 ||
-          id.PeekEventImpl ()->IsCancelled ())
+      if (ev.PeekEventImpl () == 0 ||
+          ev.PeekEventImpl ()->IsCancelled ())
         {
           return true;
         }
       // destroy events.
       for (DestroyEvents::const_iterator i = m_destroyEvents.begin (); i != m_destroyEvents.end (); i++)
         {
-          if (*i == id)
+          if (*i == ev)
             {
               return false;
             }
         }
       return true;
     }
-  if (id.PeekEventImpl () == 0 ||
-      id.GetTs () < m_currentTs ||
-      (id.GetTs () == m_currentTs &&
-       id.GetUid () <= m_currentUid) ||
-      id.PeekEventImpl ()->IsCancelled ()) 
+  if (ev.PeekEventImpl () == 0 ||
+      ev.GetTs () < m_currentTs ||
+      (ev.GetTs () == m_currentTs &&
+       ev.GetUid () <= m_currentUid) ||
+      ev.PeekEventImpl ()->IsCancelled ()) 
     {
       return true;
     }
@@ -402,6 +394,8 @@ DefaultSimulatorImpl::IsExpired (const EventId &id) const
 Time 
 DefaultSimulatorImpl::GetMaximumSimulationTime (void) const
 {
+  /// \todo I am fairly certain other compilers use other non-standard
+  /// post-fixes to indicate 64 bit constants.
   return TimeStep (0x7fffffffffffffffLL);
 }
 

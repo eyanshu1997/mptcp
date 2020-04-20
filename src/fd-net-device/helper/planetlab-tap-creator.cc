@@ -123,7 +123,7 @@ TunAlloc (int iftype, char *if_name)
 
   /* passing type param */
   ret = send (control_fd, &iftype, sizeof(iftype), 0);
-  ABORT_IF (ret != sizeof(iftype), "Could not send parameter to Vsys control socket", 0);
+  ABORT_IF (ret != sizeof(iftype), "Could not send paramater to Vsys control socket", 0);
 
   return ReceiveVifFd (control_fd, if_name);
 
@@ -142,6 +142,7 @@ SetTunUp (const char *ip, const char *prefix, const char *if_name)
   FILE *in;
   FILE *out;
   char errbuff[4096];
+  int nbytes;
 
   memset(errbuff, 0, 4096);
 
@@ -165,7 +166,7 @@ SetTunUp (const char *ip, const char *prefix, const char *if_name)
   // close pipe to indicate end parameter passing and flush the fifo
   fclose (in);
 
-  fread((void*)errbuff, 4096, 1, out);
+  nbytes = fread((void*)errbuff, 4096, 1, out);
  
   // the error buffer will not be empty if we read an error
   ABORT_IF (strcmp(errbuff, "") != 0, errbuff, 0);

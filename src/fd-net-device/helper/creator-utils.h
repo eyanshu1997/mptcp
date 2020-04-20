@@ -54,7 +54,6 @@ extern int gVerbose;
     }
 
 /**
- * \ingroup fd-net-device
  * \brief Send the file descriptor back to the code that invoked the creation.
  *
  * \param path The socket address information from the Unix socket we use

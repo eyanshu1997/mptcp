@@ -22,9 +22,9 @@
 
 namespace ns3 {
 
-NS_LOG_COMPONENT_DEFINE ("OpenFlowInterface");
-
 namespace ofi {
+
+NS_LOG_COMPONENT_DEFINE ("OpenFlowInterface");
 
 Stats::Stats (ofp_stats_types _type, size_t body_len)
 {
@@ -650,23 +650,6 @@ EricssonAction::Execute (er_action_type type, ofpbuf *buffer, const sw_flow_key 
     }
 }
 
-/* static */
-TypeId
-Controller::GetTypeId (void)
-{
-  static TypeId tid = TypeId ("ns3::ofi::Controller")
-    .SetParent<Object> ()
-    .SetGroupName ("OpenFlow")
-    .AddConstructor<Controller> ()
-    ;
-  return tid;
-}
-
-Controller::~Controller ()
-{
-  m_switches.clear ();
-}
-
 void
 Controller::AddSwitch (Ptr<OpenFlowSwitchNetDevice> swtch)
 {
@@ -753,18 +736,6 @@ Controller::StartDump (StatsDumpCallback* cb)
     }
 }
 
-/* static */
-TypeId
-DropController::GetTypeId (void)
-{
-  static TypeId tid = TypeId ("ns3::ofi::DropController")
-    .SetParent<Controller> ()
-    .SetGroupName ("OpenFlow")
-    .AddConstructor<DropController> ()
-    ;
-  return tid;
-}
-
 void
 DropController::ReceiveFromSwitch (Ptr<OpenFlowSwitchNetDevice> swtch, ofpbuf* buffer)
 {
@@ -795,8 +766,7 @@ DropController::ReceiveFromSwitch (Ptr<OpenFlowSwitchNetDevice> swtch, ofpbuf* b
 TypeId LearningController::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::ofi::LearningController")
-    .SetParent <Controller> ()
-    .SetGroupName ("Openflow")
+    .SetParent (Controller::GetTypeId ())
     .AddConstructor<LearningController> ()
     .AddAttribute ("ExpirationTime",
                    "Time it takes for learned MAC state entry/created flow to expire.",
@@ -898,7 +868,7 @@ ExecuteActions (Ptr<OpenFlowSwitchNetDevice> swtch, uint64_t packet_uid, ofpbuf*
    * freeing the original buffer is wasteful.  So the following code is
    * slightly obscure just to avoid that. */
   int prev_port;
-  size_t max_len = 0;     // Initialize to make compiler happy
+  size_t max_len = 0;     // Initialze to make compiler happy
   uint16_t in_port = key->flow.in_port; // ntohs(key->flow.in_port);
   uint8_t *p = (uint8_t *)actions;
 

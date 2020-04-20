@@ -30,7 +30,8 @@
 
 namespace ns3 {
 
-NS_LOG_COMPONENT_DEFINE ("FileHelper");
+NS_LOG_COMPONENT_DEFINE ("FileHelper")
+  ;
 
 FileHelper::FileHelper ()
   : m_aggregator                     (0),
@@ -541,13 +542,6 @@ FileHelper::ConnectProbeToAggregator (const std::string &typeId,
       m_probeMap[probeName].first->TraceConnectWithoutContext
         (probeTraceSource,
         MakeCallback (&TimeSeriesAdaptor::TraceSinkUinteger32,
-                      m_timeSeriesAdaptorMap[probeContext]));
-    }
-  else if (m_probeMap[probeName].second == "ns3::TimeProbe")
-    {
-      m_probeMap[probeName].first->TraceConnectWithoutContext
-        (probeTraceSource,
-        MakeCallback (&TimeSeriesAdaptor::TraceSinkDouble,
                       m_timeSeriesAdaptorMap[probeContext]));
     }
   else

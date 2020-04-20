@@ -27,10 +27,8 @@
 #include "ns3/string.h"
 #include "ns3/system-thread.h"
 
-#include <chrono>  // seconds, milliseconds
 #include <ctime>
 #include <list>
-#include <thread>  // sleep_for
 #include <utility>
 
 using namespace ns3;
@@ -41,10 +39,10 @@ class ThreadedSimulatorEventsTestCase : public TestCase
 {
 public:
   ThreadedSimulatorEventsTestCase (ObjectFactory schedulerFactory, const std::string &simulatorType, unsigned int threads);
-  void EventA (int a);
-  void EventB (int b);
-  void EventC (int c);
-  void EventD (int d);
+  void A (int a);
+  void B (int b);
+  void C (int c);
+  void D (int d);
   void DoNothing (unsigned int threadno);
   static void SchedulingThread (std::pair<ThreadedSimulatorEventsTestCase *, unsigned int> context);
   void End (void);
@@ -67,10 +65,8 @@ private:
 };
 
 ThreadedSimulatorEventsTestCase::ThreadedSimulatorEventsTestCase (ObjectFactory schedulerFactory, const std::string &simulatorType, unsigned int threads)
-  : TestCase ("Check threaded event handling with " +
-              std::to_string (threads) + " threads, " +
-              schedulerFactory.GetTypeId ().GetName () + " scheduler, in " +
-              simulatorType),
+  : TestCase ("Check that threaded event handling is working with " + 
+              schedulerFactory.GetTypeId ().GetName () + " in " + simulatorType),
     m_threads (threads),
     m_schedulerFactory (schedulerFactory),
     m_simulatorType (simulatorType)
@@ -95,12 +91,15 @@ ThreadedSimulatorEventsTestCase::SchedulingThread (std::pair<ThreadedSimulatorEv
   while (!me->m_stop)
     {
       me->m_threadWaiting[threadno] = true;
-      Simulator::ScheduleWithContext (threadno,
+      Simulator::ScheduleWithContext (uint32_t (-1), 
                                       MicroSeconds (1),
                                       &ThreadedSimulatorEventsTestCase::DoNothing, me, threadno);
       while (!me->m_stop && me->m_threadWaiting[threadno])
         {
-          std::this_thread::sleep_for(std::chrono::nanoseconds(500));
+          struct timespec ts;
+          ts.tv_sec = 0;
+          ts.tv_nsec = 500;
+          nanosleep (&ts, NULL);
         }
     }
 }
@@ -114,7 +113,7 @@ ThreadedSimulatorEventsTestCase::DoNothing (unsigned int threadno)
   m_threadWaiting[threadno] = false;
 }
 void
-ThreadedSimulatorEventsTestCase::EventA (int a)
+ThreadedSimulatorEventsTestCase::A (int a)
 {
   if (m_a != m_b || m_a != m_c || m_a != m_d)
     {
@@ -123,11 +122,11 @@ ThreadedSimulatorEventsTestCase::EventA (int a)
     };
   ++m_a;
   Simulator::Schedule (MicroSeconds (10),
-                       &ThreadedSimulatorEventsTestCase::EventB, this, a+1);
+                       &ThreadedSimulatorEventsTestCase::B, this, a+1);
 }
 
 void
-ThreadedSimulatorEventsTestCase::EventB (int b)
+ThreadedSimulatorEventsTestCase::B (int b)
 {
   if (m_a != (m_b+1) || m_a != (m_c+1) || m_a != (m_d+1))
     {
@@ -136,11 +135,11 @@ ThreadedSimulatorEventsTestCase::EventB (int b)
     };
   ++m_b;
   Simulator::Schedule (MicroSeconds (10),
-                       &ThreadedSimulatorEventsTestCase::EventC, this, b+1);
+                       &ThreadedSimulatorEventsTestCase::C, this, b+1);
 }
 
 void
-ThreadedSimulatorEventsTestCase::EventC (int c)
+ThreadedSimulatorEventsTestCase::C (int c)
 {
   if (m_a != m_b || m_a != (m_c+1) || m_a != (m_d+1))
     {
@@ -149,11 +148,11 @@ ThreadedSimulatorEventsTestCase::EventC (int c)
     };
   ++m_c;
   Simulator::Schedule (MicroSeconds (10),
-                       &ThreadedSimulatorEventsTestCase::EventD, this, c+1);
+                       &ThreadedSimulatorEventsTestCase::D, this, c+1);
 }
 
 void
-ThreadedSimulatorEventsTestCase::EventD (int d)
+ThreadedSimulatorEventsTestCase::D (int d)
 {
   if (m_a != m_b || m_a != m_c || m_a != (m_d+1))
     {
@@ -168,7 +167,7 @@ ThreadedSimulatorEventsTestCase::EventD (int d)
   else
     {
       Simulator::Schedule (MicroSeconds (10),
-                           &ThreadedSimulatorEventsTestCase::EventA, this, d+1);
+                           &ThreadedSimulatorEventsTestCase::A, this, d+1);
     }
 }
 
@@ -208,7 +207,7 @@ ThreadedSimulatorEventsTestCase::DoRun (void)
   m_stop = false;
   Simulator::SetScheduler (m_schedulerFactory);
 
-  Simulator::Schedule (MicroSeconds (10), &ThreadedSimulatorEventsTestCase::EventA, this, 1);
+  Simulator::Schedule (MicroSeconds (10), &ThreadedSimulatorEventsTestCase::A, this, 1);
   Simulator::Schedule (Seconds (1), &ThreadedSimulatorEventsTestCase::End, this);
 
   

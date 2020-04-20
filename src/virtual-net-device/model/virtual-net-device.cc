@@ -19,6 +19,7 @@
  */
 
 #include "ns3/log.h"
+#include "ns3/queue.h"
 #include "ns3/simulator.h"
 #include "ns3/mac48-address.h"
 #include "ns3/llc-snap-header.h"
@@ -29,18 +30,18 @@
 #include "ns3/uinteger.h"
 
 
-namespace ns3 {
-
 NS_LOG_COMPONENT_DEFINE ("VirtualNetDevice");
 
-NS_OBJECT_ENSURE_REGISTERED (VirtualNetDevice);
+namespace ns3 {
+
+NS_OBJECT_ENSURE_REGISTERED (VirtualNetDevice)
+  ;
 
 TypeId
 VirtualNetDevice::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::VirtualNetDevice")
     .SetParent<NetDevice> ()
-    .SetGroupName ("VirtualNetDevice")
     .AddConstructor<VirtualNetDevice> ()
     .AddAttribute ("Mtu", "The MAC-level Maximum Transmission Unit",
                    UintegerValue (1500),
@@ -48,37 +49,25 @@ VirtualNetDevice::GetTypeId (void)
                                          &VirtualNetDevice::GetMtu),
                    MakeUintegerChecker<uint16_t> ())
     .AddTraceSource ("MacTx", 
-                     "Trace source indicating a packet has arrived "
-                     "for transmission by this device",
-                     MakeTraceSourceAccessor (&VirtualNetDevice::m_macTxTrace),
-                     "ns3::Packet::TracedCallback")
+                     "Trace source indicating a packet has arrived for transmission by this device",
+                     MakeTraceSourceAccessor (&VirtualNetDevice::m_macTxTrace))
     .AddTraceSource ("MacPromiscRx", 
-                     "A packet has been received by this device, "
-                     "has been passed up from the physical layer "
-                     "and is being forwarded up the local protocol stack.  "
-                     "This is a promiscuous trace,",
-                     MakeTraceSourceAccessor (&VirtualNetDevice::m_macPromiscRxTrace),
-                     "ns3::Packet::TracedCallback")
+                     "A packet has been received by this device, has been passed up from the physical layer "
+                     "and is being forwarded up the local protocol stack.  This is a promiscuous trace,",
+                     MakeTraceSourceAccessor (&VirtualNetDevice::m_macPromiscRxTrace))
     .AddTraceSource ("MacRx", 
-                     "A packet has been received by this device, "
-                     "has been passed up from the physical layer "
-                     "and is being forwarded up the local protocol stack.  "
-                     "This is a non-promiscuous trace,",
-                     MakeTraceSourceAccessor (&VirtualNetDevice::m_macRxTrace),
-                     "ns3::Packet::TracedCallback")
+                     "A packet has been received by this device, has been passed up from the physical layer "
+                     "and is being forwarded up the local protocol stack.  This is a non-promiscuous trace,",
+                     MakeTraceSourceAccessor (&VirtualNetDevice::m_macRxTrace))
     //
     // Trace sources designed to simulate a packet sniffer facility (tcpdump). 
     //
     .AddTraceSource ("Sniffer", 
-                     "Trace source simulating a non-promiscuous "
-                     "packet sniffer attached to the device",
-                     MakeTraceSourceAccessor (&VirtualNetDevice::m_snifferTrace),
-                     "ns3::Packet::TracedCallback")
+                     "Trace source simulating a non-promiscuous packet sniffer attached to the device",
+                     MakeTraceSourceAccessor (&VirtualNetDevice::m_snifferTrace))
     .AddTraceSource ("PromiscSniffer", 
-                     "Trace source simulating a promiscuous "
-                     "packet sniffer attached to the device",
-                     MakeTraceSourceAccessor (&VirtualNetDevice::m_promiscSnifferTrace),
-                     "ns3::Packet::TracedCallback")
+                     "Trace source simulating a promiscuous packet sniffer attached to the device",
+                     MakeTraceSourceAccessor (&VirtualNetDevice::m_promiscSnifferTrace))
   ;
   return tid;
 }

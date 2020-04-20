@@ -26,20 +26,19 @@
 #include "ns3/simulator.h"
 #include "ns3/traced-value.h"
 
-namespace ns3 {
-
 NS_LOG_COMPONENT_DEFINE ("Dot11sPeerManagementProtocol");
-  
+
+namespace ns3 {
 namespace dot11s {
 
-NS_OBJECT_ENSURE_REGISTERED ( PeerLink);
+NS_OBJECT_ENSURE_REGISTERED ( PeerLink)
+  ;
 
 TypeId
 PeerLink::GetTypeId ()
 {
   static TypeId tid = TypeId ("ns3::dot11s::PeerLink")
     .SetParent<Object> ()
-    .SetGroupName ("Mesh")
     .AddConstructor<PeerLink> ()
     .AddAttribute ( "RetryTimeout",
                     "Retry timeout",
@@ -87,8 +86,6 @@ PeerLink::GetTypeId ()
   return tid;
 }
 
-const char* const
-PeerLink::PeerStateNames[6] = { "IDLE", "OPN_SNT", "CNF_RCVD", "OPN_RCVD", "ESTAB", "HOLDING" };
 
 //-----------------------------------------------------------------------------
 // PeerLink public interface
@@ -107,7 +104,6 @@ PeerLink::PeerLink () :
   m_retryCounter (0),
   m_maxPacketFail (3)
 {
-  NS_LOG_FUNCTION (this);
 }
 PeerLink::~PeerLink ()
 {
@@ -115,7 +111,6 @@ PeerLink::~PeerLink ()
 void
 PeerLink::DoDispose ()
 {
-  NS_LOG_FUNCTION (this);
   m_retryTimer.Cancel ();
   m_holdingTimer.Cancel ();
   m_confirmTimer.Cancel ();
@@ -165,7 +160,6 @@ PeerLink::MLMESetSignalStatusCallback (PeerLink::SignalStatusCallback cb)
 void
 PeerLink::BeaconLoss ()
 {
-  NS_LOG_FUNCTION (this);
   StateMachine (CNCL);
 }
 void
@@ -176,11 +170,9 @@ PeerLink::TransmissionSuccess ()
 void
 PeerLink::TransmissionFailure ()
 {
-  NS_LOG_FUNCTION (this);
   m_packetFail++;
   if (m_packetFail == m_maxPacketFail)
     {
-      NS_LOG_DEBUG ("TransmissionFailure:: CNCL");
       StateMachine (CNCL);
       m_packetFail = 0;
     }
@@ -240,7 +232,6 @@ PeerLink::MLMEPeeringRequestReject ()
 void
 PeerLink::Close (uint16_t localLinkId, uint16_t peerLinkId, PmpReasonCode reason)
 {
-  NS_LOG_FUNCTION (this << localLinkId << peerLinkId << reason);
   if (peerLinkId != 0 && m_localLinkId != peerLinkId)
     {
       return;
@@ -261,7 +252,6 @@ PeerLink::Close (uint16_t localLinkId, uint16_t peerLinkId, PmpReasonCode reason
 void
 PeerLink::OpenAccept (uint16_t localLinkId, IeConfiguration conf, Mac48Address peerMp)
 {
-  NS_LOG_FUNCTION (this << localLinkId << peerMp);
   m_peerLinkId = localLinkId;
   m_configuration = conf;
   if (m_peerMeshPointAddress != Mac48Address::GetBroadcast ())
@@ -277,7 +267,6 @@ PeerLink::OpenAccept (uint16_t localLinkId, IeConfiguration conf, Mac48Address p
 void
 PeerLink::OpenReject (uint16_t localLinkId, IeConfiguration conf, Mac48Address peerMp, PmpReasonCode reason)
 {
-  NS_LOG_FUNCTION (this << localLinkId << peerMp << reason);
   if (m_peerLinkId == 0)
     {
       m_peerLinkId = localLinkId;
@@ -297,7 +286,6 @@ void
 PeerLink::ConfirmAccept (uint16_t localLinkId, uint16_t peerLinkId, uint16_t peerAid, IeConfiguration conf,
                          Mac48Address peerMp)
 {
-  NS_LOG_FUNCTION (this << localLinkId << peerLinkId << peerAid << peerMp);
   if (m_localLinkId != peerLinkId)
     {
       return;
@@ -329,7 +317,6 @@ void
 PeerLink::ConfirmReject (uint16_t localLinkId, uint16_t peerLinkId, IeConfiguration conf,
                          Mac48Address peerMp, PmpReasonCode reason)
 {
-  NS_LOG_FUNCTION (this << localLinkId << peerLinkId << peerMp << reason);
   if (m_localLinkId != peerLinkId)
     {
       return;
@@ -667,7 +654,6 @@ PeerLink::SetHoldingTimer ()
 void
 PeerLink::HoldingTimeout ()
 {
-  NS_LOG_FUNCTION (this);
   StateMachine (TOH);
 }
 void
@@ -679,15 +665,12 @@ PeerLink::SetRetryTimer ()
 void
 PeerLink::RetryTimeout ()
 {
-  NS_LOG_FUNCTION (this);
   if (m_retryCounter < m_dot11MeshMaxRetries)
     {
-      NS_LOG_LOGIC ("Retry timeout TOR1");
       StateMachine (TOR1);
     }
   else
     {
-      NS_LOG_LOGIC ("Retry timeout TOR2");
       StateMachine (TOR2);
     }
 }

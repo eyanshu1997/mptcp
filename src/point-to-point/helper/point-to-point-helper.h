@@ -25,11 +25,13 @@
 #include "ns3/object-factory.h"
 #include "ns3/net-device-container.h"
 #include "ns3/node-container.h"
+#include "ns3/deprecated.h"
 
 #include "ns3/trace-helper.h"
 
 namespace ns3 {
 
+class Queue;
 class NetDevice;
 class Node;
 
@@ -40,8 +42,7 @@ class Node;
  * PcapUserHelperForDevice and AsciiTraceUserHelperForDevice are
  * "mixins".
  */
-class PointToPointHelper : public PcapHelperForDevice,
-	                   public AsciiTraceHelperForDevice
+class PointToPointHelper : public PcapHelperForDevice, public AsciiTraceHelperForDevice
 {
 public:
   /**
@@ -101,7 +102,6 @@ public:
 
   /**
    * \param c a set of nodes
-   * \return a NetDeviceContainer for nodes
    *
    * This method creates a ns3::PointToPointChannel with the
    * attributes configured by PointToPointHelper::SetChannelAttribute,
@@ -115,7 +115,6 @@ public:
   /**
    * \param a first node
    * \param b second node
-   * \return a NetDeviceContainer for nodes
    *
    * Saves you from having to construct a temporary NodeContainer. 
    * Also, if MPI is enabled, for distributed simulations, 
@@ -126,7 +125,6 @@ public:
   /**
    * \param a first node
    * \param bName name of second node
-   * \return a NetDeviceContainer for nodes
    *
    * Saves you from having to construct a temporary NodeContainer.
    */
@@ -135,7 +133,6 @@ public:
   /**
    * \param aName Name of first node
    * \param b second node
-   * \return a NetDeviceContainer for nodes
    *
    * Saves you from having to construct a temporary NodeContainer.
    */
@@ -144,7 +141,6 @@ public:
   /**
    * \param aNode Name of first node
    * \param bNode Name of second node
-   * \return a NetDeviceContainer for nodes
    *
    * Saves you from having to construct a temporary NodeContainer.
    */
@@ -166,6 +162,7 @@ private:
 
   /**
    * \brief Enable ascii trace output on the indicated net device.
+   * \internal
    *
    * NetDevice-specific implementation mechanism for hooking the trace and
    * writing to the trace file.
@@ -181,10 +178,10 @@ private:
     Ptr<NetDevice> nd,
     bool explicitFilename);
 
-  ObjectFactory m_queueFactory;         //!< Queue Factory
-  ObjectFactory m_channelFactory;       //!< Channel Factory
-  ObjectFactory m_remoteChannelFactory; //!< Remote Channel Factory
-  ObjectFactory m_deviceFactory;        //!< Device Factory
+  ObjectFactory m_queueFactory;
+  ObjectFactory m_channelFactory;
+  ObjectFactory m_remoteChannelFactory;
+  ObjectFactory m_deviceFactory;
 };
 
 } // namespace ns3

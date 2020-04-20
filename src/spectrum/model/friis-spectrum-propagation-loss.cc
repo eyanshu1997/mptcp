@@ -25,7 +25,8 @@
 
 namespace ns3 {
 
-NS_OBJECT_ENSURE_REGISTERED (FriisSpectrumPropagationLossModel);
+NS_OBJECT_ENSURE_REGISTERED (FriisSpectrumPropagationLossModel)
+  ;
 
 
 FriisSpectrumPropagationLossModel::FriisSpectrumPropagationLossModel ()
@@ -42,7 +43,6 @@ FriisSpectrumPropagationLossModel::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::FriisSpectrumPropagationLossModel")
     .SetParent<SpectrumPropagationLossModel> ()
-    .SetGroupName ("Spectrum")
     .AddConstructor<FriisSpectrumPropagationLossModel> ()
   ;
   return tid;

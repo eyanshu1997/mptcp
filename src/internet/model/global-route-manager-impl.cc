@@ -40,9 +40,9 @@
 #include "candidate-queue.h"
 #include "ipv4-global-routing.h"
 
-namespace ns3 {
-
 NS_LOG_COMPONENT_DEFINE ("GlobalRouteManagerImpl");
+
+namespace ns3 {
 
 /**
  * \brief Stream insertion operator.
@@ -151,7 +151,7 @@ SPFVertex::~SPFVertex ()
   // delete children
   while (m_children.size () > 0)
     {
-      // pop out children one by one. Some children may disappear 
+      // pop out children one by one. Some children may disapper 
       // when deleting some other children in the list. As a result,
       // it is necessary to use pop to walk through all children, instead
       // of using iterator.

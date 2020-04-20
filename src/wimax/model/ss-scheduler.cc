@@ -31,17 +31,16 @@
 #include "service-flow-record.h"
 #include "service-flow-manager.h"
 
-namespace ns3 {
-
 NS_LOG_COMPONENT_DEFINE ("SSScheduler");
-  
-NS_OBJECT_ENSURE_REGISTERED (SSScheduler);
+
+namespace ns3 {
+NS_OBJECT_ENSURE_REGISTERED (SSScheduler)
+  ;
 
 TypeId SSScheduler::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::SSScheduler")
-    .SetParent<Object> ()
-    .SetGroupName("Wimax");
+    .SetParent<Object> ();
   return tid;
 }
 

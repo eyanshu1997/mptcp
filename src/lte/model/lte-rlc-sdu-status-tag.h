@@ -36,23 +36,9 @@ class LteRlcSduStatusTag : public Tag
 public:
   LteRlcSduStatusTag ();
 
-  /**
-   * Set status function
-   *
-   * \param status the status
-   */
   void SetStatus (uint8_t status);
-  /**
-   * Get status function
-   *
-   * \returns the status
-   */
   uint8_t GetStatus (void) const;
 
-  /**
-   * \brief Get the type ID.
-   * \return the object TypeId
-   */
   static TypeId GetTypeId (void);
   virtual TypeId GetInstanceTypeId (void) const;
   virtual uint32_t GetSerializedSize (void) const;
@@ -60,15 +46,14 @@ public:
   virtual void Deserialize (TagBuffer i);
   virtual void Print (std::ostream &os) const;
 
-  /// SduStatus_t typedef
   typedef enum { FULL_SDU       = 1,
                  FIRST_SEGMENT  = 2,
                  MIDDLE_SEGMENT = 3,
                  LAST_SEGMENT   = 4,
-                 ANY_SEGMENT    = 5 } SduStatus_t; ///< SduStatus_t enumeration
+                 ANY_SEGMENT    = 5 } SduStatus_t;
 
 private:
-  uint8_t m_sduStatus; ///< SDU status
+  uint8_t m_sduStatus;
 };
 
 

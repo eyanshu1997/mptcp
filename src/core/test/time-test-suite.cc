@@ -19,14 +19,7 @@
  * Author: Mathieu Lacage <mathieu.lacage@sophia.inria.fr>
  * TimeStep support by Emmanuelle Laprise <emmanuelle.laprise@bluekazoo.ca>
  */
-
-#include <iomanip>
-#include <iostream>
-#include <string>
-#include <sstream>
-
 #include "ns3/nstime.h"
-#include "ns3/int64x64.h"
 #include "ns3/test.h"
 
 using namespace ns3;
@@ -102,28 +95,28 @@ TimeSimpleTestCase::DoTeardown (void)
 {
 }
 
-class TimeWithSignTestCase : public TestCase
+class TimesWithSignsTestCase : public TestCase
 {
 public:
-  TimeWithSignTestCase ();
+  TimesWithSignsTestCase ();
 private:
   virtual void DoSetup (void);
   virtual void DoRun (void);
   virtual void DoTeardown (void);
 };
 
-TimeWithSignTestCase::TimeWithSignTestCase ()
+TimesWithSignsTestCase::TimesWithSignsTestCase ()
   : TestCase ("Checks times that have plus or minus signs")
 {
 }
 
 void
-TimeWithSignTestCase::DoSetup (void)
+TimesWithSignsTestCase::DoSetup (void)
 {
 }
 
 void
-TimeWithSignTestCase::DoRun (void)
+TimesWithSignsTestCase::DoRun (void)
 {
   Time timePositive          ("+1000.0");
   Time timePositiveWithUnits ("+1000.0ms");
@@ -153,94 +146,17 @@ TimeWithSignTestCase::DoRun (void)
 }
 
 void 
-TimeWithSignTestCase::DoTeardown (void)
+TimesWithSignsTestCase::DoTeardown (void)
 {
 }
 
-
-class TimeInputOutputTestCase : public TestCase
-{
-public:
-  TimeInputOutputTestCase ();
-private:
-  virtual void DoRun (void);
-  void Check (const std::string & str);
-};
-
-TimeInputOutputTestCase::TimeInputOutputTestCase ()
-  : TestCase ("Input,output from,to strings")
-{
-}
-
-void
-TimeInputOutputTestCase::Check (const std::string & str)
-{
-  std::stringstream ss (str);
-  Time time;
-  ss >> time;
-  ss << time;
-  bool pass = (str == ss.str ()); 
-
-  std::cout << GetParent ()->GetName () << " InputOutput: "
-            << (pass ? "pass " : "FAIL ")
-            << "\"" << str << "\"";
-  if (!pass)
-    {
-      std::cout << ", got " << ss.str ();
-    }
-  std::cout << std::endl;
-}
-
-void
-TimeInputOutputTestCase::DoRun (void)
-{
-  std::cout << std::endl;
-  std::cout << GetParent ()->GetName () << " InputOutput: " << GetName ()
-	    << std::endl;
-  
-  Check ("2ns");
-  Check ("+3.1us");
-  Check ("-4.2ms");
-  Check ("5.3s");
-  Check ("6.4min");
-  Check ("7.5h");
-  Check ("8.6d");
-  Check ("10.8y");
-
-  Time t (3.141592654e9);  // Pi seconds
-  
-  std::cout << GetParent ()->GetName () << " InputOutput: "
-            << "example: raw:   " << t
-            << std::endl;
-  
-  std::cout << GetParent ()->GetName () << " InputOutput: "
-            << std::fixed << std::setprecision (9)
-            << "example: in s:  " << t.As (Time::S)
-            << std::endl;
-    
-  std::cout << GetParent ()->GetName () << " InputOutput: "
-            << std::setprecision (6)
-            << "example: in ms: " << t.As (Time::MS)
-            << std::endl;
-
-  std::cout << GetParent ()->GetName () << " InputOutput: "
-            << "example: Get ns: " << t.GetNanoSeconds ()
-            << std::endl;
-
-  std::cout << std::endl;
-}
-    
 static class TimeTestSuite : public TestSuite
 {
 public:
   TimeTestSuite ()
     : TestSuite ("time", UNIT)
   {
-    AddTestCase (new TimeWithSignTestCase (), TestCase::QUICK);
-    AddTestCase (new TimeInputOutputTestCase (), TestCase::QUICK);
-    // This should be last, since it changes the resolution
     AddTestCase (new TimeSimpleTestCase (), TestCase::QUICK);
+    AddTestCase (new TimesWithSignsTestCase (), TestCase::QUICK);
   }
 } g_timeTestSuite;
-
-

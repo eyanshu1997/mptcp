@@ -25,196 +25,28 @@
 #include "ns3/pointer.h"
 #include "ns3/error-model.h"
 #include "ns3/trace-source-accessor.h"
-#include "ns3/boolean.h"
-#include "ns3/string.h"
-#include "ns3/tag.h"
-#include "ns3/simulator.h"
-#include "ns3/net-device-queue-interface.h"
-
-namespace ns3 {
 
 NS_LOG_COMPONENT_DEFINE ("SimpleNetDevice");
 
-/**
- * \brief SimpleNetDevice tag to store source, destination and protocol of each packet.
- */
-class SimpleTag : public Tag {
-public:
-  /**
-   * \brief Get the type ID.
-   * \return the object TypeId
-   */
-  static TypeId GetTypeId (void);
-  virtual TypeId GetInstanceTypeId (void) const;
+namespace ns3 {
 
-  virtual uint32_t GetSerializedSize (void) const;
-  virtual void Serialize (TagBuffer i) const;
-  virtual void Deserialize (TagBuffer i);
-
-  /**
-   * Set the source address
-   * \param src source address
-   */
-  void SetSrc (Mac48Address src);
-  /**
-   * Get the source address
-   * \return the source address
-   */
-  Mac48Address GetSrc (void) const;
-
-  /**
-   * Set the destination address
-   * \param dst destination address
-   */
-  void SetDst (Mac48Address dst);
-  /**
-   * Get the destination address
-   * \return the destination address
-   */
-  Mac48Address GetDst (void) const;
-
-  /**
-   * Set the protocol number
-   * \param proto protocol number
-   */
-  void SetProto (uint16_t proto);
-  /**
-   * Get the protocol number
-   * \return the protocol number
-   */
-  uint16_t GetProto (void) const;
-
-  void Print (std::ostream &os) const;
-
-private:
-  Mac48Address m_src; //!< source address
-  Mac48Address m_dst; //!< destination address
-  uint16_t m_protocolNumber; //!< protocol number
-};
-
-
-NS_OBJECT_ENSURE_REGISTERED (SimpleTag);
-
-TypeId
-SimpleTag::GetTypeId (void)
-{
-  static TypeId tid = TypeId ("ns3::SimpleTag")
-    .SetParent<Tag> ()
-    .SetGroupName("Network")
-    .AddConstructor<SimpleTag> ()
+NS_OBJECT_ENSURE_REGISTERED (SimpleNetDevice)
   ;
-  return tid;
-}
-TypeId
-SimpleTag::GetInstanceTypeId (void) const
-{
-  return GetTypeId ();
-}
-
-uint32_t
-SimpleTag::GetSerializedSize (void) const
-{
-  return 8+8+2;
-}
-void
-SimpleTag::Serialize (TagBuffer i) const
-{
-  uint8_t mac[6];
-  m_src.CopyTo (mac);
-  i.Write (mac, 6);
-  m_dst.CopyTo (mac);
-  i.Write (mac, 6);
-  i.WriteU16 (m_protocolNumber);
-}
-void
-SimpleTag::Deserialize (TagBuffer i)
-{
-  uint8_t mac[6];
-  i.Read (mac, 6);
-  m_src.CopyFrom (mac);
-  i.Read (mac, 6);
-  m_dst.CopyFrom (mac);
-  m_protocolNumber = i.ReadU16 ();
-}
-
-void
-SimpleTag::SetSrc (Mac48Address src)
-{
-  m_src = src;
-}
-
-Mac48Address
-SimpleTag::GetSrc (void) const
-{
-  return m_src;
-}
-
-void
-SimpleTag::SetDst (Mac48Address dst)
-{
-  m_dst = dst;
-}
-
-Mac48Address
-SimpleTag::GetDst (void) const
-{
-  return m_dst;
-}
-
-void
-SimpleTag::SetProto (uint16_t proto)
-{
-  m_protocolNumber = proto;
-}
-
-uint16_t
-SimpleTag::GetProto (void) const
-{
-  return m_protocolNumber;
-}
-
-void
-SimpleTag::Print (std::ostream &os) const
-{
-  os << "src=" << m_src << " dst=" << m_dst << " proto=" << m_protocolNumber;
-}
-
-
-
-NS_OBJECT_ENSURE_REGISTERED (SimpleNetDevice);
 
 TypeId 
 SimpleNetDevice::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::SimpleNetDevice")
     .SetParent<NetDevice> ()
-    .SetGroupName("Network") 
     .AddConstructor<SimpleNetDevice> ()
     .AddAttribute ("ReceiveErrorModel",
                    "The receiver error model used to simulate packet loss",
                    PointerValue (),
                    MakePointerAccessor (&SimpleNetDevice::m_receiveErrorModel),
                    MakePointerChecker<ErrorModel> ())
-    .AddAttribute ("PointToPointMode",
-                   "The device is configured in Point to Point mode",
-                   BooleanValue (false),
-                   MakeBooleanAccessor (&SimpleNetDevice::m_pointToPointMode),
-                   MakeBooleanChecker ())
-    .AddAttribute ("TxQueue",
-                   "A queue to use as the transmit queue in the device.",
-                   StringValue ("ns3::DropTailQueue<Packet>"),
-                   MakePointerAccessor (&SimpleNetDevice::m_queue),
-                   MakePointerChecker<Queue<Packet> > ())
-    .AddAttribute ("DataRate",
-                   "The default data rate for point to point links. Zero means infinite",
-                   DataRateValue (DataRate ("0b/s")),
-                   MakeDataRateAccessor (&SimpleNetDevice::m_bps),
-                   MakeDataRateChecker ())
     .AddTraceSource ("PhyRxDrop",
-                     "Trace source indicating a packet has been dropped "
-                     "by the device during reception",
-                     MakeTraceSourceAccessor (&SimpleNetDevice::m_phyRxDropTrace),
-                     "ns3::Packet::TracedCallback")
+                     "Trace source indicating a packet has been dropped by the device during reception",
+                     MakeTraceSourceAccessor (&SimpleNetDevice::m_phyRxDropTrace))
   ;
   return tid;
 }
@@ -223,44 +55,9 @@ SimpleNetDevice::SimpleNetDevice ()
   : m_channel (0),
     m_node (0),
     m_mtu (0xffff),
-    m_ifIndex (0),
-    m_linkUp (false)
+    m_ifIndex (0)
 {
   NS_LOG_FUNCTION (this);
-}
-
-void
-SimpleNetDevice::DoInitialize (void)
-{
-  if (m_queueInterface)
-    {
-      NS_ASSERT_MSG (m_queue != 0, "A Queue object has not been attached to the device");
-
-      // connect the traced callbacks of m_queue to the static methods provided by
-      // the NetDeviceQueue class to support flow control and dynamic queue limits.
-      // This could not be done in NotifyNewAggregate because at that time we are
-      // not guaranteed that a queue has been attached to the netdevice
-      m_queueInterface->ConnectQueueTraces (m_queue, 0);
-    }
-
-  NetDevice::DoInitialize ();
-}
-
-void
-SimpleNetDevice::NotifyNewAggregate (void)
-{
-  NS_LOG_FUNCTION (this);
-  if (m_queueInterface == 0)
-    {
-      Ptr<NetDeviceQueueInterface> ndqi = this->GetObject<NetDeviceQueueInterface> ();
-      //verify that it's a valid netdevice queue interface and that
-      //the netdevice queue interface was not set before
-      if (ndqi != 0)
-        {
-          m_queueInterface = ndqi;
-        }
-    }
-  NetDevice::NotifyNewAggregate ();
 }
 
 void
@@ -282,7 +79,7 @@ SimpleNetDevice::Receive (Ptr<Packet> packet, uint16_t protocol,
     }
   else if (to.IsBroadcast ())
     {
-      packetType = NetDevice::PACKET_BROADCAST;
+      packetType = NetDevice::PACKET_HOST;
     }
   else if (to.IsGroup ())
     {
@@ -292,12 +89,7 @@ SimpleNetDevice::Receive (Ptr<Packet> packet, uint16_t protocol,
     {
       packetType = NetDevice::PACKET_OTHERHOST;
     }
-
-  if (packetType != NetDevice::PACKET_OTHERHOST)
-    {
-      m_rxCallback (this, packet, protocol, from);
-    }
-
+  m_rxCallback (this, packet, protocol, from);
   if (!m_promiscCallback.IsNull ())
     {
       m_promiscCallback (this, packet, protocol, from, to, packetType);
@@ -310,22 +102,6 @@ SimpleNetDevice::SetChannel (Ptr<SimpleChannel> channel)
   NS_LOG_FUNCTION (this << channel);
   m_channel = channel;
   m_channel->Add (this);
-  m_linkUp = true;
-  m_linkChangeCallbacks ();
-}
-
-Ptr<Queue<Packet> >
-SimpleNetDevice::GetQueue () const
-{
-  NS_LOG_FUNCTION (this);
-  return m_queue;
-}
-
-void
-SimpleNetDevice::SetQueue (Ptr<Queue<Packet> > q)
-{
-  NS_LOG_FUNCTION (this << q);
-  m_queue = q;
 }
 
 void
@@ -385,22 +161,17 @@ bool
 SimpleNetDevice::IsLinkUp (void) const
 {
   NS_LOG_FUNCTION (this);
-  return m_linkUp;
+  return true;
 }
 void 
 SimpleNetDevice::AddLinkChangeCallback (Callback<void> callback)
 {
  NS_LOG_FUNCTION (this << &callback);
- m_linkChangeCallbacks.ConnectWithoutContext (callback);
 }
 bool 
 SimpleNetDevice::IsBroadcast (void) const
 {
   NS_LOG_FUNCTION (this);
-  if (m_pointToPointMode)
-    {
-      return false;
-    }
   return true;
 }
 Address
@@ -413,11 +184,7 @@ bool
 SimpleNetDevice::IsMulticast (void) const
 {
   NS_LOG_FUNCTION (this);
-  if (m_pointToPointMode)
-    {
-      return false;
-    }
-  return true;
+  return false;
 }
 Address 
 SimpleNetDevice::GetMulticast (Ipv4Address multicastGroup) const
@@ -436,10 +203,6 @@ bool
 SimpleNetDevice::IsPointToPoint (void) const
 {
   NS_LOG_FUNCTION (this);
-  if (m_pointToPointMode)
-    {
-      return true;
-    }
   return false;
 }
 
@@ -454,85 +217,18 @@ bool
 SimpleNetDevice::Send (Ptr<Packet> packet, const Address& dest, uint16_t protocolNumber)
 {
   NS_LOG_FUNCTION (this << packet << dest << protocolNumber);
-
-  return SendFrom (packet, m_address, dest, protocolNumber);
-}
-
-bool
-SimpleNetDevice::SendFrom (Ptr<Packet> p, const Address& source, const Address& dest, uint16_t protocolNumber)
-{
-  NS_LOG_FUNCTION (this << p << source << dest << protocolNumber);
-  if (p->GetSize () > GetMtu ())
-    {
-      return false;
-    }
-  Ptr<Packet> packet = p->Copy ();
-
   Mac48Address to = Mac48Address::ConvertFrom (dest);
-  Mac48Address from = Mac48Address::ConvertFrom (source);
-
-  SimpleTag tag;
-  tag.SetSrc (from);
-  tag.SetDst (to);
-  tag.SetProto (protocolNumber);
-
-  p->AddPacketTag (tag);
-
-  if (m_queue->Enqueue (p))
-    {
-      if (m_queue->GetNPackets () == 1 && !TransmitCompleteEvent.IsRunning ())
-        {
-          p = m_queue->Dequeue ();
-          p->RemovePacketTag (tag);
-          Time txTime = Time (0);
-          if (m_bps > DataRate (0))
-            {
-              txTime = m_bps.CalculateBytesTxTime (packet->GetSize ());
-            }
-          m_channel->Send (p, protocolNumber, to, from, this);
-          TransmitCompleteEvent = Simulator::Schedule (txTime, &SimpleNetDevice::TransmitComplete, this);
-        }
-      return true;
-    }
-
-
-  m_channel->Send (packet, protocolNumber, to, from, this);
+  m_channel->Send (packet, protocolNumber, to, m_address, this);
   return true;
 }
-
-
-void
-SimpleNetDevice::TransmitComplete ()
+bool 
+SimpleNetDevice::SendFrom (Ptr<Packet> packet, const Address& source, const Address& dest, uint16_t protocolNumber)
 {
-  NS_LOG_FUNCTION (this);
-
-  if (m_queue->GetNPackets () == 0)
-    {
-      return;
-    }
-
-  Ptr<Packet> packet = m_queue->Dequeue ();
-
-  SimpleTag tag;
-  packet->RemovePacketTag (tag);
-
-  Mac48Address src = tag.GetSrc ();
-  Mac48Address dst = tag.GetDst ();
-  uint16_t proto = tag.GetProto ();
-
-  m_channel->Send (packet, proto, dst, src, this);
-
-  if (m_queue->GetNPackets ())
-    {
-      Time txTime = Time (0);
-      if (m_bps > DataRate (0))
-        {
-          txTime = m_bps.CalculateBytesTxTime (packet->GetSize ());
-        }
-      TransmitCompleteEvent = Simulator::Schedule (txTime, &SimpleNetDevice::TransmitComplete, this);
-    }
-
-  return;
+  NS_LOG_FUNCTION (this << packet << source << dest << protocolNumber);
+  Mac48Address to = Mac48Address::ConvertFrom (dest);
+  Mac48Address from = Mac48Address::ConvertFrom (source);
+  m_channel->Send (packet, protocolNumber, to, from, this);
+  return true;
 }
 
 Ptr<Node> 
@@ -551,11 +247,7 @@ bool
 SimpleNetDevice::NeedsArp (void) const
 {
   NS_LOG_FUNCTION (this);
-  if (m_pointToPointMode)
-    {
-      return false;
-    }
-  return true;
+  return false;
 }
 void 
 SimpleNetDevice::SetReceiveCallback (NetDevice::ReceiveCallback cb)
@@ -571,12 +263,6 @@ SimpleNetDevice::DoDispose (void)
   m_channel = 0;
   m_node = 0;
   m_receiveErrorModel = 0;
-  m_queue->Flush ();
-  m_queueInterface = 0;
-  if (TransmitCompleteEvent.IsRunning ())
-    {
-      TransmitCompleteEvent.Cancel ();
-    }
   NetDevice::DoDispose ();
 }
 

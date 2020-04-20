@@ -26,7 +26,7 @@
 #include <iostream>
 #include <sstream>
 
-using namespace ns3;
+namespace ns3 {
 
 class DegreesToRadiansTestCase : public TestCase
 {
@@ -132,3 +132,8 @@ DegreesRadiansTestSuite::DegreesRadiansTestSuite ()
 };
 
 static DegreesRadiansTestSuite staticDegreesRadiansTestSuiteInstance;
+
+
+
+
+} // namespace ns3

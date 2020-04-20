@@ -36,9 +36,10 @@
 
 namespace ns3 {
 
-NS_LOG_COMPONENT_DEFINE ("UdpServer");
-
-NS_OBJECT_ENSURE_REGISTERED (UdpServer);
+NS_LOG_COMPONENT_DEFINE ("UdpServer")
+  ;
+NS_OBJECT_ENSURE_REGISTERED (UdpServer)
+  ;
 
 
 TypeId
@@ -46,7 +47,6 @@ UdpServer::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::UdpServer")
     .SetParent<Application> ()
-    .SetGroupName("Applications")
     .AddConstructor<UdpServer> ()
     .AddAttribute ("Port",
                    "Port on which we listen for incoming packets.",
@@ -59,12 +59,6 @@ UdpServer::GetTypeId (void)
                    MakeUintegerAccessor (&UdpServer::GetPacketWindowSize,
                                          &UdpServer::SetPacketWindowSize),
                    MakeUintegerChecker<uint16_t> (8,256))
-    .AddTraceSource ("Rx", "A packet has been received",
-                     MakeTraceSourceAccessor (&UdpServer::m_rxTrace),
-                     "ns3::Packet::TracedCallback")
-    .AddTraceSource ("RxWithAddresses", "A packet has been received",
-                     MakeTraceSourceAccessor (&UdpServer::m_rxTraceWithAddresses),
-                     "ns3::Packet::TwoAddressTracedCallback")
   ;
   return tid;
 }
@@ -102,7 +96,7 @@ UdpServer::GetLost (void) const
   return m_lossCounter.GetLost ();
 }
 
-uint64_t
+uint32_t
 UdpServer::GetReceived (void) const
 {
   NS_LOG_FUNCTION (this);
@@ -127,10 +121,7 @@ UdpServer::StartApplication (void)
       m_socket = Socket::CreateSocket (GetNode (), tid);
       InetSocketAddress local = InetSocketAddress (Ipv4Address::GetAny (),
                                                    m_port);
-      if (m_socket->Bind (local) == -1)
-        {
-          NS_FATAL_ERROR ("Failed to bind socket");
-        }
+      m_socket->Bind (local);
     }
 
   m_socket->SetRecvCallback (MakeCallback (&UdpServer::HandleRead, this));
@@ -141,10 +132,7 @@ UdpServer::StartApplication (void)
       m_socket6 = Socket::CreateSocket (GetNode (), tid);
       Inet6SocketAddress local = Inet6SocketAddress (Ipv6Address::GetAny (),
                                                    m_port);
-      if (m_socket6->Bind (local) == -1)
-        {
-          NS_FATAL_ERROR ("Failed to bind socket");
-        }
+      m_socket6->Bind (local);
     }
 
   m_socket6->SetRecvCallback (MakeCallback (&UdpServer::HandleRead, this));
@@ -168,12 +156,8 @@ UdpServer::HandleRead (Ptr<Socket> socket)
   NS_LOG_FUNCTION (this << socket);
   Ptr<Packet> packet;
   Address from;
-  Address localAddress;
   while ((packet = socket->RecvFrom (from)))
     {
-      socket->GetSockName (localAddress);
-      m_rxTrace (packet);
-      m_rxTraceWithAddresses (packet, from, localAddress);
       if (packet->GetSize () > 0)
         {
           SeqTsHeader seqTs;

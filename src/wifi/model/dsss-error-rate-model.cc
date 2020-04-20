@@ -22,11 +22,11 @@
 #include "dsss-error-rate-model.h"
 #include <cmath>
 
-namespace ns3 {
-
 NS_LOG_COMPONENT_DEFINE ("DsssErrorRateModel");
 
-#ifndef HAVE_GSL
+namespace ns3 {
+
+#ifndef ENABLE_GSL
 const double DsssErrorRateModel::WLAN_SIR_PERFECT = 10.0;
 const double DsssErrorRateModel::WLAN_SIR_IMPOSSIBLE = 0.1;
 #endif
@@ -35,40 +35,40 @@ double
 DsssErrorRateModel::DqpskFunction (double x)
 {
   NS_LOG_FUNCTION_NOARGS ();
-  return ((std::sqrt (2.0) + 1.0) / std::sqrt (8.0 * M_PI * std::sqrt (2.0)))
-         * (1.0 / std::sqrt (x)) * std::exp ( -(2.0 - std::sqrt (2.0)) * x);
+  return ((std::sqrt (2.0) + 1.0) / std::sqrt (8.0 * 3.1415926 * std::sqrt (2.0)))
+    * (1.0 / std::sqrt (x)) * std::exp ( -(2.0 - std::sqrt (2.0)) * x);
 }
 
 double
-DsssErrorRateModel::GetDsssDbpskSuccessRate (double sinr, uint64_t nbits)
+DsssErrorRateModel::GetDsssDbpskSuccessRate (double sinr, uint32_t nbits)
 {
   NS_LOG_FUNCTION_NOARGS ();
-  double EbN0 = sinr * 22000000.0 / 1000000.0; //1 bit per symbol with 1 MSPS
+  double EbN0 = sinr * 22000000.0 / 1000000.0; // 1 bit per symbol with 1 MSPS
   double ber = 0.5 * std::exp (-EbN0);
   return std::pow ((1.0 - ber), static_cast<double> (nbits));
 }
 
 double
-DsssErrorRateModel::GetDsssDqpskSuccessRate (double sinr, uint64_t nbits)
+DsssErrorRateModel::GetDsssDqpskSuccessRate (double sinr,uint32_t nbits)
 {
   NS_LOG_FUNCTION_NOARGS ();
-  double EbN0 = sinr * 22000000.0 / 1000000.0 / 2.0; //2 bits per symbol, 1 MSPS
+  double EbN0 = sinr * 22000000.0 / 1000000.0 / 2.0; // 2 bits per symbol, 1 MSPS
   double ber = DqpskFunction (EbN0);
   return std::pow ((1.0 - ber), static_cast<double> (nbits));
 }
 
 double
-DsssErrorRateModel::GetDsssDqpskCck5_5SuccessRate (double sinr, uint64_t nbits)
+DsssErrorRateModel::GetDsssDqpskCck5_5SuccessRate (double sinr,uint32_t nbits)
 {
   NS_LOG_FUNCTION_NOARGS ();
-#ifdef HAVE_GSL
-  //symbol error probability
+#ifdef ENABLE_GSL
+  // symbol error probability
   double EbN0 = sinr * 22000000.0 / 1375000.0 / 4.0;
   double sep = SymbolErrorProb16Cck (4.0 * EbN0 / 2.0);
-  return std::min (1.0, std::pow (1.0 - sep, nbits / 4.0));
+  return std::pow (1.0 - sep,nbits / 4.0);
 #else
   NS_LOG_WARN ("Running a 802.11b CCK Matlab model less accurate than GSL model");
-  //The matlab model
+  // The matlab model
   double ber;
   if (sinr > WLAN_SIR_PERFECT)
     {
@@ -80,30 +80,29 @@ DsssErrorRateModel::GetDsssDqpskCck5_5SuccessRate (double sinr, uint64_t nbits)
     }
   else
     {
-      //fitprops.coeff from matlab berfit
-      double a1 = 5.3681634344056195e-001;
-      double a2 = 3.3092430025608586e-003;
-      double a3 = 4.1654372361004000e-001;
-      double a4 = 1.0288981434358866e+000;
+      // fitprops.coeff from matlab berfit
+      double a1 =  5.3681634344056195e-001;
+      double a2 =  3.3092430025608586e-003;
+      double a3 =  4.1654372361004000e-001;
+      double a4 =  1.0288981434358866e+000;
       ber = a1 * std::exp (-std::pow ((sinr - a2) / a3, a4));
     }
-  return std::min (1.0, std::pow ((1.0 - ber), static_cast<double> (nbits)));
+  return std::pow ((1.0 - ber), static_cast<double> (nbits));
 #endif
 }
 
 double
-DsssErrorRateModel::GetDsssDqpskCck11SuccessRate (double sinr, uint64_t nbits)
+DsssErrorRateModel::GetDsssDqpskCck11SuccessRate (double sinr,uint32_t nbits)
 {
   NS_LOG_FUNCTION_NOARGS ();
-#ifdef HAVE_GSL
-  NS_LOG_DEBUG ("GSL enabled ");
-  //symbol error probability
+#ifdef ENABLE_GSL
+  // symbol error probability
   double EbN0 = sinr * 22000000.0 / 1375000.0 / 8.0;
   double sep = SymbolErrorProb256Cck (8.0 * EbN0 / 2.0);
-  return std::min (1.0, std::pow (1.0 - sep, nbits / 8.0));
+  return std::pow (1.0 - sep, nbits / 8.0);
 #else
   NS_LOG_WARN ("Running a 802.11b CCK Matlab model less accurate than GSL model");
-  //The matlab model
+  // The matlab model
   double ber;
   if (sinr > WLAN_SIR_PERFECT)
     {
@@ -115,20 +114,20 @@ DsssErrorRateModel::GetDsssDqpskCck11SuccessRate (double sinr, uint64_t nbits)
     }
   else
     {
-      //fitprops.coeff from matlab berfit
-      double a1 = 7.9056742265333456e-003;
+      // fitprops.coeff from matlab berfit
+      double a1 =  7.9056742265333456e-003;
       double a2 = -1.8397449399176360e-001;
-      double a3 = 1.0740689468707241e+000;
-      double a4 = 1.0523316904502553e+000;
-      double a5 = 3.0552298746496687e-001;
-      double a6 = 2.2032715128698435e+000;
+      double a3 =  1.0740689468707241e+000;
+      double a4 =  1.0523316904502553e+000;
+      double a5 =  3.0552298746496687e-001;
+      double a6 =  2.2032715128698435e+000;
       ber =  (a1 * sinr * sinr + a2 * sinr + a3) / (sinr * sinr * sinr + a4 * sinr * sinr + a5 * sinr + a6);
     }
-  return std::min (1.0, std::pow ((1.0 - ber), static_cast<double> (nbits)));
+  return std::pow ((1.0 - ber), static_cast<double> (nbits));
 #endif
 }
 
-#ifdef HAVE_GSL
+#ifdef ENABLE_GSL
 double
 IntegralFunction (double x, void *params)
 {
@@ -172,4 +171,4 @@ double DsssErrorRateModel::SymbolErrorProb256Cck (double e1)
 
 #endif
 
-} //namespace ns3
+} // namespace ns3

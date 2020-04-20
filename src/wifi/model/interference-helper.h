@@ -17,82 +17,22 @@
  *
  * Author: Mathieu Lacage <mathieu.lacage@sophia.inria.fr>
  */
-
 #ifndef INTERFERENCE_HELPER_H
 #define INTERFERENCE_HELPER_H
 
+#include <stdint.h>
+#include <vector>
+#include <list>
+#include "wifi-mode.h"
+#include "wifi-preamble.h"
+#include "wifi-phy-standard.h"
 #include "ns3/nstime.h"
-#include "wifi-tx-vector.h"
-#include <map>
+#include "ns3/simple-ref-count.h"
+#include "ns3/wifi-tx-vector.h"
 
 namespace ns3 {
 
-class Packet;
 class ErrorRateModel;
-
-/**
- * \ingroup wifi
- * \brief handles interference calculations
- * \brief signal event for a packet.
- */
-class Event : public SimpleRefCount<Event>
-{
-public:
-  /**
-   * Create an Event with the given parameters.
-   *
-   * \param packet the packet
-   * \param txVector TXVECTOR of the packet
-   * \param duration duration of the signal
-   * \param rxPower the receive power (w)
-   */
-  Event (Ptr<const Packet> packet, WifiTxVector txVector, Time duration, double rxPower);
-  ~Event ();
-
-  /** Return the packet.
-   *
-   * \return the packet
-   */
-  Ptr<const Packet> GetPacket (void) const;
-  /**
-   * Return the start time of the signal.
-   *
-   * \return the start time of the signal
-   */
-  Time GetStartTime (void) const;
-  /**
-   * Return the end time of the signal.
-   *
-   * \return the end time of the signal
-   */
-  Time GetEndTime (void) const;
-  /**
-   * Return the receive power (w).
-   *
-   * \return the receive power (w)
-   */
-  double GetRxPowerW (void) const;
-  /**
-   * Return the TXVECTOR of the packet.
-   *
-   * \return the TXVECTOR of the packet
-   */
-  WifiTxVector GetTxVector (void) const;
-  /**
-   * Return the Wi-Fi mode used for the payload.
-   *
-   * \return the Wi-Fi mode used for the payload
-   */
-  WifiMode GetPayloadMode (void) const;
-
-
-private:
-  Ptr<const Packet> m_packet; ///< packet
-  WifiTxVector m_txVector; ///< TXVECTOR
-  Time m_startTime; ///< start time
-  Time m_endTime; ///< end time
-  double m_rxPowerW; ///< receive power in watts
-};
 
 /**
  * \ingroup wifi
@@ -104,14 +44,88 @@ public:
   /**
    * Signal event for a packet.
    */
+  class Event : public SimpleRefCount<InterferenceHelper::Event>
+  {
+public:
+    /**
+     * Create an Event with the given parameters.
+     *
+     * \param size packet size
+     * \param payloadMode Wi-Fi mode used for the payload
+     * \param preamble preamble type
+     * \param duration duration of the signal
+     * \param rxPower the receive power (w)
+     * \param txvector TXVECTOR of the packet
+     */
+    Event (uint32_t size, WifiMode payloadMode,
+           enum WifiPreamble preamble,
+           Time duration, double rxPower, WifiTxVector txvector);
+    ~Event ();
 
+    /**
+     * Return the duration of the signal.
+     *
+     * \return the duration of the signal
+     */
+    Time GetDuration (void) const;
+    /**
+     * Return the start time of the signal.
+     *
+     * \return the start time of the signal
+     */
+    Time GetStartTime (void) const;
+    /**
+     * Return the end time of the signal.
+     *
+     * \return the end time of the signal
+     */
+    Time GetEndTime (void) const;
+    /**
+     * Return the receive power (w).
+     *
+     * \return the receive power (w)
+     */
+    double GetRxPowerW (void) const;
+    /**
+     * Return the size of the packet (bytes).
+     *
+     * \return the size of the packet (bytes)
+     */
+    uint32_t GetSize (void) const;
+    /**
+     * Return the Wi-Fi mode used for the payload.
+     *
+     * \return the Wi-Fi mode used for the payload
+     */
+    WifiMode GetPayloadMode (void) const;
+    /**
+     * Return the preamble type of the packet.
+     *
+     * \return the preamble type of the packet
+     */
+    enum WifiPreamble GetPreambleType (void) const;
+    /**
+     * Return the TXVECTOR of the packet.
+     *
+     * \return the TXVECTOR of the packet
+     */
+    WifiTxVector GetTxVector (void) const;
+private:
+    uint32_t m_size;
+    WifiMode m_payloadMode;
+    enum WifiPreamble m_preamble;
+    Time m_startTime;
+    Time m_endTime;
+    double m_rxPowerW;
+    WifiTxVector m_txVector;
+  };
   /**
    * A struct for both SNR and PER
    */
   struct SnrPer
   {
-    double snr; ///< SNR
-    double per; ///< PER
+    double snr;
+    double per;
   };
 
   InterferenceHelper ();
@@ -128,68 +142,53 @@ public:
    *
    * \param rate Error rate model
    */
-  void SetErrorRateModel (const Ptr<ErrorRateModel> rate);
+  void SetErrorRateModel (Ptr<ErrorRateModel> rate);
 
+  /**
+   * Return the noise figure.
+   *
+   * \return the noise figure
+   */
+  double GetNoiseFigure (void) const;
   /**
    * Return the error rate model.
    *
    * \return Error rate model
    */
   Ptr<ErrorRateModel> GetErrorRateModel (void) const;
-  /**
-   * Set the number of RX antennas in the receiver corresponding to this
-   * interference helper.
-   *
-   * \param rx the number of RX antennas
-   */
-  void SetNumberOfReceiveAntennas (uint8_t rx);
+
 
   /**
    * \param energyW the minimum energy (W) requested
-   *
    * \returns the expected amount of time the observed
    *          energy on the medium will be higher than
    *          the requested threshold.
    */
-  Time GetEnergyDuration (double energyW) const;
+  Time GetEnergyDuration (double energyW);
 
   /**
    * Add the packet-related signal to interference helper.
    *
-   * \param packet the packet
-   * \param txVector TXVECTOR of the packet
+   * \param size packet size
+   * \param payloadMode Wi-Fi mode for the payload
+   * \param preamble Wi-Fi preamble for the packet
    * \param duration the duration of the signal
-   * \param rxPower receive power (W)
-   *
-   * \return Event
+   * \param rxPower receive power (w)
+   * \param txvector TXVECTOR of the packet
+   * \return InterferenceHelper::Event
    */
-  Ptr<Event> Add (Ptr<const Packet> packet, WifiTxVector txVector, Time duration, double rxPower);
+  Ptr<InterferenceHelper::Event> Add (uint32_t size, WifiMode payloadMode,
+                                      enum WifiPreamble preamble,
+                                      Time duration, double rxPower, WifiTxVector txvector);
 
   /**
-   * Add a non-Wifi signal to interference helper.
-   * \param duration the duration of the signal
-   * \param rxPower receive power (W)
-   */
-  void AddForeignSignal (Time duration, double rxPower);
-  /**
-   * Calculate the SNIR at the start of the plcp payload and accumulate
+   * Calculate the SNIR at the start of the packet and accumulate
    * all SNIR changes in the snir vector.
    *
-   * \param event the event corresponding to the first time the corresponding packet arrives
-   *
+   * \param event the event corresponding to the first time the packet arrives
    * \return struct of SNR and PER
    */
-  struct InterferenceHelper::SnrPer CalculatePlcpPayloadSnrPer (Ptr<Event> event) const;
-  /**
-   * Calculate the SNIR at the start of the plcp header and accumulate
-   * all SNIR changes in the snir vector.
-   *
-   * \param event the event corresponding to the first time the corresponding packet arrives
-   *
-   * \return struct of SNR and PER
-   */
-  struct InterferenceHelper::SnrPer CalculatePlcpHeaderSnrPer (Ptr<Event> event) const;
-
+  struct InterferenceHelper::SnrPer CalculateSnrPer (Ptr<InterferenceHelper::Event> event);
   /**
    * Notify that RX has started.
    */
@@ -202,8 +201,6 @@ public:
    * Erase all events.
    */
   void EraseEvents (void);
-
-
 private:
   /**
    * Noise and Interference (thus Ni) event.
@@ -214,40 +211,44 @@ public:
     /**
      * Create a NiChange at the given time and the amount of NI change.
      *
-     * \param power the power
-     * \param event causes this NI change
+     * \param time time of the event
+     * \param delta the power
      */
-    NiChange (double power, Ptr<Event> event);
+    NiChange (Time time, double delta);
+    /**
+     * Return the event time.
+     *
+     * \return the event time.
+     */
+    Time GetTime (void) const;
     /**
      * Return the power
      *
      * \return the power
      */
-    double GetPower (void) const;
+    double GetDelta (void) const;
     /**
-     * Add a given amount of power.
+     * Compare the event time of two NiChange objects (a < o).
      *
-     * \param power the power to be added to the existing value
+     * \param o
+     * \return true if a < o.time, false otherwise
      */
-    void AddPower (double power);
-    /**
-     * Return the event causes the corresponding NI change
-     *
-     * \return the event
-     */
-    Ptr<Event> GetEvent (void) const;
-
-
+    bool operator < (const NiChange& o) const;
 private:
-    double m_power; ///< power
-    Ptr<Event> m_event; ///< event
+    Time m_time;
+    double m_delta;
   };
-
   /**
-   * typedef for a multimap of NiChanges
+   * typedef for a vector of NiChanges
    */
-  typedef std::multimap<Time, NiChange> NiChanges;
+  typedef std::vector <NiChange> NiChanges;
+  /**
+   * typedef for a list of Events
+   */
+  typedef std::list<Ptr<Event> > Events;
 
+  //InterferenceHelper (const InterferenceHelper &o);
+  //InterferenceHelper &operator = (const InterferenceHelper &o);
   /**
    * Append the given Event.
    *
@@ -259,7 +260,6 @@ private:
    *
    * \param event
    * \param ni
-   *
    * \return noise and interference power
    */
   double CalculateNoiseInterferenceW (Ptr<Event> event, NiChanges *ni) const;
@@ -269,11 +269,10 @@ private:
    *
    * \param signal
    * \param noiseInterference
-   * \param channelWidth
-   *
+   * \param mode
    * \return SNR in liear ratio
    */
-  double CalculateSnr (double signal, double noiseInterference, uint16_t channelWidth) const;
+  double CalculateSnr (double signal, double noiseInterference, WifiMode mode) const;
   /**
    * Calculate the success rate of the chunk given the SINR, duration, and Wi-Fi mode.
    * The duration and mode are used to calculate how many bits are present in the chunk.
@@ -281,73 +280,35 @@ private:
    * \param snir SINR
    * \param duration
    * \param mode
-   * \param txVector
-   *
    * \return the success rate
    */
-  double CalculateChunkSuccessRate (double snir, Time duration, WifiMode mode, WifiTxVector txVector) const;
+  double CalculateChunkSuccessRate (double snir, Time duration, WifiMode mode) const;
   /**
-   * Calculate the error rate of the given plcp payload. The plcp payload can be divided into
+   * Calculate the error rate of the given packet. The packet can be divided into
    * multiple chunks (e.g. due to interference from other transmissions).
    *
    * \param event
    * \param ni
-   *
    * \return the error rate of the packet
    */
-  double CalculatePlcpPayloadPer (Ptr<const Event> event, NiChanges *ni) const;
-  /**
-   * Calculate the error rate of the plcp header. The plcp header can be divided into
-   * multiple chunks (e.g. due to interference from other transmissions).
-   *
-   * \param event
-   * \param ni
-   *
-   * \return the error rate of the packet
-   */
-  double CalculatePlcpHeaderPer (Ptr<const Event> event, NiChanges *ni) const;
+  double CalculatePer (Ptr<const Event> event, NiChanges *ni) const;
 
   double m_noiseFigure; /**< noise figure (linear) */
-  Ptr<ErrorRateModel> m_errorRateModel; ///< error rate model
-  uint8_t m_numRxAntennas; /**< the number of RX antennas in the corresponding receiver */
+  Ptr<ErrorRateModel> m_errorRateModel;
   /// Experimental: needed for energy duration calculation
   NiChanges m_niChanges;
-  double m_firstPower; ///< first power
-  bool m_rxing; ///< flag whether it is in receiving state
-
+  double m_firstPower;
+  bool m_rxing;
+  /// Returns an iterator to the first nichange, which is later than moment
+  NiChanges::iterator GetPosition (Time moment);
   /**
-   * Returns an iterator to the first nichange that is later than moment
+   * Add NiChange to the list at the appropriate position.
    *
-   * \param moment time to check from
-   * \returns an iterator to the list of NiChanges
-   */
-  NiChanges::const_iterator GetNextPosition (Time moment) const;
-  /**
-   * Returns an iterator to the first nichange that is later than moment
-   *
-   * \param moment time to check from
-   * \returns an iterator to the list of NiChanges
-   */
-  //NiChanges::iterator GetNextPosition (Time moment);
-  /**
-   * Returns an iterator to the last nichange that is before than moment
-   *
-   * \param moment time to check from
-   * \returns an iterator to the list of NiChanges
-   */
-  NiChanges::const_iterator GetPreviousPosition (Time moment) const;
-
-  /**
-   * Add NiChange to the list at the appropriate position and
-   * return the iterator of the new event.
-   *
-   * \param moment
    * \param change
-   * \returns the iterator of the new event
    */
-  NiChanges::iterator AddNiChangeEvent (Time moment, NiChange change);
+  void AddNiChangeEvent (NiChange change);
 };
 
-} //namespace ns3
+} // namespace ns3
 
 #endif /* INTERFERENCE_HELPER_H */

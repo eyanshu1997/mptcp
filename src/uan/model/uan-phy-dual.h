@@ -31,6 +31,7 @@ namespace ns3 {
 class UanTxMode;
 class UanModesList;
 
+
 /**
  * Default SINR model for UanPhyDual
  *
@@ -95,7 +96,6 @@ public:
   // Inherited methods:
   virtual void SetEnergyModelCallback (DeviceEnergyModel::ChangeStateCallback callback);
   virtual void EnergyDepletionHandler (void);
-  virtual void EnergyRechargeHandler (void);
   virtual void SendPacket (Ptr<Packet> pkt, uint32_t modeNum);
 
   /**
@@ -111,9 +111,11 @@ public:
   virtual void StartRxPacket (Ptr<Packet> pkt, double rxPowerDb, UanTxMode txMode, UanPdp pdp);
   virtual void SetReceiveOkCallback (RxOkCallback cb);
   virtual void SetReceiveErrorCallback (RxErrCallback cb);
+  virtual void SetRxGainDb (double gain);
   virtual void SetTxPowerDb (double txpwr);
-  virtual void SetRxThresholdDb (double thresh);
+  virtual void SetRxThresholdDb (double thresh) NS_DEPRECATED;
   virtual void SetCcaThresholdDb (double thresh);
+  virtual double GetRxGainDb (void);
   virtual double GetTxPowerDb (void);
   virtual double GetRxThresholdDb (void);
   virtual double GetCcaThresholdDb (void);
@@ -124,7 +126,7 @@ public:
   virtual bool IsStateTx (void);
   virtual bool IsStateCcaBusy (void);
   virtual Ptr<UanChannel> GetChannel (void) const;
-  virtual Ptr<UanNetDevice> GetDevice (void) const;
+  virtual Ptr<UanNetDevice> GetDevice (void);
   virtual void SetChannel (Ptr<UanChannel> channel);
   virtual void SetDevice (Ptr<UanNetDevice> device);
   virtual void SetMac (Ptr<UanMac> mac);
@@ -137,7 +139,6 @@ public:
   virtual void Clear (void);
   virtual void SetSleepMode (bool sleep)
   {
-    NS_UNUSED (sleep);
     /// \todo This method has to be implemented
   }
   int64_t AssignStreams (int64_t stream);
@@ -176,6 +177,14 @@ public:
   /** \copydoc UanPhy::SetTxPowerDb */
   void SetTxPowerDbPhy2 (double txpwr);
 
+  /** \copydoc UanPhy::GetRxGainDb */
+  double GetRxGainDbPhy1 (void) const;
+  /** \copydoc UanPhy::GetRxGainDb */
+  double GetRxGainDbPhy2 (void) const;
+  /** \copydoc UanPhy::SetRxGainDb */
+  void SetRxGainDbPhy1 (double gain);
+  /** \copydoc UanPhy::SetRxGainDb */
+  void SetRxGainDbPhy2 (double gain);
 
   /**
    * Get the list of available modes.
@@ -245,11 +254,11 @@ private:
   Ptr<UanPhy> m_phy2;
 
   /** A packet was received successfully. */
-  ns3::TracedCallback<Ptr<const Packet>, double, UanTxMode > m_rxOkLogger;
+  TracedCallback<Ptr<const Packet>, double, UanTxMode > m_rxOkLogger;
   /** A packet was received unsuccessfully. */
-  ns3::TracedCallback<Ptr<const Packet>, double, UanTxMode > m_rxErrLogger;
+  TracedCallback<Ptr<const Packet>, double, UanTxMode > m_rxErrLogger;
   /** A packet was sent from this Phy. */
-  ns3::TracedCallback<Ptr<const Packet>, double, UanTxMode > m_txLogger;
+  TracedCallback<Ptr<const Packet>, double, UanTxMode > m_txLogger;
   /** Callback when packet received without errors. */
   RxOkCallback m_recOkCb;
   /** Callback when packet received with errors. */

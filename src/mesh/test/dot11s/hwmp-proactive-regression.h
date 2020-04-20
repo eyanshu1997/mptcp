@@ -27,9 +27,7 @@
 using namespace ns3;
 
 /**
- * \ingroup dot11s-test
- * \ingroup tests
- *
+ * \ingroup dot11s
  * \brief There are 5 stations set into a column, the center station is root.
  * Regression test indicates, that traffic goes from the first to the
  * last stations without reactive route discovery procedure
@@ -63,7 +61,6 @@ public:
   virtual ~HwmpProactiveRegressionTest();
 
   virtual void DoRun ();
-  /// Check results function
   void CheckResults ();
 
 private:
@@ -71,47 +68,11 @@ private:
   NodeContainer * m_nodes;
   /// Simulation time
   Time m_time;
-  Ipv4InterfaceContainer m_interfaces; ///< interfaces
+  Ipv4InterfaceContainer m_interfaces;
 
-  /// Create nodes function
   void CreateNodes ();
-  /// Create devices function
   void CreateDevices ();
-  /// Install application function
   void InstallApplications ();
-  /// Reset position function
   void ResetPosition ();
-
-  /// Server-side socket
-  Ptr<Socket> m_serverSocket;
-  /// Client-side socket
-  Ptr<Socket> m_clientSocket;
-
-  /// sent packets counter
-  uint32_t m_sentPktsCounter;
-
-  /**
-   * Send data
-   * \param socket the sending socket
-   */
-  void SendData (Ptr<Socket> socket);
-
-  /**
-   * \brief Handle a packet reception.
-   *
-   * This function is called by lower layers.
-   *
-   * \param socket the socket the packet was received to.
-   */
-  void HandleReadServer (Ptr<Socket> socket);
-
-  /**
-   * \brief Handle a packet reception.
-   *
-   * This function is called by lower layers.
-   *
-   * \param socket the socket the packet was received to.
-   */
-  void HandleReadClient (Ptr<Socket> socket);
 };
 

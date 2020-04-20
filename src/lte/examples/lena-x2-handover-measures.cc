@@ -159,7 +159,7 @@ main (int argc, char *argv[])
   CommandLine cmd;
   cmd.AddValue ("simTime", "Total duration of the simulation (in seconds)", simTime);
   cmd.AddValue ("speed", "Speed of the UE (default = 20 m/s)", speed);
-  cmd.AddValue ("enbTxPowerDbm", "TX power [dBm] used by HeNBs (default = 46.0)", enbTxPowerDbm);
+  cmd.AddValue ("enbTxPowerDbm", "TX power [dBm] used by HeNBs (defalut = 46.0)", enbTxPowerDbm);
 
   cmd.Parse (argc, argv);
 
@@ -256,6 +256,15 @@ main (int argc, char *argv[])
   internet.Install (ueNodes);
   Ipv4InterfaceContainer ueIpIfaces;
   ueIpIfaces = epcHelper->AssignUeIpv4Address (NetDeviceContainer (ueLteDevs));
+  // Assign IP address to UEs, and install applications
+  for (uint32_t u = 0; u < ueNodes.GetN (); ++u)
+    {
+      Ptr<Node> ueNode = ueNodes.Get (u);
+      // Set the default gateway for the UE
+      Ptr<Ipv4StaticRouting> ueStaticRouting = ipv4RoutingHelper.GetStaticRouting (ueNode->GetObject<Ipv4> ());
+      ueStaticRouting->SetDefaultRoute (epcHelper->GetUeDefaultGatewayAddress (), 1);
+    }
+
 
   // Attach all UEs to the first eNodeB
   for (uint16_t i = 0; i < numberOfUes; i++)
@@ -326,7 +335,7 @@ main (int argc, char *argv[])
     }
 
 
-  // Add X2 interface
+  // Add X2 inteface
   lteHelper->AddX2Interface (enbNodes);
 
   // X2-based Handover

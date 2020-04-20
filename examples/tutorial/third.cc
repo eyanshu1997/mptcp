@@ -18,11 +18,10 @@
 #include "ns3/point-to-point-module.h"
 #include "ns3/network-module.h"
 #include "ns3/applications-module.h"
+#include "ns3/wifi-module.h"
 #include "ns3/mobility-module.h"
 #include "ns3/csma-module.h"
 #include "ns3/internet-module.h"
-#include "ns3/yans-wifi-helper.h"
-#include "ns3/ssid.h"
 
 // Default Network Topology
 //
@@ -45,23 +44,19 @@ main (int argc, char *argv[])
   bool verbose = true;
   uint32_t nCsma = 3;
   uint32_t nWifi = 3;
-  bool tracing = false;
 
   CommandLine cmd;
   cmd.AddValue ("nCsma", "Number of \"extra\" CSMA nodes/devices", nCsma);
   cmd.AddValue ("nWifi", "Number of wifi STA devices", nWifi);
   cmd.AddValue ("verbose", "Tell echo applications to log if true", verbose);
-  cmd.AddValue ("tracing", "Enable pcap tracing", tracing);
 
   cmd.Parse (argc,argv);
 
-  // The underlying restriction of 18 is due to the grid position
-  // allocator's configuration; the grid layout will exceed the
-  // bounding box if more than 18 nodes are provided.
   if (nWifi > 18)
     {
-      std::cout << "nWifi should be 18 or less; otherwise grid layout exceeds the bounding box" << std::endl;
-      return 1;
+      std::cout << "Number of wifi nodes " << nWifi << 
+                   " specified exceeds the mobility bounding box" << std::endl;
+      exit (1);
     }
 
   if (verbose)
@@ -99,10 +94,11 @@ main (int argc, char *argv[])
   YansWifiPhyHelper phy = YansWifiPhyHelper::Default ();
   phy.SetChannel (channel.Create ());
 
-  WifiHelper wifi;
+  WifiHelper wifi = WifiHelper::Default ();
   wifi.SetRemoteStationManager ("ns3::AarfWifiManager");
 
-  WifiMacHelper mac;
+  NqosWifiMacHelper mac = NqosWifiMacHelper::Default ();
+
   Ssid ssid = Ssid ("ns-3-ssid");
   mac.SetType ("ns3::StaWifiMac",
                "Ssid", SsidValue (ssid),
@@ -173,12 +169,9 @@ main (int argc, char *argv[])
 
   Simulator::Stop (Seconds (10.0));
 
-  if (tracing == true)
-    {
-      pointToPoint.EnablePcapAll ("third");
-      phy.EnablePcap ("third", apDevices.Get (0));
-      csma.EnablePcap ("third", csmaDevices.Get (0), true);
-    }
+  pointToPoint.EnablePcapAll ("third");
+  phy.EnablePcap ("third", apDevices.Get (0));
+  csma.EnablePcap ("third", csmaDevices.Get (0), true);
 
   Simulator::Run ();
   Simulator::Destroy ();

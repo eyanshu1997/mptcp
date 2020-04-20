@@ -80,7 +80,7 @@ public:
   /**
    * \return the total bytes received in this sink app
    */
-  uint64_t GetTotalRx () const;
+  uint32_t GetTotalRx () const;
 
   /**
    * \return pointer to listening socket
@@ -127,14 +127,11 @@ private:
   std::list<Ptr<Socket> > m_socketList; //!< the accepted sockets
 
   Address         m_local;        //!< Local address to bind to
-  uint64_t        m_totalRx;      //!< Total bytes received
+  uint32_t        m_totalRx;      //!< Total bytes received
   TypeId          m_tid;          //!< Protocol TypeId
 
   /// Traced Callback: received packets, source address.
   TracedCallback<Ptr<const Packet>, const Address &> m_rxTrace;
-
-  /// Callback for tracing the packet Rx events, includes source and destination addresses
-  TracedCallback<Ptr<const Packet>, const Address &, const Address &> m_rxTraceWithAddresses;
 
 };
 

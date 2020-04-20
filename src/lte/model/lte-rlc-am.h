@@ -38,36 +38,20 @@ class LteRlcAm : public LteRlc
 public:
   LteRlcAm ();
   virtual ~LteRlcAm ();
-  /**
-   * \brief Get the type ID.
-   * \return the object TypeId
-   */
   static TypeId GetTypeId (void);
   virtual void DoDispose ();
 
   /**
    * RLC SAP
-   *
-   * \param p packet
    */
   virtual void DoTransmitPdcpPdu (Ptr<Packet> p);
 
   /**
    * MAC SAP
-   *
-   * \param bytes number of bytes
-   * \param layer 
-   * \param harqId HARQ ID
-   * \param componentCarrierId component carrier ID
-   * \param rnti the RNTI
-   * \param lcid the LCID
    */
-  virtual void DoNotifyTxOpportunity (uint32_t bytes, uint8_t layer, uint8_t harqId, uint8_t componentCarrierId, uint16_t rnti, uint8_t lcid);
-    /**
-   * Notify HARQ delivery failure
-   */
+  virtual void DoNotifyTxOpportunity (uint32_t bytes, uint8_t layer, uint8_t harqId);
   virtual void DoNotifyHarqDeliveryFailure ();
-  virtual void DoReceivePdu (Ptr<Packet> p, uint16_t rnti, uint8_t lcid);
+  virtual void DoReceivePdu (Ptr<Packet> p);
 
 private:
   /**
@@ -76,102 +60,76 @@ private:
    * in which case this method does nothing.
    */
   void ExpireReorderingTimer (void);
-  /// Expire poll retransmitter 
   void ExpirePollRetransmitTimer (void);
-  /// Expire RBS timer
-  void ExpireRbsTimer (void);
 
-  /** 
-   * method called when the T_status_prohibit timer expires
-   * 
-   */
-  void ExpireStatusProhibitTimer (void);
-
-  /** 
-   * method called when the T_status_prohibit timer expires
-   * 
-   * \param seqNumber SequenceNumber10
-   * \returns true is inside receivign window
-   */
   bool IsInsideReceivingWindow (SequenceNumber10 seqNumber);
 // 
 //   void ReassembleOutsideWindow (void);
 //   void ReassembleSnLessThan (uint16_t seqNumber);
 // 
-
-  /** 
-   * Reassemble and deliver
-   * 
-   * \param packet the packet
-   */
   void ReassembleAndDeliver (Ptr<Packet> packet);
 
-  /** 
-   * Report buffer status
-   */
   void DoReportBufferStatus ();
 
 private:
-    std::vector < Ptr<Packet> > m_txonBuffer; ///< Transmission buffer
+    std::vector < Ptr<Packet> > m_txonBuffer;       // Transmission buffer
+    std::vector < Ptr<Packet> > m_txedBuffer;       // Transmitted packets buffer
 
-    /// RetxPdu structure
-    struct RetxPdu
+    struct RetxBuffer
     {
-      Ptr<Packet> m_pdu; ///< PDU
-      uint16_t    m_retxCount; ///< retransmit count
+      Ptr<Packet> m_pdu;
+      uint16_t    m_retxCount;
     };
 
-  std::vector <RetxPdu> m_txedBuffer;  ///< Buffer for transmitted and retransmitted PDUs 
-                                       ///< that have not been acked but are not considered 
-                                       ///< for retransmission 
-  std::vector <RetxPdu> m_retxBuffer;  ///< Buffer for PDUs considered for retransmission
+    std::vector < RetxBuffer > m_retxBuffer;       // Retransmission buffer
 
-    uint32_t m_txonBufferSize; ///< transmit on buffer size
-    uint32_t m_retxBufferSize; ///< retransmit buffer size
-    uint32_t m_txedBufferSize; ///< transmit ed buffer size
+    uint32_t m_txonBufferSize;
+    uint32_t m_retxBufferSize;
+    uint32_t m_txedBufferSize;
 
-    bool     m_statusPduRequested; ///< status PDU requested
-    uint32_t m_statusPduBufferSize; ///< status PDU buffer size
+    bool     m_statusPduRequested;
+    uint32_t m_statusPduBufferSize;
 
-    /// PduBuffer structure
     struct PduBuffer
     {
-      SequenceNumber10  m_seqNumber; ///< sequence number
-      std::list < Ptr<Packet> >  m_byteSegments; ///< byte segments
+      SequenceNumber10  m_seqNumber;
+      std::list < Ptr<Packet> >  m_byteSegments;
 
-      bool      m_pduComplete; ///< PDU complete?
+      bool      m_pduComplete;
+      uint16_t  m_totalSize;
+      uint16_t  m_currSize;
     };
 
-    std::map <uint16_t, PduBuffer > m_rxonBuffer; ///< Reception buffer
+    std::map <uint16_t, PduBuffer > m_rxonBuffer; // Reception buffer
 
-    Ptr<Packet> m_controlPduBuffer;               ///< Control PDU buffer (just one PDU)
+    Ptr<Packet> m_controlPduBuffer;               // Control PDU buffer (just one PDU)
 
     // SDU reassembly
 //   std::vector < Ptr<Packet> > m_reasBuffer;     // Reassembling buffer
 // 
-    std::list < Ptr<Packet> > m_sdusBuffer;       ///< List of SDUs in a packet (PDU)
+    std::list < Ptr<Packet> > m_sdusBuffer;       // List of SDUs in a packet (PDU)
 
   /**
    * State variables. See section 7.1 in TS 36.322
    */
   // Transmitting side
-  SequenceNumber10 m_vtA;                   ///< VT(A)
-  SequenceNumber10 m_vtMs;                  ///< VT(MS)
-  SequenceNumber10 m_vtS;                   ///< VT(S)
-  SequenceNumber10 m_pollSn;                ///< POLL_SN
+  SequenceNumber10 m_vtA;                   // VT(A)
+  SequenceNumber10 m_vtMs;                  // VT(MS)
+  SequenceNumber10 m_vtS;                   // VT(S)
+  SequenceNumber10 m_pollSn;                // POLL_SN
 
   // Receiving side
-  SequenceNumber10 m_vrR;                   ///< VR(R)
-  SequenceNumber10 m_vrMr;                  ///< VR(MR)
-  SequenceNumber10 m_vrX;                   ///< VR(X)
-  SequenceNumber10 m_vrMs;                  ///< VR(MS)
-  SequenceNumber10 m_vrH;                   ///< VR(H)
+  SequenceNumber10 m_vrR;                   // VR(R)
+  SequenceNumber10 m_vrMr;                  // VR(MR)
+  SequenceNumber10 m_vrX;                   // VR(X)
+  SequenceNumber10 m_vrMs;                  // VR(MS)
+  SequenceNumber10 m_vrH;                   // VR(H)
 
   /**
    * Counters. See section 7.1 in TS 36.322
    */
-  uint32_t m_pduWithoutPoll; ///< PDU without poll
-  uint32_t m_byteWithoutPoll; ///< byte without poll
+  uint32_t m_pduWithoutPoll;
+  uint32_t m_byteWithoutPoll;
 
   /**
    * Constants. See section 7.2 in TS 36.322
@@ -181,24 +139,19 @@ private:
   /**
    * Timers. See section 7.3 in TS 36.322
    */
-  EventId m_pollRetransmitTimer; ///< poll retransmit timer
-  Time    m_pollRetransmitTimerValue; ///< poll retransmit time value
-  EventId m_reorderingTimer; ///< reordering timer
-  Time    m_reorderingTimerValue; ///< reordering timer value
-  EventId m_statusProhibitTimer; ///< status prohibit timer
-  Time    m_statusProhibitTimerValue; ///< status prohibit timer value
-  EventId m_rbsTimer; ///< RBS timer
-  Time    m_rbsTimerValue; ///< RBS timer value
+  EventId m_pollRetransmitTimer;
+  Time    m_pollRetransmitTimerValue;
+  EventId m_reorderingTimer;
+  EventId m_statusProhibitTimer;
 
   /**
    * Configurable parameters. See section 7.4 in TS 36.322
    */
-  uint16_t m_maxRetxThreshold;  ///< \todo How these parameters are configured???
-  uint16_t m_pollPdu; ///< poll PDU
-  uint16_t m_pollByte; ///< poll byte
+  uint16_t m_maxRetxThreshold;  /// \todo How these parameters are configured???
+  uint16_t m_pollPdu;
+  uint16_t m_pollByte;
   
-  bool m_txOpportunityForRetxAlwaysBigEnough; ///< transmit opportunity for retransmit? 
-  bool m_pollRetransmitTimerJustExpired; ///< poll retransmit timer just expired?
+  bool m_txOpportunityForRetxAlwaysBigEnough;
 
   /**
    * SDU Reassembling state
@@ -206,8 +159,8 @@ private:
   typedef enum { NONE            = 0,
                  WAITING_S0_FULL = 1,
                  WAITING_SI_SF   = 2 } ReassemblingState_t;
-  ReassemblingState_t m_reassemblingState; ///< reassembling state
-  Ptr<Packet> m_keepS0; ///< keep S0
+  ReassemblingState_t m_reassemblingState;
+  Ptr<Packet> m_keepS0;
 
   /**
    * Expected Sequence Number

@@ -22,17 +22,9 @@
 #include "ns3/olsr-header.h"
 #include "ns3/packet.h"
 
+namespace ns3 {
 
-using namespace ns3;
-
-/**
- * \ingroup olsr-test
- * \ingroup tests
- *
- * Check Emf olsr time conversion
- */
-class OlsrEmfTestCase : public TestCase
-{
+class OlsrEmfTestCase : public TestCase {
 public:
   OlsrEmfTestCase ();
   virtual void DoRun (void);
@@ -55,14 +47,7 @@ OlsrEmfTestCase::DoRun (void)
 }
 
 
-/**
- * \ingroup olsr-test
- * \ingroup tests
- *
- * Check Mid olsr messages
- */
-class OlsrMidTestCase : public TestCase
-{
+class OlsrMidTestCase : public TestCase {
 public:
   OlsrMidTestCase ();
   virtual void DoRun (void);
@@ -168,14 +153,7 @@ OlsrMidTestCase::DoRun (void)
 }
 
 
-/**
- * \ingroup olsr-test
- * \ingroup tests
- *
- * Check Hello olsr messages
- */
-class OlsrHelloTestCase : public TestCase
-{
+class OlsrHelloTestCase : public TestCase {
 public:
   OlsrHelloTestCase ();
   virtual void DoRun (void);
@@ -235,14 +213,7 @@ OlsrHelloTestCase::DoRun (void)
 
 }
 
-/**
- * \ingroup olsr-test
- * \ingroup tests
- *
- * Check Tc olsr messages
- */
-class OlsrTcTestCase : public TestCase
-{
+class OlsrTcTestCase : public TestCase {
 public:
   OlsrTcTestCase ();
   virtual void DoRun (void);
@@ -280,14 +251,7 @@ OlsrTcTestCase::DoRun (void)
 
 }
 
-/**
- * \ingroup olsr-test
- * \ingroup tests
- *
- * Check Hna olsr messages
- */
-class OlsrHnaTestCase : public TestCase
-{
+class OlsrHnaTestCase : public TestCase {
 public:
   OlsrHnaTestCase ();
   virtual void DoRun (void);
@@ -332,19 +296,13 @@ OlsrHnaTestCase::DoRun (void)
 }
 
 
-/**
- * \ingroup olsr-test
- * \ingroup tests
- *
- * Check olsr header messages
- */
-class OlsrTestSuite : public TestSuite
+static class OlsrTestSuite : public TestSuite
 {
 public:
   OlsrTestSuite ();
-};
+} g_olsrTestSuite;
 
-OlsrTestSuite::OlsrTestSuite ()
+OlsrTestSuite::OlsrTestSuite()
   : TestSuite ("routing-olsr-header", UNIT)
 {
   AddTestCase (new OlsrHnaTestCase (), TestCase::QUICK);
@@ -354,6 +312,5 @@ OlsrTestSuite::OlsrTestSuite ()
   AddTestCase (new OlsrEmfTestCase (), TestCase::QUICK);
 }
 
-static OlsrTestSuite g_olsrTestSuite; //!< Static variable for test initialization
-
+} // namespace ns3
 

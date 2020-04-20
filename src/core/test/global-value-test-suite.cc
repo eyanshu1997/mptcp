@@ -21,34 +21,15 @@
 #include "ns3/test.h"
 #include "ns3/uinteger.h"
 
-/**
- * \file
- * \ingroup core
- * \ingroup core-tests
- * \ingroup global-value-tests
- * GlobalValue test suite
- */
-
-/**
- * \ingroup core-tests
- * \defgroup global-value-tests GlobalValue test suite
- */
-
 namespace ns3 {
 
-  namespace tests {
-    
-
-/**
- * \ingroup global-value-tests
- * Test for the ability to get at a GlobalValue.
- */
+// ===========================================================================
+// Test for the ability to get at a GlobalValue.
+// ===========================================================================
 class GlobalValueTestCase : public TestCase
 {
 public:
-  /** Constructor. */
   GlobalValueTestCase ();
-  /** Destructor. */
   virtual ~GlobalValueTestCase () {}
 
 private:
@@ -92,31 +73,22 @@ GlobalValueTestCase::DoRun (void)
     }
 }
 
-/**
- * \ingroup global-value-tests
- * The Test Suite that glues all of the Test Cases together.
- */
+// ===========================================================================
+// The Test Suite that glues all of the Test Cases together.
+// ===========================================================================
 class GlobalValueTestSuite : public TestSuite
 {
 public:
-  /** Constructor. */
   GlobalValueTestSuite ();
 };
 
 GlobalValueTestSuite::GlobalValueTestSuite ()
-  : TestSuite ("global-value")
+  : TestSuite ("global-value", UNIT)
 {
-  AddTestCase (new GlobalValueTestCase);
+  AddTestCase (new GlobalValueTestCase, TestCase::QUICK);
 }
 
-/**
- * \ingroup global-value-tests
- * GlobalValueTestSuite instance variable.
- */
-static GlobalValueTestSuite g_globalValueTestSuite;
+static GlobalValueTestSuite globalValueTestSuite;
 
+} // namespace ns3
 
-  }  // namespace tests
-
-}  // namespace ns3
-    

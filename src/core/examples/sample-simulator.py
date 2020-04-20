@@ -20,43 +20,29 @@
 # 
 # Python version of sample-simulator.cc
 
-## \file
-#  \ingroup core-examples
-#  \ingroup simulator
-#  Python example program demonstrating use of various Schedule functions.
-
-
 import ns.core
 
 class MyModel(object):
-    """Simple model object to illustrate event handling."""
 
-    ## \return None.
     def Start(self):
-        """Start model execution by scheduling a HandleEvent."""
         ns.core.Simulator.Schedule(ns.core.Seconds(10.0), self.HandleEvent, ns.core.Simulator.Now().GetSeconds())
 
-    ## \param [in] self This instance of MyModel
-    ## \param [in] value Event argument.
-    ## \return None.
     def HandleEvent(self, value):
-        """Simple event handler."""
-        print ("Member method received event at", ns.core.Simulator.Now().GetSeconds(), \
-            "s started at", value, "s")
+        print "Member method received event at", ns.core.Simulator.Now().GetSeconds(), \
+            "s started at", value, "s"
 
 def ExampleFunction(model):
-    print ("ExampleFunction received event at", ns.core.Simulator.Now().GetSeconds(), "s")
+    print "ExampleFunction received event at", ns.core.Simulator.Now().GetSeconds(), "s"
     model.Start()
 
 def RandomFunction(model):
-    print ("RandomFunction received event at", ns.core.Simulator.Now().GetSeconds(), "s")
+    print "RandomFunction received event at", ns.core.Simulator.Now().GetSeconds(), "s"
 
 def CancelledEvent():
-    print ("I should never be called... ")
+    print "I should never be called... "
 
 def main(dummy_argv):
-    ns.core.CommandLine().Parse(dummy_argv)
-    
+
     model = MyModel()
     v = ns.core.UniformRandomVariable()
     v.SetAttribute("Min", ns.core.DoubleValue (10))

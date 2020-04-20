@@ -22,22 +22,22 @@
 #define MAC_RX_MIDDLE_H
 
 #include <map>
-#include "ns3/simple-ref-count.h"
+#include <utility>
 #include "ns3/callback.h"
+#include "ns3/mac48-address.h"
+#include "ns3/packet.h"
 
 namespace ns3 {
 
 class WifiMacHeader;
 class OriginatorRxStatus;
-class Packet;
-class Mac48Address;
 
 /**
  * \ingroup wifi
  *
  * This class handles duplicate detection and recomposition of fragments.
  */
-class MacRxMiddle : public SimpleRefCount<MacRxMiddle>
+class MacRxMiddle
 {
 public:
   /**
@@ -55,24 +55,8 @@ public:
    */
   void SetForwardCallback (ForwardUpCallback callback);
 
-  /**
-   * Set a callback to trigger the next PCF frame.
-   *
-   * \param callback
-   */
-  void SetPcfCallback (Callback<void> callback);
-
-  /**
-   * Receive a packet.
-   *
-   * \param packet the packet
-   * \param hdr MAC header
-   */
   void Receive (Ptr<Packet> packet, const WifiMacHeader *hdr);
-
-
 private:
-  /// allow MacRxMiddleTest associated class access
   friend class MacRxMiddleTest;
   /**
    * Look up for OriginatorRxStatus associated with the sender address
@@ -80,7 +64,6 @@ private:
    * The method creates a new OriginatorRxStatus if one is not already presented.
    *
    * \param hdr
-   *
    * \return OriginatorRxStatus
    */
   OriginatorRxStatus* Lookup (const WifiMacHeader* hdr);
@@ -90,7 +73,6 @@ private:
    *
    * \param hdr
    * \param originator
-   *
    * \return true if we already received the packet previously,
    *         false otherwise
    */
@@ -106,7 +88,6 @@ private:
    * \param packet
    * \param hdr
    * \param originator
-   *
    * \return a packet if the packet is successfully reassembled (or not a fragment),
    *         0 if we failed to reassemble the packet (e.g. missing fragments/out-of-order).
    */
@@ -122,21 +103,19 @@ private:
    */
   typedef std::map <std::pair<Mac48Address, uint8_t>, OriginatorRxStatus *, std::less<std::pair<Mac48Address,uint8_t> > > QosOriginators;
   /**
-   * typedef for an iterator for Originators
+   * typedef for an interator for Originators
    */
   typedef std::map <Mac48Address, OriginatorRxStatus *, std::less<Mac48Address> >::iterator OriginatorsI;
   /**
-   * typedef for an iterator for QosOriginators
+   * typedef for an interator for QosOriginators
    */
   typedef std::map <std::pair<Mac48Address, uint8_t>, OriginatorRxStatus *, std::less<std::pair<Mac48Address,uint8_t> > >::iterator QosOriginatorsI;
-
-  Originators m_originatorStatus; ///< originator status
-  QosOriginators m_qosOriginatorStatus; ///< QOS originator status
-  ForwardUpCallback m_callback; ///< forward up callback
-
-  Callback<void> m_pcfCallback; //!< PCF callback
+  Originators m_originatorStatus;
+  QosOriginators m_qosOriginatorStatus;
+  ForwardUpCallback m_callback;
 };
 
-} //namespace ns3
+} // namespace ns3
+
 
 #endif /* MAC_RX_MIDDLE_H */

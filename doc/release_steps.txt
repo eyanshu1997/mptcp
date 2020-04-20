@@ -144,17 +144,15 @@ preparing the documentation
 
 2. Check if these new files are available on the website
 
-3. In ns-3-dev, edit the tutorial "Getting Started" page to 
-   update the release version numbers.
-
 preparing the Wordpress-based main website
 ------------------------------------------
 
 1. create a new ns-3.x page which should be visible from
 http://www.nsnam.org/ns-3.x
+- New Features
 - Download
+- Bugs Fixed
 - Documentation
-- Authors
 
 2. Repoint http://www.nsnam.org/releases/latest to the new page
    Repoint http://www.nsnam.org/documentation/latest to the new page

@@ -23,16 +23,9 @@
 #include "string.h"
 #include <sstream>
 
-/**
- * \file
- * \ingroup attribute
- * ns3::AttributeValue, ns3::AttributeAccessor and
- * ns3::AttributeChecker implementations.
- */
+NS_LOG_COMPONENT_DEFINE ("AttributeValue");
 
 namespace ns3 {
-
-NS_LOG_COMPONENT_DEFINE ("AttributeValue");
 
 AttributeValue::AttributeValue ()
 {
@@ -105,90 +98,6 @@ bool
 EmptyAttributeValue::DeserializeFromString (std::string value, Ptr<const AttributeChecker> checker)
 {
   NS_LOG_FUNCTION (this << value << checker);
-  return true;
-}
-
-EmptyAttributeAccessor::EmptyAttributeAccessor () : AttributeAccessor ()
-{
-}
-
-EmptyAttributeAccessor::~EmptyAttributeAccessor ()
-{
-}
-
-bool
-EmptyAttributeAccessor::Set (ObjectBase * object, const AttributeValue &value) const
-{
-  (void) object;
-  (void) value;
-  return true;
-}
-
-bool
-EmptyAttributeAccessor::Get (const ObjectBase * object, AttributeValue &attribute) const
-{
-  (void) object;
-  (void) attribute;
-  return true;
-}
-
-bool
-EmptyAttributeAccessor::HasGetter (void) const
-{
-  return false;
-}
-
-bool
-EmptyAttributeAccessor::HasSetter (void) const
-{
-  return false;
-}
-
-EmptyAttributeChecker::EmptyAttributeChecker () : AttributeChecker ()
-{
-}
-
-EmptyAttributeChecker::~EmptyAttributeChecker ()
-{
-}
-
-bool
-EmptyAttributeChecker::Check (const AttributeValue &value) const
-{
-  (void) value;
-  return true;
-}
-
-std::string
-EmptyAttributeChecker::GetValueTypeName (void) const
-{
-  return "EmptyAttribute";
-}
-
-bool
-EmptyAttributeChecker::HasUnderlyingTypeInformation (void) const
-{
-  return false;
-}
-
-std::string
-EmptyAttributeChecker::GetUnderlyingTypeInformation (void) const
-{
-  return "";
-}
-
-Ptr<AttributeValue>
-EmptyAttributeChecker::Create (void) const
-{
-  static EmptyAttributeValue t;
-  return Ptr<AttributeValue> (&t, false);
-}
-
-bool
-EmptyAttributeChecker::Copy (const AttributeValue &source, AttributeValue &destination) const
-{
-  (void) source;
-  (void) destination;
   return true;
 }
 

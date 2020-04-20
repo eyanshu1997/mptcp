@@ -25,11 +25,13 @@
 #include <ns3/spectrum-channel.h>
 #include <ns3/log.h>
 
-namespace ns3 {
-
 NS_LOG_COMPONENT_DEFINE ("SpectrumPhy");
 
-NS_OBJECT_ENSURE_REGISTERED (SpectrumPhy);
+
+namespace ns3 {
+
+NS_OBJECT_ENSURE_REGISTERED (SpectrumPhy)
+  ;
 
 
 TypeId
@@ -37,7 +39,6 @@ SpectrumPhy::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::SpectrumPhy")
     .SetParent<Object> ()
-    .SetGroupName ("Spectrum")
   ;
   return tid;
 }

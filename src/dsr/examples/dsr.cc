@@ -29,18 +29,17 @@
  * US Department of Defense (DoD), and ITTC at The University of Kansas.
  */
 
-#include <sstream>
 #include "ns3/core-module.h"
 #include "ns3/network-module.h"
 #include "ns3/applications-module.h"
 #include "ns3/mobility-module.h"
 #include "ns3/config-store-module.h"
+#include "ns3/wifi-module.h"
 #include "ns3/internet-module.h"
 #include "ns3/dsr-module.h"
-#include "ns3/yans-wifi-helper.h"
+#include <sstream>
 
 using namespace ns3;
-
 NS_LOG_COMPONENT_DEFINE ("DsrTest");
 
 int
@@ -66,9 +65,9 @@ main (int argc, char *argv[])
   LogComponentEnable ("DsrFsHeader", LOG_LEVEL_ALL);
   LogComponentEnable ("DsrGraReplyTable", LOG_LEVEL_ALL);
   LogComponentEnable ("DsrSendBuffer", LOG_LEVEL_ALL);
-  LogComponentEnable ("DsrRouteCache", LOG_LEVEL_ALL);
+  LogComponentEnable ("RouteCache", LOG_LEVEL_ALL);
   LogComponentEnable ("DsrMaintainBuffer", LOG_LEVEL_ALL);
-  LogComponentEnable ("DsrRreqTable", LOG_LEVEL_ALL);
+  LogComponentEnable ("RreqTable", LOG_LEVEL_ALL);
   LogComponentEnable ("DsrErrorBuffer", LOG_LEVEL_ALL);
   LogComponentEnable ("DsrNetworkQueue", LOG_LEVEL_ALL);
 #endif
@@ -127,8 +126,8 @@ main (int argc, char *argv[])
   wifiChannel.AddPropagationLoss ("ns3::RangePropagationLossModel", "MaxRange", DoubleValue (txpDistance));
   wifiPhy.SetChannel (wifiChannel.Create ());
 
-  // Add a mac and disable rate control
-  WifiMacHelper wifiMac;
+  // Add a non-QoS upper mac, and disable rate control
+  NqosWifiMacHelper wifiMac = NqosWifiMacHelper::Default ();
   wifi.SetRemoteStationManager ("ns3::ConstantRateWifiManager", "DataMode", StringValue (dataMode), "ControlMode",
                                 StringValue (phyMode));
 
@@ -155,8 +154,8 @@ main (int argc, char *argv[])
 
   std::ostringstream pauseConstantRandomVariableStream;
   pauseConstantRandomVariableStream << "ns3::ConstantRandomVariable[Constant="
-                                    << pauseTime
-                                    << "]";
+                                   << pauseTime
+                                   << "]";
 
   adhocMobility.SetMobilityModel ("ns3::RandomWaypointMobilityModel",
                                   //                                  "Speed", StringValue ("ns3::UniformRandomVariable[Min=0.0|Max=nodeSpeed]"),

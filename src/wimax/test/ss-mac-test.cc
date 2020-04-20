@@ -19,19 +19,29 @@
  *                              <amine.ismail@udcast.com>
  */
 #include "ns3/log.h"
+#include "ns3/abort.h"
 #include "ns3/test.h"
+#include "ns3/config.h"
+#include "ns3/string.h"
+#include "ns3/uinteger.h"
+#include "ns3/inet-socket-address.h"
+#include "ns3/point-to-point-helper.h"
+#include "ns3/internet-stack-helper.h"
+#include "ns3/ipv4-address-helper.h"
+#include "ns3/ipv4-header.h"
+#include "ns3/packet-sink-helper.h"
+#include "ns3/udp-client-server-helper.h"
+#include "ns3/udp-header.h"
 #include "ns3/simulator.h"
 #include "ns3/wimax-helper.h"
-#include "ns3/net-device-container.h"
-#include "ns3/node-container.h"
+#include "ns3/mobility-helper.h"
+#include <iostream>
+#include "ns3/global-route-manager.h"
 
 using namespace ns3;
 
-/**
- * \ingroup wimax-test
- * \ingroup tests
- *
- * \brief Test the network entry procedure.
+/*
+ * Test the network entry procedure.
  * Create a network with a BS and 10 SS and check that all the SS perform the
  * network entry correctly
  *
@@ -88,15 +98,13 @@ Ns3WimaxNetworkEntryTestCase::DoRun (void)
   Simulator::Destroy ();
 }
 
-/**
- * \ingroup wimax-test
- * \ingroup tests
- *
- * \brief Test if the management connections are correctly setup.
+/*
+ * Test if the management connections are correctly setup.
  * Create a network with a BS and 10 SS and check that the management
  * connections are correctly setup for all SS
  *
  */
+
 class Ns3WimaxManagementConnectionsTestCase : public TestCase
 {
 public:
@@ -148,13 +156,6 @@ Ns3WimaxManagementConnectionsTestCase::DoRun (void)
     }
   Simulator::Destroy ();
 }
-
-/**
- * \ingroup wimax-test
- * \ingroup tests
- *
- * \brief Ns3 Wimax SS Mac Test Suite
- */
 class Ns3WimaxSSMacTestSuite : public TestSuite
 {
 public:
@@ -168,4 +169,4 @@ Ns3WimaxSSMacTestSuite::Ns3WimaxSSMacTestSuite ()
   AddTestCase (new Ns3WimaxManagementConnectionsTestCase, TestCase::QUICK);
 }
 
-static Ns3WimaxSSMacTestSuite ns3WimaxSSMacTestSuite; ///< the test suite
+static Ns3WimaxSSMacTestSuite ns3WimaxSSMacTestSuite;

@@ -38,17 +38,7 @@ using namespace ns3;
 
 NS_LOG_COMPONENT_DEFINE ("Ns3TcpInteropTest");
 
-// The below boolean constants should only be changed to 'true'       
-// during test debugging (i.e. do not commit the value 'true')
-
-// set to 'true' to have the test suite overwrite the response vectors
-// stored in the test directory.  This should only be done if you are
-// convinced through other means (e.g. pcap tracing or logging) that the
-// revised vectors are the correct ones.  In other words, don't simply
-// enable this to true to clear a failing test without looking at the
-// results closely.
 const bool WRITE_VECTORS = false;           // set to true to write response vectors
-const bool WRITE_PCAP = false;              // set to true to write out pcap
 const uint32_t PCAP_LINK_TYPE = 1187373553; // Some large random number -- we use to verify data was written by this program
 const uint32_t PCAP_SNAPLEN   = 64;         // Don't bother to save much data
 
@@ -71,7 +61,7 @@ const uint32_t PCAP_SNAPLEN   = 64;         // Don't bother to save much data
 // The topology is just two nodes communicating over a point-to-point network.
 // The point-to-point network is chosen because it is simple and allows us to
 // easily generate pcap traces we can use to separately verify that the ns-3
-// implementation is responding correctly.  Once the operation is verified, we
+// implementation is responding correctly.  Once the opration is verified, we
 // capture a set of response vectors that are then checked in the test to
 // ensure that the ns-3 TCP continues to respond correctly over time.
 //
@@ -104,11 +94,10 @@ private:
   std::string m_pcapFilename;
   PcapFile m_pcapFile;
   bool m_writeVectors;
-  bool m_writeResults;
 };
 
 Ns3TcpInteroperabilityTestCase::Ns3TcpInteroperabilityTestCase ()
-  : TestCase ("Check to see that the ns-3 TCP can work with liblinux2.6.26.so"), m_writeVectors (WRITE_VECTORS), m_writeResults (WRITE_PCAP)
+  : TestCase ("Check to see that the ns-3 TCP can work with liblinux2.6.26.so"), m_writeVectors (WRITE_VECTORS)
 {
 }
 
@@ -121,9 +110,10 @@ Ns3TcpInteroperabilityTestCase::DoSetup (void)
 {
   //
   // We expect there to be a file called tcp-interop-response-vectors.pcap in
-  // the data directory
+  // response-vectors/ of this directory
   //
-  m_pcapFilename = CreateDataDirFilename ("ns3tcp-interop-response-vectors.pcap");
+  m_pcapFilename = static_cast<std::string> (NS_TEST_SOURCEDIR) + 
+    static_cast<std::string> ("/response-vectors/ns3tcp-interop-response-vectors.pcap");
 
   if (m_writeVectors)
     {
@@ -167,10 +157,15 @@ Ns3TcpInteroperabilityTestCase::Ipv4L3Tx (std::string context, Ptr<const Packet>
       Time tNow = Simulator::Now ();
       int64_t tMicroSeconds = tNow.GetMicroSeconds ();
 
+      uint32_t size = p->GetSize ();
+      uint8_t *buf = new uint8_t[size];
+      p->CopyData (buf, size);
+
       m_pcapFile.Write (uint32_t (tMicroSeconds / 1000000), 
                         uint32_t (tMicroSeconds % 1000000), 
-                        p
-                        );
+                        buf, 
+                        size);
+      delete [] buf;
     }
   else
     {
@@ -261,7 +256,7 @@ Ns3TcpInteroperabilityTestCase::DoRun (void)
 
   //
   // We need something to shove data down the pipe, so we create an on-off 
-  // application on the source node with the reference TCP implementation.
+  // application on the soure node with the reference TCP implementation.
   // The default behavior is to send for one second, then go quiet for one
   // second, and repeat.
   //
@@ -292,14 +287,14 @@ Ns3TcpInteroperabilityTestCase::DoRun (void)
   // program.  So we provide the ability to generate a pcap trace of the 
   // test execution for your perusal.
   //
-  // Once the validation test is determined to be running exactly as expected,
+  // Once the validation test is determined to be running exactly as exptected,
   // we allow you to generate a file that contains the response vectors that 
   // will be checked during the actual execution of the test.
   //
 
-  if (m_writeResults)
+  if (m_writeVectors)
     {
-      pointToPoint.EnablePcapAll ("ns3-tcp-interop");
+      pointToPoint.EnablePcapAll ("tcp-interop");
     }
 
   Simulator::Stop (Seconds (20));
@@ -316,9 +311,6 @@ public:
 Ns3TcpInteroperabilityTestSuite::Ns3TcpInteroperabilityTestSuite ()
   : TestSuite ("ns3-tcp-interoperability", SYSTEM)
 {
-  // We can't use NS_TEST_SOURCEDIR variable here because we use subdirectories
-  SetDataDir ("src/test/ns3tcp/response-vectors");
-  
   AddTestCase (new Ns3TcpInteroperabilityTestCase, TestCase::QUICK);
 }
 

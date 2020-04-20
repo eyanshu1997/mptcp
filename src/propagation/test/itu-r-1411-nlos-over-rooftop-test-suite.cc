@@ -29,9 +29,11 @@
 #include <ns3/enum.h>
 
 
-using namespace ns3;
+namespace ns3 {
 
-NS_LOG_COMPONENT_DEFINE ("ItuR1411NlosOverRooftopPropagationLossModelTest");
+NS_LOG_COMPONENT_DEFINE ("ItuR1411NlosOverRooftopPropagationLossModelTest")
+  ;
+
 
 class ItuR1411NlosOverRooftopPropagationLossModelTestCase : public TestCase
 {
@@ -124,3 +126,7 @@ ItuR1411NlosOverRooftopPropagationLossModelTestSuite::ItuR1411NlosOverRooftopPro
 
 
 static ItuR1411NlosOverRooftopPropagationLossModelTestSuite g_ituR1411NlosOverRooftopTestSuite;
+
+
+
+}   // namespace ns3

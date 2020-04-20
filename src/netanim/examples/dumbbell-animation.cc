@@ -78,7 +78,7 @@ int main (int argc, char *argv[])
   clientHelper.SetAttribute ("OffTime", StringValue ("ns3::UniformRandomVariable"));
   ApplicationContainer clientApps;
 
-  for (uint32_t i = 0; i < ((d.RightCount () < d.LeftCount ()) ? d.RightCount () : d.LeftCount ()); ++i)
+  for (uint32_t i = 0; i < d.RightCount (); ++i)
     {
       // Create an on/off app sending packets to the same leaf right side
       AddressValue remoteAddress (InetSocketAddress (d.GetLeftIpv4Address (i), 1000));
@@ -94,10 +94,8 @@ int main (int argc, char *argv[])
 
   // Create the animation object and configure for specified output
   AnimationInterface anim (animFile);
-  anim.EnablePacketMetadata (); // Optional
-  anim.EnableIpv4L3ProtocolCounters (Seconds (0), Seconds (10)); // Optional
   
-  // Set up the actual simulation
+  // Set up the acutal simulation
   Ipv4GlobalRoutingHelper::PopulateRoutingTables ();
 
   Simulator::Run ();

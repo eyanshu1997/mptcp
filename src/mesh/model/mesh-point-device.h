@@ -22,7 +22,6 @@
 #ifndef L2ROUTING_NET_DEVICE_H
 #define L2ROUTING_NET_DEVICE_H
 
-#include "ns3/node.h"
 #include "ns3/net-device.h"
 #include "ns3/mac48-address.h"
 #include "ns3/bridge-channel.h"
@@ -30,6 +29,7 @@
 
 namespace ns3 {
 
+class Node;
 /**
  * \ingroup mesh
  *
@@ -49,10 +49,7 @@ namespace ns3 {
 class MeshPointDevice : public NetDevice
 {
 public:
-  /**
-   * \brief Get the type ID.
-   * \return the object TypeId
-   */
+  /// Object type ID for NS3 object system
   static TypeId GetTypeId ();
   /// C-tor create empty (without interfaces and protocols) mesh point
   MeshPointDevice ();
@@ -63,7 +60,6 @@ public:
   //\{
   /**
    * \brief Attach new interface to the station. Interface must support 48-bit MAC address and SendFrom method.
-   * \param port the port used
    *
    * \attention Only MeshPointDevice can have IP address, but not individual interfaces.
    */
@@ -91,7 +87,8 @@ public:
   Ptr<MeshL2RoutingProtocol> GetRoutingProtocol () const;
   //\}
 
-  // Inherited from NetDevice
+  ///\name NetDevice interface for upper layers
+  //\{
   virtual void SetIfIndex (const uint32_t index);
   virtual uint32_t GetIfIndex () const;
   virtual Ptr<Channel> GetChannel () const;
@@ -117,6 +114,7 @@ public:
   virtual bool SupportsSendFrom () const;
   virtual Address GetMulticast (Ipv6Address addr) const;
   virtual void DoDispose ();
+  //\}
 
   ///\name Statistics
   //\{
@@ -127,27 +125,10 @@ public:
   //\}
 
 private:
-  /**
-   * Receive packet from interface
-   *
-   * \param device the device to receive from
-   * \param packet the received packet
-   * \param protocol the protocol
-   * \param source the source address
-   * \param destination the destination address
-   * \param packetType the packet type
-   */
+  /// Receive packet from interface
   void ReceiveFromDevice (Ptr<NetDevice> device, Ptr<const Packet> packet, uint16_t protocol,
                           Address const &source, Address const &destination, PacketType packetType);
-  /**
-   * Forward packet down to interfaces
-   *
-   * \param incomingPort the incoming port
-   * \param packet the packet to forward
-   * \param protocol the protocol
-   * \param src the source MAC address
-   * \param dst the destination MAC address
-   */
+  /// Forward packet down to interfaces
   void Forward (Ptr<NetDevice> incomingPort, Ptr<const Packet> packet,
                 uint16_t protocol, const Mac48Address src,
                 const Mac48Address dst);
@@ -186,21 +167,20 @@ private:
   /// Current routing protocol, used mainly by GetRoutingProtocol
   Ptr<MeshL2RoutingProtocol> m_routingProtocol;
 
-  /// statistics counters
+  ///\name Device statistics counters
+  ///\{
   struct Statistics
   {
-    uint32_t unicastData; ///< unicast data
-    uint32_t unicastDataBytes; ///< unicast data bytes
-    uint32_t broadcastData; ///< broadcast data
-    uint32_t broadcastDataBytes; ///< broadcast data bytes
+    uint32_t unicastData;
+    uint32_t unicastDataBytes;
+    uint32_t broadcastData;
+    uint32_t broadcastDataBytes;
 
-    /// constructor
     Statistics ();
   };
   /// Counters
-  Statistics m_rxStats; ///< receive statistics
-  Statistics m_txStats; ///< transmit statistics
-  Statistics m_fwdStats; ///< forward statistics
+  Statistics m_rxStats, m_txStats, m_fwdStats;
+  ///\}
 };
 } // namespace ns3
 #endif

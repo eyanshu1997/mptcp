@@ -27,8 +27,6 @@
 namespace ns3 {
 
 /**
- * \ingroup ipv4Helpers
- *
  * \brief Helper class that adds ns3::Ipv4ListRouting objects
  *
  * This class is expected to be used in conjunction with 
@@ -44,6 +42,7 @@ public:
   Ipv4ListRoutingHelper ();
 
   /*
+   * \internal
    * Destroy an Ipv4ListRoutingHelper.
    */
   virtual ~Ipv4ListRoutingHelper ();
@@ -55,6 +54,7 @@ public:
   Ipv4ListRoutingHelper (const Ipv4ListRoutingHelper &);
 
   /**
+   * \internal
    * \returns pointer to clone of this Ipv4ListRoutingHelper 
    * 
    * This method is mainly for internal use by the other helpers;
@@ -82,6 +82,7 @@ public:
   virtual Ptr<Ipv4RoutingProtocol> Create (Ptr<Node> node) const;
 private:
   /**
+   * \internal
    * \brief Assignment operator declared private and not implemented to disallow
    * assignment and prevent the compiler from happily inserting its own.
    * \return
@@ -89,6 +90,7 @@ private:
   Ipv4ListRoutingHelper &operator = (const Ipv4ListRoutingHelper &);
 
   /**
+   * \internal
    * \brief Container for pairs of Ipv4RoutingHelper pointer / priority.
    */
   std::list<std::pair<const Ipv4RoutingHelper *,int16_t> > m_list;

@@ -32,15 +32,7 @@ class MobilityModel;
 
 /**
  * \ingroup spectrum
- * \brief Friis spectrum propagation loss model
  *
- * The propagation loss is calculated according to a simplified version of Friis'
- * formula in which antenna gains are unitary:
- *
- * \f$ L = \frac{4 \pi * d * f}{C^2}\f$
- *
- * where C = 3e8 m/s is the light speed in the vacuum. The intended
- * use is to calculate Prx = Ptx * G
  */
 class FriisSpectrumPropagationLossModel : public SpectrumPropagationLossModel
 {
@@ -49,10 +41,6 @@ public:
   FriisSpectrumPropagationLossModel ();
   ~FriisSpectrumPropagationLossModel ();
 
-  /**
-   * \brief Get the type ID.
-   * \return the object TypeId
-   */
   static TypeId GetTypeId ();
 
 
@@ -63,7 +51,14 @@ public:
 
   /**
    * Return the propagation loss L according to a simplified version of Friis'
-   * formula in which antenna gains are unitary
+   * formula in which antenna gains are unitary:
+   *
+   *      (4 * pi * d * f) ^ 2
+   * L = ----------------------
+   *               C^2
+   *
+   * where C = 3e8 m/s is the light speed in the vacuum. The intended
+   * use is to calculate Prx = Ptx * G
    *
    * @param f frequency in Hz
    * @param d distance in m
@@ -71,6 +66,10 @@ public:
    * @return if Prx < Ptx then return Prx; else return Ptx
    */
   double CalculateLoss (double f, double d) const;
+
+protected:
+  double m_propagationSpeed;
+
 };
 
 

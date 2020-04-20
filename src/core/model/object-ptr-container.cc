@@ -20,15 +20,9 @@
 #include "object-ptr-container.h"
 #include "log.h"
 
-/**
- * \file
- * \ingroup attribute_ObjectPtrContainer
- * ns3::ObjectPtrContainerValue attribute value implementations.
- */
+NS_LOG_COMPONENT_DEFINE ("ObjectPtrContainer");
 
 namespace ns3 {
-
-NS_LOG_COMPONENT_DEFINE ("ObjectPtrContainer");
 
 ObjectPtrContainerValue::ObjectPtrContainerValue ()
 {
@@ -47,14 +41,14 @@ ObjectPtrContainerValue::End (void) const
   NS_LOG_FUNCTION (this);
   return m_objects.end ();
 }
-std::size_t
+uint32_t
 ObjectPtrContainerValue::GetN (void) const
 {
   NS_LOG_FUNCTION (this);
   return m_objects.size ();
 }
 Ptr<Object>
-ObjectPtrContainerValue::Get (std::size_t i) const
+ObjectPtrContainerValue::Get (uint32_t i) const
 {
   NS_LOG_FUNCTION (this << i);
   Iterator it = m_objects.find (i); 
@@ -113,17 +107,17 @@ ObjectPtrContainerAccessor::Get (const ObjectBase * object, AttributeValue &valu
       return false;
     }
   v->m_objects.clear ();
-  std::size_t n;
+  uint32_t n;
   bool ok = DoGetN (object, &n);
   if (!ok)
     {
       return false;
     }
-  for (std::size_t i = 0; i < n; i++)
+  for (uint32_t i = 0; i < n; i++)
     {
-      std::size_t index;
+      uint32_t index;
       Ptr<Object> o = DoGet (object, i, &index);
-      v->m_objects[index] = o;
+      v->m_objects.insert (std::pair <uint32_t, Ptr<Object> > (index, o));
     }
   return true;
 }

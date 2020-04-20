@@ -35,30 +35,18 @@ const double ns3::NaN = zero / zero;
 DataCalculator::DataCalculator() :
   m_enabled (true)
 {
-  NS_LOG_FUNCTION (this);
+  NS_LOG_FUNCTION_NOARGS ();
 }
 
 DataCalculator::~DataCalculator()
 {
-  NS_LOG_FUNCTION (this);
+  NS_LOG_FUNCTION_NOARGS ();
 }
 
-/* static */
-TypeId
-DataCalculator::GetTypeId (void)
-{
-  static TypeId tid = TypeId ("ns3::DataCalculator")
-    .SetParent<Object> ()
-    .SetGroupName ("Stats")
-    // No AddConstructor because this is an abstract class.
-    ;
-  return tid;
-}
-  
 void
 DataCalculator::DoDispose (void)
 {
-  NS_LOG_FUNCTION (this);
+  NS_LOG_FUNCTION_NOARGS ();
 
   Simulator::Cancel (m_startEvent);
   Simulator::Cancel (m_stopEvent);
@@ -71,8 +59,6 @@ DataCalculator::DoDispose (void)
 void
 DataCalculator::SetKey (const std::string key)
 {
-  NS_LOG_FUNCTION (this << key);
-
   m_key = key;
   // end DataCalculator::SetKey
 }
@@ -80,8 +66,6 @@ DataCalculator::SetKey (const std::string key)
 std::string
 DataCalculator::GetKey () const
 {
-  NS_LOG_FUNCTION (this);
-
   return m_key;
   // end DataCalculator::GetKey
 }
@@ -90,8 +74,6 @@ DataCalculator::GetKey () const
 void
 DataCalculator::SetContext (const std::string context)
 {
-  NS_LOG_FUNCTION (this << context);
-
   m_context = context;
   // end DataCalculator::SetContext
 }
@@ -99,8 +81,6 @@ DataCalculator::SetContext (const std::string context)
 std::string
 DataCalculator::GetContext () const
 {
-  NS_LOG_FUNCTION (this);
-
   return m_context;
   // end DataCalculator::GetContext
 }
@@ -108,8 +88,6 @@ DataCalculator::GetContext () const
 void
 DataCalculator::Enable ()
 {
-  NS_LOG_FUNCTION (this);
-
   m_enabled = true;
   // end DataCalculator::Enable
 }
@@ -117,8 +95,6 @@ DataCalculator::Enable ()
 void
 DataCalculator::Disable ()
 {
-  NS_LOG_FUNCTION (this);
-
   m_enabled = false;
   // end DataCalculator::Disable
 }
@@ -126,8 +102,6 @@ DataCalculator::Disable ()
 bool
 DataCalculator::GetEnabled () const
 {
-  NS_LOG_FUNCTION (this);
-
   return m_enabled;
   // end DataCalculator::GetEnabled
 }
@@ -136,7 +110,6 @@ DataCalculator::GetEnabled () const
 void
 DataCalculator::Start (const Time& startTime)
 {
-  NS_LOG_FUNCTION (this << startTime);
 
   m_startEvent = Simulator::Schedule (startTime,
                                       &DataCalculator::Enable, this);
@@ -147,8 +120,6 @@ DataCalculator::Start (const Time& startTime)
 void
 DataCalculator::Stop (const Time& stopTime)
 {
-  NS_LOG_FUNCTION (this << stopTime);
-
   m_stopEvent = Simulator::Schedule (stopTime,
                                      &DataCalculator::Disable, this);
   // end DataCalculator::Stop

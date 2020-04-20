@@ -28,14 +28,11 @@
 #include <ns3/buildings-propagation-loss-model.h>
 
 
-using namespace ns3;
+namespace ns3 {
 
 
 /**
- * \ingroup lte-test
- * \ingroup tests
- *
- * \brief Test 1.1 pathloss calculation
+ * Test 1.1 pathloss calculation
  */
 class LtePathlossModelTestSuite : public TestSuite
 {
@@ -44,42 +41,27 @@ public:
 };
 
 
-/**
- * \ingroup lte-test
- * \ingroup tests
- *
- * \brief  Tests that the BuildingPathlossModel works according to 
- * the expected theoretical values. Theoretical reference values 
- * are obtained with the octave script src/lte/test/reference/lte_pathloss.m
- */
 class LtePathlossModelSystemTestCase : public TestCase
 {
   public:
-  /**
-   * Constructor
-   *
-   * \param name the reference name
-   * \param snrDb the SNR in dB
-   * \param dist the distance
-   * \param mcsIndex the MCS index
-   */
     LtePathlossModelSystemTestCase (std::string name, double snrDb, double dist, uint16_t mcsIndex);
     LtePathlossModelSystemTestCase ();
     virtual ~LtePathlossModelSystemTestCase ();
     
-  /**
-   * \brief DL scheduling function
-   * \param dlInfo the DL info
-   */
-    void DlScheduling (DlSchedulingCallbackInfo dlInfo);
+    void DlScheduling (uint32_t frameNo, uint32_t subframeNo, uint16_t rnti,
+                       uint8_t mcsTb1, uint16_t sizeTb1, uint8_t mcsTb2, uint16_t sizeTb2);
                        
   private:
     virtual void DoRun (void);
     
-    double m_snrDb; ///< the SNR in dB
-    double m_distance; ///< the distance
-    uint16_t m_mcsIndex; ///< the MCS index
+    double m_snrDb;
+    double m_distance;
+    uint16_t m_mcsIndex;
 };
+
+
+} // namespace ns3
+
 
 #endif /* LTE_TEST_PATHLOSS_MODEL_H */
 

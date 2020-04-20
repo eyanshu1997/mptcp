@@ -23,25 +23,17 @@
 #include "ns3/assert.h"
 #include "random-variable-stream-helper.h"
 
-/**
- * \file
- * \ingroup core-helpers
- * \ingroup randomvariable
- * ns3::RandomVariableStreamHelper implementation.
- */
+NS_LOG_COMPONENT_DEFINE ("RandomVariableStreamHelper");
 
 namespace ns3 {
-
-NS_LOG_COMPONENT_DEFINE ("RandomVariableStreamHelper");
 
 int64_t RandomVariableStreamHelper::AssignStreams (std::string path, int64_t stream)
 {
   NS_LOG_FUNCTION_NOARGS ();
   NS_ASSERT (stream >= 0);
   Config::MatchContainer mc = Config::LookupMatches (path);
-  
-  std::size_t i = 0;
-  for ( ; i < mc.GetN (); ++i)
+  int64_t i = 0;
+  for (Config::MatchContainer::Iterator mci = mc.Begin (); mci != mc.End (); ++mci, ++i)
     {
       PointerValue ptr = mc.Get (i);
       Ptr<RandomVariableStream> rvs = ptr.Get<RandomVariableStream> ();

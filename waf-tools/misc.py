@@ -32,7 +32,7 @@ def copy_func(tsk):
 	outfile = tsk.outputs[0].abspath()
 	try:
 		shutil.copy2(infile, outfile)
-	except EnvironmentError:
+	except (OSError, IOError):
 		return 1
 	else:
 		if tsk.chmod: os.chmod(outfile, tsk.chmod)
@@ -45,7 +45,7 @@ def action_process_file_func(tsk):
 
 @feature('cmd')
 def apply_cmd(self):
-	"call a command every time"
+	"call a command everytime"
 	if not self.fun: raise Errors.WafError('cmdobj needs a function!')
 	tsk = Task.TaskBase()
 	tsk.fun = self.fun

@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
- * Copyright (c) 2004 Francisco J. Ros
+ * Copyright (c) 2004 Francisco J. Ros 
  * Copyright (c) 2007 INESC Porto
  *
  * This program is free software; you can redistribute it and/or modify
@@ -24,12 +24,6 @@
 #include "ns3/olsr-routing-protocol.h"
 #include "ns3/ipv4-header.h"
 
-/**
- * \ingroup olsr
- * \defgroup olsr-test olsr module tests
- */
-
-
 /********** Willingness **********/
 
 /// Willingness for forwarding packets from other nodes: never.
@@ -43,22 +37,17 @@
 /// Willingness for forwarding packets from other nodes: always.
 #define OLSR_WILL_ALWAYS        7
 
-using namespace ns3;
-using namespace olsr;
+namespace ns3 {
+namespace olsr {
 
-
-/**
- * \ingroup olsr-test
- * \ingroup tests
- *
- * Testcase for MPR computation mechanism
- */
-class OlsrMprTestCase : public TestCase
-{
+/// Testcase for MPR computation mechanism
+class OlsrMprTestCase : public TestCase {
 public:
   OlsrMprTestCase ();
   ~OlsrMprTestCase ();
+  /// \brief Run test case
   virtual void DoRun (void);
+  ;
 };
 
 
@@ -74,10 +63,10 @@ OlsrMprTestCase::DoRun ()
 {
   Ptr<RoutingProtocol> protocol = CreateObject<RoutingProtocol> ();
   protocol->m_mainAddress = Ipv4Address ("10.0.0.1");
-  OlsrState & state = protocol->m_state;
-
+  OlsrState & state = protocol->m_state; 
+ 
   /*
-   *  1 -- 2
+   *  1 -- 2 
    *  |    |
    *  3 -- 4
    *
@@ -89,7 +78,7 @@ OlsrMprTestCase::DoRun ()
   neigbor.neighborMainAddr = Ipv4Address ("10.0.0.2");
   protocol->m_state.InsertNeighborTuple (neigbor);
   neigbor.neighborMainAddr = Ipv4Address ("10.0.0.3");
-  protocol->m_state.InsertNeighborTuple (neigbor);
+  protocol->m_state.InsertNeighborTuple (neigbor); 
   TwoHopNeighborTuple tuple;
   tuple.expirationTime = Seconds (3600);
   tuple.neighborMainAddr = Ipv4Address ("10.0.0.2");
@@ -102,7 +91,7 @@ OlsrMprTestCase::DoRun ()
   protocol->MprComputation ();
   NS_TEST_EXPECT_MSG_EQ (state.GetMprSet ().size (), 1, "An only address must be chosen.");
   /*
-   *  1 -- 2 -- 5
+   *  1 -- 2 -- 5 
    *  |    |
    *  3 -- 4
    *
@@ -117,7 +106,7 @@ OlsrMprTestCase::DoRun ()
   NS_TEST_EXPECT_MSG_EQ (mpr.size (), 1, "An only address must be chosen.");
   NS_TEST_EXPECT_MSG_EQ ((mpr.find ("10.0.0.2") != mpr.end ()), true, "Node 1 must select node 2 as MPR");
   /*
-   *  1 -- 2 -- 5
+   *  1 -- 2 -- 5 
    *  |    |
    *  3 -- 4
    *  |
@@ -137,7 +126,7 @@ OlsrMprTestCase::DoRun ()
   /*
    *  7 (OLSR_WILL_ALWAYS)
    *  |
-   *  1 -- 2 -- 5
+   *  1 -- 2 -- 5 
    *  |    |
    *  3 -- 4
    *  |
@@ -156,7 +145,7 @@ OlsrMprTestCase::DoRun ()
   /*
    *                7 <- WILL_ALWAYS
    *                |
-   *      9 -- 8 -- 1 -- 2 -- 5
+   *      9 -- 8 -- 1 -- 2 -- 5 
    *                |    |
    *           ^    3 -- 4
    *           |    |
@@ -178,22 +167,19 @@ OlsrMprTestCase::DoRun ()
   NS_TEST_EXPECT_MSG_EQ ((mpr.find ("10.0.0.9") == mpr.end ()), true, "Node 1 must NOT select node 8 as MPR");
 }
 
-/**
- * \ingroup olsr-test
- * \ingroup tests
- *
- * OLSR protocol test suite
- */
-class OlsrProtocolTestSuite : public TestSuite
+static class OlsrProtocolTestSuite : public TestSuite
 {
 public:
   OlsrProtocolTestSuite ();
-};
+} g_olsrProtocolTestSuite;
 
-OlsrProtocolTestSuite::OlsrProtocolTestSuite ()
+OlsrProtocolTestSuite::OlsrProtocolTestSuite()
   : TestSuite ("routing-olsr", UNIT)
 {
   AddTestCase (new OlsrMprTestCase (), TestCase::QUICK);
 }
 
-static OlsrProtocolTestSuite g_olsrProtocolTestSuite; //!< Static variable for test initialization
+}
+}  // namespace olsr, ns3
+
+

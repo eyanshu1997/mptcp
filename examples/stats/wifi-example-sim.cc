@@ -31,19 +31,26 @@
  */
 
 #include <ctime>
+
 #include <sstream>
+
 #include "ns3/core-module.h"
 #include "ns3/network-module.h"
 #include "ns3/mobility-module.h"
+#include "ns3/wifi-module.h"
 #include "ns3/internet-module.h"
+
 #include "ns3/stats-module.h"
-#include "ns3/yans-wifi-helper.h"
+
 #include "wifi-example-apps.h"
 
 using namespace ns3;
 using namespace std;
 
 NS_LOG_COMPONENT_DEFINE ("WiFiDistanceExperiment");
+
+
+
 
 void TxCallback (Ptr<CounterCalculator<uint32_t> > datac,
                  std::string path, Ptr<const Packet> packet) {
@@ -118,8 +125,8 @@ int main (int argc, char *argv[]) {
   nodes.Create (2);
 
   NS_LOG_INFO ("Installing WiFi and Internet stack.");
-  WifiHelper wifi;
-  WifiMacHelper wifiMac;
+  WifiHelper wifi = WifiHelper::Default ();
+  NqosWifiMacHelper wifiMac = NqosWifiMacHelper::Default ();
   wifiMac.SetType ("ns3::AdhocWifiMac");
   YansWifiPhyHelper wifiPhy = YansWifiPhyHelper::Default ();
   YansWifiChannelHelper wifiChannel = YansWifiChannelHelper::Default ();

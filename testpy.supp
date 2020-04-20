@@ -1,5 +1,5 @@
 {
-  Suppress invalid read size errors in SendPreq() when using HwmpProtocolMac
+  Supress invalid read size errors in SendPreq() when using HwmpProtocolMac
   Memcheck:Addr8
   fun:*HwmpProtocolMac*SendPreq*
 }

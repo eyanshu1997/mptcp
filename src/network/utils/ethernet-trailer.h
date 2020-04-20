@@ -67,7 +67,7 @@ public:
   /**
    * \return the FCS contained in this trailer
    */
-  uint32_t GetFcs () const;
+  uint32_t GetFcs ();
 
   /**
    * Calculate an FCS on the provided packet and check this value against
@@ -90,10 +90,6 @@ public:
    */ 
   uint32_t GetTrailerSize () const;
 
-  /**
-   * \brief Get the type ID.
-   * \return the object TypeId
-   */
   static TypeId GetTypeId (void);
   virtual TypeId GetInstanceTypeId (void) const;
   virtual void Print (std::ostream &os) const;
@@ -106,7 +102,7 @@ private:
    * returns true.
    */
   bool m_calcFcs;
-  uint32_t m_fcs; //!< Value of the fcs contained in the trailer
+  uint32_t m_fcs; /// Value of the fcs contained in the trailer
 
 };
 

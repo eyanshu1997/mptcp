@@ -28,42 +28,28 @@
 #include "ns3/packet.h"
 #include "ns3/ipv4-header.h"
 
-namespace ns3 {
-namespace aodv {
+namespace ns3
+{
+namespace aodv
+{
 /**
  * \ingroup aodv
- *
+ * 
  * \brief Helper class used to remember already seen packets and detect duplicates.
  *
- * Currently duplicate detection is based on unique packet ID given by Packet::GetUid ()
- * This approach is known to be weak (ns3::Packet UID is an internal identifier and not intended for logical uniqueness in models) and should be changed.
+ * Currently duplicate detection is based on uinique packet ID given by Packet::GetUid ()
+ * This approach is known to be weak and should be changed.
  */
 class DuplicatePacketDetection
 {
 public:
-  /**
-   * Constructor
-   * \param lifetime the lifetime for added entries
-   */
-  DuplicatePacketDetection (Time lifetime) : m_idCache (lifetime)
-  {
-  }
-  /**
-   * Check if the packet is a duplicate. If not, save information about this packet.
-   * \param p the packet to check
-   * \param header the IP header to check
-   * \returns true if duplicate
-   */
+  /// C-tor
+  DuplicatePacketDetection (Time lifetime) : m_idCache (lifetime) {}
+  /// Check that the packet is duplicated. If not, save information about this packet.
   bool IsDuplicate (Ptr<const Packet> p, const Ipv4Header & header);
-  /**
-   * Set duplicate record lifetime
-   * \param lifetime the lifetime for duplicate records
-   */
+  /// Set duplicate records lifetimes
   void SetLifetime (Time lifetime);
-  /**
-   * Get duplicate record lifetime
-   * \returns the duplicate record lifetime
-   */
+  /// Get duplicate records lifetimes
   Time GetLifetime () const;
 private:
   /// Impl

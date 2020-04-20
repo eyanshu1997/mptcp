@@ -18,9 +18,6 @@
  * Author: Giuseppe Piro  <g.piro@poliba.it>
  *         Nicola Baldo <nbaldo@cttc.es>
  *         Marco Miozzo <mmiozzo@cttc.es>
- * Modified by:
- *          Danilo Abrignani <danilo.abrignani@unibo.it> (Carrier Aggregation - GSoC 2015)
- *          Biljana Bojovic <biljana.bojovic@cttc.es> (Carrier Aggregation)
  */
 
 #include "ns3/llc-snap-header.h"
@@ -39,25 +36,20 @@
 #include "lte-ue-mac.h"
 #include "lte-ue-rrc.h"
 #include "ns3/ipv4-header.h"
-#include "ns3/ipv6-header.h"
 #include "ns3/ipv4.h"
-#include "ns3/ipv6.h"
 #include "lte-amc.h"
 #include "lte-ue-phy.h"
 #include "epc-ue-nas.h"
 #include <ns3/ipv4-l3-protocol.h>
-#include <ns3/ipv6-l3-protocol.h>
 #include <ns3/log.h>
 #include "epc-tft.h"
-#include <ns3/lte-ue-component-carrier-manager.h>
-#include <ns3/object-map.h>
-#include <ns3/object-factory.h>
-
-namespace ns3 {
 
 NS_LOG_COMPONENT_DEFINE ("LteUeNetDevice");
 
-NS_OBJECT_ENSURE_REGISTERED ( LteUeNetDevice);
+namespace ns3 {
+
+NS_OBJECT_ENSURE_REGISTERED ( LteUeNetDevice)
+  ;
 
 
 TypeId LteUeNetDevice::GetTypeId (void)
@@ -77,15 +69,16 @@ TypeId LteUeNetDevice::GetTypeId (void)
                    PointerValue (),
                    MakePointerAccessor (&LteUeNetDevice::m_rrc),
                    MakePointerChecker <LteUeRrc> ())
-    .AddAttribute ("LteUeComponentCarrierManager",
-                   "The ComponentCarrierManager associated to this UeNetDevice",
+    .AddAttribute ("LteUeMac",
+                   "The MAC associated to this UeNetDevice",
                    PointerValue (),
-                   MakePointerAccessor (&LteUeNetDevice::m_componentCarrierManager),
-                   MakePointerChecker <LteUeComponentCarrierManager> ())
-    .AddAttribute ("ComponentCarrierMapUe", "List of all component Carrier.",
-                   ObjectMapValue (),
-                   MakeObjectMapAccessor (&LteUeNetDevice::m_ccMap),
-                   MakeObjectMapChecker<ComponentCarrierUe> ())
+                   MakePointerAccessor (&LteUeNetDevice::m_mac),
+                   MakePointerChecker <LteUeMac> ())
+    .AddAttribute ("LteUePhy",
+                   "The PHY associated to this UeNetDevice",
+                   PointerValue (),
+                   MakePointerAccessor (&LteUeNetDevice::m_phy),
+                   MakePointerChecker <LteUePhy> ())
     .AddAttribute ("Imsi",
                    "International Mobile Subscriber Identity assigned to this UE",
                    UintegerValue (0),
@@ -97,7 +90,7 @@ TypeId LteUeNetDevice::GetTypeId (void)
                    UintegerValue (100),
                    MakeUintegerAccessor (&LteUeNetDevice::SetDlEarfcn,
                                          &LteUeNetDevice::GetDlEarfcn),
-                   MakeUintegerChecker<uint32_t> (0, 262143))
+                   MakeUintegerChecker<uint16_t> (0, 6149))
     .AddAttribute ("CsgId",
                    "The Closed Subscriber Group (CSG) identity that this UE is associated with, "
                    "i.e., giving the UE access to cells which belong to this particular CSG. "
@@ -129,17 +122,14 @@ LteUeNetDevice::DoDispose (void)
 {
   NS_LOG_FUNCTION (this);
   m_targetEnb = 0;
-
+  m_mac->Dispose ();
+  m_mac = 0;
   m_rrc->Dispose ();
   m_rrc = 0;
-  
+  m_phy->Dispose ();
+  m_phy = 0;
   m_nas->Dispose ();
   m_nas = 0;
-  for (uint32_t i = 0; i < m_ccMap.size (); i++)
-    {
-      m_ccMap.at (i)->Dispose ();
-    }
-  m_componentCarrierManager->Dispose ();
   LteNetDevice::DoDispose ();
 }
 
@@ -171,7 +161,7 @@ Ptr<LteUeMac>
 LteUeNetDevice::GetMac (void) const
 {
   NS_LOG_FUNCTION (this);
-  return m_ccMap.at (0)->GetMac ();
+  return m_mac;
 }
 
 
@@ -187,14 +177,7 @@ Ptr<LteUePhy>
 LteUeNetDevice::GetPhy (void) const
 {
   NS_LOG_FUNCTION (this);
-  return m_ccMap.at (0)->GetPhy ();
-}
-
-Ptr<LteUeComponentCarrierManager>
-LteUeNetDevice::GetComponentCarrierManager (void) const
-{
-  NS_LOG_FUNCTION (this);
-  return m_componentCarrierManager;
+  return m_phy;
 }
 
 Ptr<EpcUeNas>
@@ -211,7 +194,7 @@ LteUeNetDevice::GetImsi () const
   return m_imsi;
 }
 
-uint32_t
+uint16_t
 LteUeNetDevice::GetDlEarfcn () const
 {
   NS_LOG_FUNCTION (this);
@@ -219,7 +202,7 @@ LteUeNetDevice::GetDlEarfcn () const
 }
 
 void
-LteUeNetDevice::SetDlEarfcn (uint32_t earfcn)
+LteUeNetDevice::SetDlEarfcn (uint16_t earfcn)
 {
   NS_LOG_FUNCTION (this << earfcn);
   m_dlEarfcn = earfcn;
@@ -255,31 +238,14 @@ LteUeNetDevice::GetTargetEnb (void)
   return m_targetEnb;
 }
 
-std::map < uint8_t, Ptr<ComponentCarrierUe> >
-LteUeNetDevice::GetCcMap ()
-{
-  return m_ccMap;
-}
-
-void
-LteUeNetDevice::SetCcMap (std::map< uint8_t, Ptr<ComponentCarrierUe> > ccm)
-{
-  m_ccMap = ccm;
-}
-
 void 
 LteUeNetDevice::DoInitialize (void)
 {
   NS_LOG_FUNCTION (this);
   m_isConstructed = true;
   UpdateConfig ();
-
-  std::map< uint8_t, Ptr<ComponentCarrierUe> >::iterator it;
-  for (it = m_ccMap.begin (); it != m_ccMap.end (); ++it)
-    {
-      it->second->GetPhy ()->Initialize ();
-      it->second->GetMac ()->Initialize ();
-    }
+  m_phy->Initialize ();
+  m_mac->Initialize ();
   m_rrc->Initialize ();
 }
 
@@ -287,9 +253,9 @@ bool
 LteUeNetDevice::Send (Ptr<Packet> packet, const Address& dest, uint16_t protocolNumber)
 {
   NS_LOG_FUNCTION (this << dest << protocolNumber);
-  if (protocolNumber != Ipv4L3Protocol::PROT_NUMBER && protocolNumber != Ipv6L3Protocol::PROT_NUMBER)
+  if (protocolNumber != Ipv4L3Protocol::PROT_NUMBER)
     {
-      NS_LOG_INFO ("unsupported protocol " << protocolNumber << ", only IPv4 and IPv6 are supported");
+      NS_LOG_INFO("unsupported protocol " << protocolNumber << ", only IPv4 is supported");
       return true;
     }  
   return m_nas->Send (packet);

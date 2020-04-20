@@ -38,7 +38,7 @@ namespace ns3 {
  *
  * \todo Add support for negative data.
  *
- * \todo Add method(s) to estimate parameters from the histogram,
+ * \todo Add method(s) to estimate \f$N\f$, \f$\mu\f$, and \f$s^2\f$ from the histogram,
  * see http://www.dspguide.com/ch2/4.htm
  *
  */
@@ -109,7 +109,7 @@ public:
    * \param indent number of spaces to use as base indentation level
    * \param elementName name of the element to serialize.
    */
-  void SerializeToXmlStream (std::ostream &os, uint16_t indent, std::string elementName) const;
+  void SerializeToXmlStream (std::ostream &os, int indent, std::string elementName) const;
 
 
 private:

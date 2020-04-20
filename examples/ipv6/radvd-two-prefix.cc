@@ -36,7 +36,7 @@
 #include "ns3/core-module.h"
 #include "ns3/internet-module.h"
 #include "ns3/csma-module.h"
-#include "ns3/internet-apps-module.h"
+#include "ns3/applications-module.h"
 
 #include "ns3/ipv6-routing-table-entry.h"
 #include "ns3/radvd.h"
@@ -132,10 +132,11 @@ int main (int argc, char** argv)
   tmp2.Add (d1.Get (1)); /* R */
   Ipv6InterfaceContainer iicr1 = ipv6.Assign (tmp2); /* R interface to the first subnet is just statically assigned */
   iicr1.SetForwarding (0, true);
+  iicr1.SetDefaultRouteInAllNodes (0);
   iic1.Add (iicr1);
 
   /* add another IPv6 address for second prefix advertised on first subnet */
-  ipv6.SetBase (Ipv6Address ("2001:ABCD::"), Ipv6Prefix (64));
+  ipv6.SetBase (Ipv6Address ("2001:ABCD::2"), Ipv6Prefix (64));
   ipv6.Assign (tmp2);
 
   /* second subnet R - n1 */
@@ -144,6 +145,7 @@ int main (int argc, char** argv)
   tmp3.Add (d2.Get (0)); /* R */
   Ipv6InterfaceContainer iicr2 = ipv6.Assign (tmp3); /* R interface */
   iicr2.SetForwarding (0, true);
+  iicr2.SetDefaultRouteInAllNodes (0);
 
   NetDeviceContainer tmp4;
   tmp4.Add (d2.Get (1)); /* n1 */

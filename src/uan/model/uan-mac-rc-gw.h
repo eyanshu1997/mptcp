@@ -22,7 +22,7 @@
 #define UAN_MAC_RC_GW_H
 
 #include "uan-mac.h"
-#include "ns3/mac8-address.h"
+#include "uan-address.h"
 
 #include "ns3/nstime.h"
 #include "ns3/traced-callback.h"
@@ -67,29 +67,15 @@ public:
   static TypeId GetTypeId (void);
 
   // Inherited methods
-  virtual bool Enqueue (Ptr<Packet> pkt, uint16_t protocolNumber, const Address &dest);
-  virtual void SetForwardUpCb (Callback<void, Ptr<Packet>, uint16_t, const Mac8Address&> cb);
+  virtual Address GetAddress (void);
+  virtual void SetAddress (UanAddress addr);
+  virtual bool Enqueue (Ptr<Packet> pkt, const Address &dest, uint16_t protocolNumber);
+  virtual void SetForwardUpCb (Callback<void, Ptr<Packet>, const UanAddress&> cb);
   virtual void AttachPhy (Ptr<UanPhy> phy);
+  virtual Address GetBroadcast (void) const;
   virtual void Clear (void);
   int64_t AssignStreams (int64_t stream);
 
-  /**
-   * TracedCallback signature for
-   *
-   * \param [in] now, The current simulation time.
-   * \param [in] delay Minimum path delay of first RTS.
-   * \param [in] numRts Number of pending RTS.
-   * \param [in] totalBytes Length of RTS header.
-   * \param [in] secs Effective window size for RcCtsGlobal message, or
-   *             time to next cycle, both in seconds.
-   * \param [in] ctlRate CTL rate in Bps.
-   * \param [in] actualX Current retry rate.
-   */
-  typedef void (* CycleCallback)
-    (Time now, Time delay, uint32_t numRts, uint32_t totalBytes,
-     double secs, uint32_t ctlRate, double actualX);
-
-  
 private:
   /** Gateway state. */
   enum State {
@@ -123,10 +109,10 @@ private:
     uint8_t expFrames;  //!< Expected number of frames.
   };
   /** Forwarding up callback. */
-  Callback<void, Ptr<Packet>, uint16_t, const Mac8Address&> m_forwardUpCb;
+  Callback<void, Ptr<Packet>, const UanAddress& > m_forwardUpCb;
   
   Ptr<UanPhy> m_phy;            //!< PHY layer attached to this MAC.
-  Mac8Address m_address;         //!< The MAC address.
+  UanAddress m_address;         //!< The MAC address.
   Time m_maxDelta;              //!< Maximum propagation delay between gateway and non-gateway nodes .
   Time m_sifs;                  //!< Spacing between frames to account for timing error and processing delay.
   uint32_t m_maxRes;            //!< Maximum number of reservations to accept per cycle.
@@ -146,15 +132,15 @@ private:
   double m_retryStep;           //!< Retry rate increment.
 
   /** Propagation delay to each node. */
-  std::map<Mac8Address, Time> m_propDelay;
+  std::map<UanAddress, Time> m_propDelay;
 
   /** AckData for each node. */
-  std::map<Mac8Address, AckData> m_ackData;
+  std::map<UanAddress, AckData> m_ackData;
 
   /** Request for each node. */
-  std::map<Mac8Address, Request> m_requests;
+  std::map<UanAddress, Request> m_requests;
   /** Queued request times. */
-  std::set<std::pair<Time, Mac8Address> > m_sortedRes;
+  std::set<std::pair<Time, UanAddress> > m_sortedRes;
 
   /** Flag when we've been cleared. */
   bool m_cleared;
@@ -177,7 +163,7 @@ private:
   TracedCallback<Time, Time, uint32_t, uint32_t, double, uint32_t, double> m_cycleLogger;
 
   /**
-   * PHY receive ok callback.
+   * PHY recieve ok callback.
    *
    * \param pkt The Packet to receive
    * \param sinr The SINR on the channel

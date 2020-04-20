@@ -27,9 +27,11 @@
 
 namespace ns3 {
 
-NS_LOG_COMPONENT_DEFINE ("PhyTxStatsCalculator");
+NS_LOG_COMPONENT_DEFINE ("PhyTxStatsCalculator")
+  ;
 
-NS_OBJECT_ENSURE_REGISTERED (PhyTxStatsCalculator);
+NS_OBJECT_ENSURE_REGISTERED (PhyTxStatsCalculator)
+  ;
 
 PhyTxStatsCalculator::PhyTxStatsCalculator ()
   : m_dlTxFirstWrite (true),
@@ -49,7 +51,6 @@ PhyTxStatsCalculator::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::PhyTxStatsCalculator")
     .SetParent<LteStatsCalculator> ()
-    .SetGroupName("Lte")
     .AddConstructor<PhyTxStatsCalculator> ()
     .AddAttribute ("DlTxOutputFilename",
                    "Name of the file where the downlink results will be saved.",
@@ -106,7 +107,7 @@ PhyTxStatsCalculator::DlPhyTransmission (PhyTransmissionStatParameters params)
         }
       m_dlTxFirstWrite = false;
       //outFile << "% time\tcellId\tIMSI\tRNTI\tlayer\tmcs\tsize\trv\tndi"; // txMode is not available at dl tx side
-      outFile << "% time\tcellId\tIMSI\tRNTI\tlayer\tmcs\tsize\trv\tndi\tccId";
+      outFile << "% time\tcellId\tIMSI\tRNTI\tlayer\tmcs\tsize\trv\tndi";
       outFile << std::endl;
     }
   else
@@ -129,8 +130,7 @@ PhyTxStatsCalculator::DlPhyTransmission (PhyTransmissionStatParameters params)
   outFile << (uint32_t) params.m_mcs << "\t";
   outFile << params.m_size << "\t";
   outFile << (uint32_t) params.m_rv << "\t";
-  outFile << (uint32_t) params.m_ndi << "\t";
-  outFile << (uint32_t) params.m_ccId << std::endl;
+  outFile << (uint32_t) params.m_ndi << std::endl;
   outFile.close ();
 }
 
@@ -151,7 +151,7 @@ PhyTxStatsCalculator::UlPhyTransmission (PhyTransmissionStatParameters params)
         }
       m_ulTxFirstWrite = false;
 //       outFile << "% time\tcellId\tIMSI\tRNTI\ttxMode\tlayer\tmcs\tsize\trv\tndi";
-      outFile << "% time\tcellId\tIMSI\tRNTI\tlayer\tmcs\tsize\trv\tndi\tccId";
+      outFile << "% time\tcellId\tIMSI\tRNTI\tlayer\tmcs\tsize\trv\tndi";
       outFile << std::endl;
     }
   else
@@ -174,8 +174,7 @@ PhyTxStatsCalculator::UlPhyTransmission (PhyTransmissionStatParameters params)
   outFile << (uint32_t) params.m_mcs << "\t";
   outFile << params.m_size << "\t";
   outFile << (uint32_t) params.m_rv << "\t";
-  outFile << (uint32_t) params.m_ndi << "\t";
-  outFile << (uint32_t) params.m_ccId << std::endl;
+  outFile << (uint32_t) params.m_ndi << std::endl;
   outFile.close ();
 }
 
@@ -186,15 +185,14 @@ PhyTxStatsCalculator::DlPhyTransmissionCallback (Ptr<PhyTxStatsCalculator> phyTx
   NS_LOG_FUNCTION (phyTxStats << path);
   uint64_t imsi = 0;
   std::ostringstream pathAndRnti;
-  std::string pathEnb  = path.substr (0, path.find ("/ComponentCarrierMap"));
-  pathAndRnti << pathEnb << "/LteEnbRrc/UeMap/" << params.m_rnti;
+  pathAndRnti << path << "/" << params.m_rnti;
   if (phyTxStats->ExistsImsiPath (pathAndRnti.str ()) == true)
     {
       imsi = phyTxStats->GetImsiPath (pathAndRnti.str ());
     }
   else
     {
-      imsi = FindImsiFromEnbRlcPath (pathAndRnti.str ());
+      imsi = FindImsiForEnb (path, params.m_rnti);
       phyTxStats->SetImsiPath (pathAndRnti.str (), imsi);
     }
 
@@ -210,14 +208,13 @@ PhyTxStatsCalculator::UlPhyTransmissionCallback (Ptr<PhyTxStatsCalculator> phyTx
   uint64_t imsi = 0;
   std::ostringstream pathAndRnti;
   pathAndRnti << path << "/" << params.m_rnti;
-  std::string pathUePhy  = path.substr (0, path.find ("/ComponentCarrierMapUe"));
   if (phyTxStats->ExistsImsiPath (pathAndRnti.str ()) == true)
     {
       imsi = phyTxStats->GetImsiPath (pathAndRnti.str ());
     }
   else
     {
-      imsi = FindImsiFromLteNetDevice (pathUePhy);
+      imsi = FindImsiForUe (path, params.m_rnti);
       phyTxStats->SetImsiPath (pathAndRnti.str (), imsi);
     }
 

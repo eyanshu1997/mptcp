@@ -25,7 +25,8 @@
 
 namespace ns3 {
 
-NS_OBJECT_ENSURE_REGISTERED (UanNoiseModelDefault);
+NS_OBJECT_ENSURE_REGISTERED (UanNoiseModelDefault)
+  ;
 
 UanNoiseModelDefault::UanNoiseModelDefault ()
 {
@@ -40,8 +41,7 @@ TypeId
 UanNoiseModelDefault::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::UanNoiseModelDefault")
-    .SetParent<UanNoiseModel> ()
-    .SetGroupName ("Uan")
+    .SetParent<Object> ()
     .AddConstructor<UanNoiseModelDefault> ()
     .AddAttribute ("Wind", "Wind speed in m/s.",
                    DoubleValue (1),

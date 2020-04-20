@@ -17,9 +17,6 @@
  *
  * Author: Marco Miozzo <marco.miozzo@cttc.es>
  *         Nicola Baldo  <nbaldo@cttc.es>
- * Modified by:
- *          Danilo Abrignani <danilo.abrignani@unibo.it> (Carrier Aggregation - GSoC 2015)
- *          Biljana Bojovic <biljana.bojovic@cttc.es> (Carrier Aggregation)
  */
 
 
@@ -38,15 +35,16 @@
 #include <ns3/lte-ue-phy.h>
 
 #include "ns3/lte-mac-sap.h"
-#include "ns3/lte-enb-cmac-sap.h"
 #include <ns3/lte-common.h>
 
 
-namespace ns3 {
-
 NS_LOG_COMPONENT_DEFINE ("LteEnbMac");
 
-NS_OBJECT_ENSURE_REGISTERED (LteEnbMac);
+namespace ns3 {
+
+
+NS_OBJECT_ENSURE_REGISTERED (LteEnbMac)
+  ;
 
 
 
@@ -55,15 +53,9 @@ NS_OBJECT_ENSURE_REGISTERED (LteEnbMac);
 // //////////////////////////////////////
 
 
-/// EnbMacMemberLteEnbCmacSapProvider class
 class EnbMacMemberLteEnbCmacSapProvider : public LteEnbCmacSapProvider
 {
 public:
-  /**
-   * Constructor
-   *
-   * \param mac the MAC
-   */
   EnbMacMemberLteEnbCmacSapProvider (LteEnbMac* mac);
 
   // inherited from LteEnbCmacSapProvider
@@ -79,7 +71,7 @@ public:
   
 
 private:
-  LteEnbMac* m_mac; ///< the MAC
+  LteEnbMac* m_mac;
 };
 
 
@@ -143,22 +135,16 @@ EnbMacMemberLteEnbCmacSapProvider::AllocateNcRaPreamble (uint16_t rnti)
 }
 
 
-/// EnbMacMemberFfMacSchedSapUser class
 class EnbMacMemberFfMacSchedSapUser : public FfMacSchedSapUser
 {
 public:
-  /**
-   * Constructor
-   * 
-   * \param mac the MAC
-   */
   EnbMacMemberFfMacSchedSapUser (LteEnbMac* mac);
 
 
   virtual void SchedDlConfigInd (const struct SchedDlConfigIndParameters& params);
   virtual void SchedUlConfigInd (const struct SchedUlConfigIndParameters& params);
 private:
-  LteEnbMac* m_mac; ///< the MAC
+  LteEnbMac* m_mac;
 };
 
 
@@ -183,15 +169,10 @@ EnbMacMemberFfMacSchedSapUser::SchedUlConfigInd (const struct SchedUlConfigIndPa
 }
 
 
-/// EnbMacMemberFfMacCschedSapUser class
+
 class EnbMacMemberFfMacCschedSapUser : public FfMacCschedSapUser
 {
 public:
-  /**
-   * Constructor
-   *
-   * \param mac the MAC
-   */
   EnbMacMemberFfMacCschedSapUser (LteEnbMac* mac);
 
   virtual void CschedCellConfigCnf (const struct CschedCellConfigCnfParameters& params);
@@ -203,7 +184,7 @@ public:
   virtual void CschedCellConfigUpdateInd (const struct CschedCellConfigUpdateIndParameters& params);
 
 private:
-  LteEnbMac* m_mac; ///< the MAC
+  LteEnbMac* m_mac;
 };
 
 
@@ -256,15 +237,12 @@ EnbMacMemberFfMacCschedSapUser::CschedCellConfigUpdateInd (const struct CschedCe
 
 
 
-/// ---------- PHY-SAP
+// ---------- PHY-SAP
+
+
 class EnbMacMemberLteEnbPhySapUser : public LteEnbPhySapUser
 {
 public:
-  /**
-   * Constructor
-   *
-   * \param mac the MAC
-   */
   EnbMacMemberLteEnbPhySapUser (LteEnbMac* mac);
 
   // inherited from LteEnbPhySapUser
@@ -277,7 +255,7 @@ public:
   virtual void DlInfoListElementHarqFeeback (DlInfoListElement_s params);
 
 private:
-  LteEnbMac* m_mac; ///< the MAC
+  LteEnbMac* m_mac;
 };
 
 EnbMacMemberLteEnbPhySapUser::EnbMacMemberLteEnbPhySapUser (LteEnbMac* mac) : m_mac (mac)
@@ -338,11 +316,10 @@ LteEnbMac::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::LteEnbMac")
     .SetParent<Object> ()
-    .SetGroupName("Lte")
     .AddConstructor<LteEnbMac> ()
     .AddAttribute ("NumberOfRaPreambles",
                    "how many random access preambles are available for the contention based RACH process",
-                   UintegerValue (52),
+                   UintegerValue (50),
                    MakeUintegerAccessor (&LteEnbMac::m_numberOfRaPreambles),
                    MakeUintegerChecker<uint8_t> (4, 64))
     .AddAttribute ("PreambleTransMax",
@@ -357,25 +334,17 @@ LteEnbMac::GetTypeId (void)
                    MakeUintegerChecker<uint8_t> (2, 10))
     .AddTraceSource ("DlScheduling",
                      "Information regarding DL scheduling.",
-                     MakeTraceSourceAccessor (&LteEnbMac::m_dlScheduling),
-                     "ns3::LteEnbMac::DlSchedulingTracedCallback")
+                     MakeTraceSourceAccessor (&LteEnbMac::m_dlScheduling))
     .AddTraceSource ("UlScheduling",
                      "Information regarding UL scheduling.",
-                     MakeTraceSourceAccessor (&LteEnbMac::m_ulScheduling),
-                     "ns3::LteEnbMac::UlSchedulingTracedCallback")
-    .AddAttribute ("ComponentCarrierId",
-                   "ComponentCarrier Id, needed to reply on the appropriate sap.",
-                   UintegerValue (0),
-                   MakeUintegerAccessor (&LteEnbMac::m_componentCarrierId),
-                   MakeUintegerChecker<uint8_t> (0,4))
+                     MakeTraceSourceAccessor (&LteEnbMac::m_ulScheduling))
   ;
 
   return tid;
 }
 
 
-LteEnbMac::LteEnbMac ():
-m_ccmMacSapUser (0)
+LteEnbMac::LteEnbMac ()
 {
   NS_LOG_FUNCTION (this);
   m_macSapProvider = new EnbMacMemberLteMacSapProvider<LteEnbMac> (this);
@@ -383,7 +352,6 @@ m_ccmMacSapUser (0)
   m_schedSapUser = new EnbMacMemberFfMacSchedSapUser (this);
   m_cschedSapUser = new EnbMacMemberFfMacCschedSapUser (this);
   m_enbPhySapUser = new EnbMacMemberLteEnbPhySapUser (this);
-  m_ccmMacSapProvider = new MemberLteCcmMacSapProvider<LteEnbMac> (this);
 }
 
 
@@ -407,14 +375,8 @@ LteEnbMac::DoDispose ()
   delete m_schedSapUser;
   delete m_cschedSapUser;
   delete m_enbPhySapUser;
-  delete m_ccmMacSapProvider;
 }
 
-void
-LteEnbMac::SetComponentCarrierId (uint8_t index)
-{
-  m_componentCarrierId = index;
-}
 
 void
 LteEnbMac::SetFfMacSchedSapProvider (FfMacSchedSapProvider* s)
@@ -479,18 +441,7 @@ LteEnbMac::GetLteEnbPhySapUser ()
   return m_enbPhySapUser;
 }
 
-void
-LteEnbMac::SetLteCcmMacSapUser (LteCcmMacSapUser* s)
-{
-  m_ccmMacSapUser = s;
-}
 
-
-LteCcmMacSapProvider*
-LteEnbMac::GetLteCcmMacSapProvider ()
-{
-  return m_ccmMacSapProvider;
-}
 
 void
 LteEnbMac::DoSubframeIndication (uint32_t frameNo, uint32_t subframeNo)
@@ -508,6 +459,12 @@ LteEnbMac::DoSubframeIndication (uint32_t frameNo, uint32_t subframeNo)
     {
       FfMacSchedSapProvider::SchedDlCqiInfoReqParameters dlcqiInfoReq;
       dlcqiInfoReq.m_sfnSf = ((0x3FF & frameNo) << 4) | (0xF & subframeNo);
+
+      int cqiNum = m_dlCqiReceived.size ();
+      if (cqiNum > MAX_CQI_LIST)
+        {
+          cqiNum = MAX_CQI_LIST;
+        }
       dlcqiInfoReq.m_cqiList.insert (dlcqiInfoReq.m_cqiList.begin (), m_dlCqiReceived.begin (), m_dlCqiReceived.end ());
       m_dlCqiReceived.erase (m_dlCqiReceived.begin (), m_dlCqiReceived.end ());
       m_schedSapProvider->SchedDlCqiInfoReq (dlcqiInfoReq);
@@ -585,15 +542,16 @@ LteEnbMac::DoSubframeIndication (uint32_t frameNo, uint32_t subframeNo)
 
   // --- UPLINK ---
   // Send UL-CQI info to the scheduler
+  std::vector <FfMacSchedSapProvider::SchedUlCqiInfoReqParameters>::iterator itCqi;
   for (uint16_t i = 0; i < m_ulCqiReceived.size (); i++)
     {
-      if (subframeNo > 1)
+      if (subframeNo>1)
         {        
           m_ulCqiReceived.at (i).m_sfnSf = ((0x3FF & frameNo) << 4) | (0xF & (subframeNo - 1));
         }
       else
         {
-          m_ulCqiReceived.at (i).m_sfnSf = ((0x3FF & (frameNo - 1)) << 4) | (0xF & 10);
+          m_ulCqiReceived.at (i).m_sfnSf = ((0x3FF & (frameNo-1)) << 4) | (0xF & 10);
         }
       m_schedSapProvider->SchedUlCqiInfoReq (m_ulCqiReceived.at (i));
     }
@@ -614,14 +572,14 @@ LteEnbMac::DoSubframeIndication (uint32_t frameNo, uint32_t subframeNo)
   uint32_t ulSchedFrameNo = m_frameNo;
   uint32_t ulSchedSubframeNo = m_subframeNo;
   //   NS_LOG_DEBUG (this << " sfn " << frameNo << " sbfn " << subframeNo);
-  if (ulSchedSubframeNo + (m_macChTtiDelay + UL_PUSCH_TTIS_DELAY) > 10)
+  if (ulSchedSubframeNo + (m_macChTtiDelay+UL_PUSCH_TTIS_DELAY) > 10)
     {
       ulSchedFrameNo++;
-      ulSchedSubframeNo = (ulSchedSubframeNo + (m_macChTtiDelay + UL_PUSCH_TTIS_DELAY)) % 10;
+      ulSchedSubframeNo = (ulSchedSubframeNo + (m_macChTtiDelay+UL_PUSCH_TTIS_DELAY)) % 10;
     }
   else
     {
-      ulSchedSubframeNo = ulSchedSubframeNo + (m_macChTtiDelay + UL_PUSCH_TTIS_DELAY);
+      ulSchedSubframeNo = ulSchedSubframeNo + (m_macChTtiDelay+UL_PUSCH_TTIS_DELAY);
     }
   FfMacSchedSapProvider::SchedUlTriggerReqParameters ulparams;
   ulparams.m_sfnSf = ((0x3FF & ulSchedFrameNo) << 4) | (0xF & ulSchedSubframeNo);
@@ -704,17 +662,8 @@ void
 LteEnbMac::ReceiveBsrMessage  (MacCeListElement_s bsr)
 {
   NS_LOG_FUNCTION (this);
-  m_ccmMacSapUser->UlReceiveMacCe (bsr, m_componentCarrierId);
-}
 
-void
-LteEnbMac::DoReportMacCeToScheduler (MacCeListElement_s bsr)
-{
-  NS_LOG_FUNCTION (this);
-  NS_LOG_DEBUG (this << " bsr Size " << (uint16_t) m_ulCeReceived.size ());
-  //send to LteCcmMacSapUser
-  m_ulCeReceived.push_back (bsr); // this to called when LteUlCcmSapProvider::ReportMacCeToScheduler is called
-  NS_LOG_DEBUG (this << " bsr Size after push_back " << (uint16_t) m_ulCeReceived.size ());
+  m_ulCeReceived.push_back (bsr);
 }
 
 
@@ -763,13 +712,9 @@ LteEnbMac::DoReceivePhyPdu (Ptr<Packet> p)
   std::map <uint16_t, std::map<uint8_t, LteMacSapUser*> >::iterator rntiIt = m_rlcAttached.find (rnti);
   NS_ASSERT_MSG (rntiIt != m_rlcAttached.end (), "could not find RNTI" << rnti);
   std::map<uint8_t, LteMacSapUser*>::iterator lcidIt = rntiIt->second.find (lcid);
-  //NS_ASSERT_MSG (lcidIt != rntiIt->second.end (), "could not find LCID" << lcid);
+  NS_ASSERT_MSG (lcidIt != rntiIt->second.end (), "could not find LCID" << lcid);
+  (*lcidIt).second->ReceivePdu (p);
 
-  //Receive PDU only if LCID is found
-  if (lcidIt != rntiIt->second.end ())
-    {
-      (*lcidIt).second->ReceivePdu (p, rnti, lcid);
-    }
 }
 
 
@@ -808,7 +753,7 @@ LteEnbMac::DoAddUe (uint16_t rnti)
 
   m_cschedSapProvider->CschedUeConfigReq (params);
 
-  // Create DL transmission HARQ buffers
+  // Create DL trasmission HARQ buffers
   std::vector < Ptr<PacketBurst> > dlHarqLayer0pkt;
   dlHarqLayer0pkt.resize (8);
   for (uint8_t i = 0; i < 8; i++)
@@ -843,7 +788,7 @@ LteEnbMac::DoRemoveUe (uint16_t rnti)
 void
 LteEnbMac::DoAddLc (LteEnbCmacSapProvider::LcInfo lcinfo, LteMacSapUser* msu)
 {
-  NS_LOG_FUNCTION (this << lcinfo.rnti << (uint16_t) lcinfo.lcId);
+  NS_LOG_FUNCTION (this);
 
   std::map <LteFlowId_t, LteMacSapUser* >::iterator it;
   
@@ -896,16 +841,7 @@ LteEnbMac::DoReconfigureLc (LteEnbCmacSapProvider::LcInfo lcinfo)
 void
 LteEnbMac::DoReleaseLc (uint16_t rnti, uint8_t lcid)
 {
-  NS_LOG_FUNCTION (this);
-
-  //Find user based on rnti and then erase lcid stored against the same
-  std::map <uint16_t, std::map<uint8_t, LteMacSapUser*> >::iterator rntiIt = m_rlcAttached.find (rnti);
-  rntiIt->second.erase (lcid);
-
-  struct FfMacCschedSapProvider::CschedLcReleaseReqParameters params;
-  params.m_rnti = rnti;
-  params.m_logicalChannelIdentity.push_back (lcid);
-  m_cschedSapProvider->CschedLcReleaseReq (params);
+  NS_FATAL_ERROR ("not implemented");
 }
 
 void
@@ -982,11 +918,10 @@ LteEnbMac::DoTransmitPdu (LteMacSapProvider::TransmitPduParameters params)
   NS_LOG_FUNCTION (this);
   LteRadioBearerTag tag (params.rnti, params.lcid, params.layer);
   params.pdu->AddPacketTag (tag);
-  params.componentCarrierId = m_componentCarrierId;
   // Store pkt in HARQ buffer
   std::map <uint16_t, DlHarqProcessesBuffer_t>::iterator it =  m_miDlHarqProcessesPackets.find (params.rnti);
-  NS_ASSERT (it != m_miDlHarqProcessesPackets.end ());
-  NS_LOG_DEBUG (this << " LAYER " << (uint16_t)tag.GetLayer () << " HARQ ID " << (uint16_t)params.harqProcessId);
+  NS_ASSERT (it!=m_miDlHarqProcessesPackets.end ());
+  NS_LOG_DEBUG (this << " LAYER " <<(uint16_t)tag.GetLayer () << " HARQ ID " << (uint16_t)params.harqProcessId);
   
   //(*it).second.at (params.layer).at (params.harqProcessId) = params.pdu;//->Copy ();
   (*it).second.at (params.layer).at (params.harqProcessId)->AddPacket (params.pdu);
@@ -1032,8 +967,8 @@ LteEnbMac::DoSchedDlConfigInd (FfMacSchedSapUser::SchedDlConfigIndParameters ind
             {
               // new data -> force emptying correspondent harq pkt buffer
               std::map <uint16_t, DlHarqProcessesBuffer_t>::iterator it = m_miDlHarqProcessesPackets.find (ind.m_buildDataList.at (i).m_rnti);
-              NS_ASSERT (it != m_miDlHarqProcessesPackets.end ());
-              for (uint16_t lcId = 0; lcId < (*it).second.size (); lcId++)
+              NS_ASSERT(it!=m_miDlHarqProcessesPackets.end());
+              for (uint16_t lcId = 0; lcId < (*it).second.size (); lcId ++)
                 {
                   Ptr<PacketBurst> pb = CreateObject <PacketBurst> ();
                   (*it).second.at (lcId).at (ind.m_buildDataList.at (i).m_dci.m_harqProcess) = pb;
@@ -1052,17 +987,17 @@ LteEnbMac::DoSchedDlConfigInd (FfMacSchedSapUser::SchedDlConfigIndParameters ind
                   std::map <uint16_t, std::map<uint8_t, LteMacSapUser*> >::iterator rntiIt = m_rlcAttached.find (rnti);
                   NS_ASSERT_MSG (rntiIt != m_rlcAttached.end (), "could not find RNTI" << rnti);
                   std::map<uint8_t, LteMacSapUser*>::iterator lcidIt = rntiIt->second.find (lcid);
-                  NS_ASSERT_MSG (lcidIt != rntiIt->second.end (), "could not find LCID" << (uint32_t)lcid<<" carrier id:"<<(uint16_t)m_componentCarrierId);
+                  NS_ASSERT_MSG (lcidIt != rntiIt->second.end (), "could not find LCID" << lcid);
                   NS_LOG_DEBUG (this << " rnti= " << rnti << " lcid= " << (uint32_t) lcid << " layer= " << k);
-                  (*lcidIt).second->NotifyTxOpportunity (ind.m_buildDataList.at (i).m_rlcPduList.at (j).at (k).m_size, k, ind.m_buildDataList.at (i).m_dci.m_harqProcess, m_componentCarrierId, rnti, lcid);
+                  (*lcidIt).second->NotifyTxOpportunity (ind.m_buildDataList.at (i).m_rlcPduList.at (j).at (k).m_size, k, ind.m_buildDataList.at (i).m_dci.m_harqProcess);
                 }
               else
                 {
-                  if (ind.m_buildDataList.at (i).m_dci.m_tbsSize.at (k) > 0)
+                  if (ind.m_buildDataList.at (i).m_dci.m_tbsSize.at (k)>0)
                     {
                       // HARQ retransmission -> retrieve TB from HARQ buffer
                       std::map <uint16_t, DlHarqProcessesBuffer_t>::iterator it = m_miDlHarqProcessesPackets.find (ind.m_buildDataList.at (i).m_rnti);
-                      NS_ASSERT (it != m_miDlHarqProcessesPackets.end ());
+                      NS_ASSERT(it!=m_miDlHarqProcessesPackets.end());
                       Ptr<PacketBurst> pb = (*it).second.at (k).at ( ind.m_buildDataList.at (i).m_dci.m_harqProcess);
                       for (std::list<Ptr<Packet> >::const_iterator j = pb->Begin (); j != pb->End (); ++j)
                         {
@@ -1085,30 +1020,22 @@ LteEnbMac::DoSchedDlConfigInd (FfMacSchedSapUser::SchedDlConfigIndParameters ind
       // Only one TB used
       if (ind.m_buildDataList.at (i).m_dci.m_tbsSize.size () == 1)
         {
-          DlSchedulingCallbackInfo dlSchedulingCallbackInfo;
-          dlSchedulingCallbackInfo.frameNo = m_frameNo;
-          dlSchedulingCallbackInfo.subframeNo = m_subframeNo;
-          dlSchedulingCallbackInfo.rnti = ind.m_buildDataList.at (i).m_dci.m_rnti;
-          dlSchedulingCallbackInfo.mcsTb1=ind.m_buildDataList.at (i).m_dci.m_mcs.at (0);
-          dlSchedulingCallbackInfo.sizeTb1 = ind.m_buildDataList.at (i).m_dci.m_tbsSize.at (0);
-          dlSchedulingCallbackInfo.mcsTb2 = 0;
-          dlSchedulingCallbackInfo.sizeTb2 = 0;
-          dlSchedulingCallbackInfo.componentCarrierId = m_componentCarrierId;
-          m_dlScheduling(dlSchedulingCallbackInfo);
+          m_dlScheduling (m_frameNo, m_subframeNo, ind.m_buildDataList.at (i).m_dci.m_rnti,
+                          ind.m_buildDataList.at (i).m_dci.m_mcs.at (0),
+                          ind.m_buildDataList.at (i).m_dci.m_tbsSize.at (0),
+                          0, 0
+                          );
+
         }
       // Two TBs used
       else if (ind.m_buildDataList.at (i).m_dci.m_tbsSize.size () == 2)
         {
-          DlSchedulingCallbackInfo dlSchedulingCallbackInfo;
-          dlSchedulingCallbackInfo.frameNo = m_frameNo;
-          dlSchedulingCallbackInfo.subframeNo = m_subframeNo;
-          dlSchedulingCallbackInfo.rnti = ind.m_buildDataList.at (i).m_dci.m_rnti;
-          dlSchedulingCallbackInfo.mcsTb1=ind.m_buildDataList.at (i).m_dci.m_mcs.at (0);
-          dlSchedulingCallbackInfo.sizeTb1 = ind.m_buildDataList.at (i).m_dci.m_tbsSize.at (0);
-          dlSchedulingCallbackInfo.mcsTb2 = ind.m_buildDataList.at (i).m_dci.m_mcs.at (1);
-          dlSchedulingCallbackInfo.sizeTb2 = ind.m_buildDataList.at (i).m_dci.m_tbsSize.at (1);
-          dlSchedulingCallbackInfo.componentCarrierId = m_componentCarrierId;
-          m_dlScheduling(dlSchedulingCallbackInfo);
+          m_dlScheduling (m_frameNo, m_subframeNo, ind.m_buildDataList.at (i).m_dci.m_rnti,
+                          ind.m_buildDataList.at (i).m_dci.m_mcs.at (0),
+                          ind.m_buildDataList.at (i).m_dci.m_tbsSize.at (0),
+                          ind.m_buildDataList.at (i).m_dci.m_mcs.at (1),
+                          ind.m_buildDataList.at (i).m_dci.m_tbsSize.at (1)
+                          );
         }
       else
         {
@@ -1168,7 +1095,7 @@ LteEnbMac::DoSchedUlConfigInd (FfMacSchedSapUser::SchedUlConfigIndParameters ind
   for (  uint32_t i  = 0; i < ind.m_dciList.size (); i++ )
     {
       m_ulScheduling (m_frameNo, m_subframeNo, ind.m_dciList.at (i).m_rnti,
-                      ind.m_dciList.at (i).m_mcs, ind.m_dciList.at (i).m_tbSize, m_componentCarrierId);
+                      ind.m_dciList.at (i).m_mcs, ind.m_dciList.at (i).m_tbSize);
     }
 
 
@@ -1245,17 +1172,17 @@ LteEnbMac::DoDlInfoListElementHarqFeeback (DlInfoListElement_s params)
   NS_LOG_FUNCTION (this);
   // Update HARQ buffer
   std::map <uint16_t, DlHarqProcessesBuffer_t>::iterator it =  m_miDlHarqProcessesPackets.find (params.m_rnti);
-  NS_ASSERT (it != m_miDlHarqProcessesPackets.end ());
+  NS_ASSERT (it!=m_miDlHarqProcessesPackets.end ());
   for (uint8_t layer = 0; layer < params.m_harqStatus.size (); layer++)
     {
-      if (params.m_harqStatus.at (layer) == DlInfoListElement_s::ACK)
+      if (params.m_harqStatus.at (layer)==DlInfoListElement_s::ACK)
         {
           // discard buffer
           Ptr<PacketBurst> emptyBuf = CreateObject <PacketBurst> ();
           (*it).second.at (layer).at (params.m_harqProcessId) = emptyBuf;
           NS_LOG_DEBUG (this << " HARQ-ACK UE " << params.m_rnti << " harqId " << (uint16_t)params.m_harqProcessId << " layer " << (uint16_t)layer);
         }
-      else if (params.m_harqStatus.at (layer) == DlInfoListElement_s::NACK)
+      else if (params.m_harqStatus.at (layer)==DlInfoListElement_s::NACK)
         {
           NS_LOG_DEBUG (this << " HARQ-NACK UE " << params.m_rnti << " harqId " << (uint16_t)params.m_harqProcessId << " layer " << (uint16_t)layer);
         }

@@ -33,7 +33,6 @@ class Packet;
 class CsmaNetDevice;
 
 /**
- * \ingroup csma
  * \brief CsmaNetDevice Record 
  *
  * Stores the information related to each net device that is
@@ -41,24 +40,12 @@ class CsmaNetDevice;
  */
 class CsmaDeviceRec {
 public:
-  Ptr< CsmaNetDevice > devicePtr; //!< Pointer to the net device
-  bool                 active;    //!< Is net device enabled to TX/RX
+  Ptr< CsmaNetDevice > devicePtr; /// Pointer to the net device
+  bool                       active;    /// Is net device enabled to TX/RX
 
   CsmaDeviceRec();
-
-  /**
-   * \brief Constructor
-   * Builds a record of the given NetDevice, its status is initialized to enabled.
-   *
-   * \param device the device to record
-   */
   CsmaDeviceRec(Ptr< CsmaNetDevice > device);
-
-  /**
-   * Copy constructor
-   * \param o the object to copy
-   */
-  CsmaDeviceRec (CsmaDeviceRec const &o);
+  CsmaDeviceRec (CsmaDeviceRec const &);
 
   /**
    * \return If the net device pointed to by the devicePtr is active
@@ -78,7 +65,6 @@ enum WireState
 };
 
 /**
- * \ingroup csma
  * \brief Csma Channel.
  *
  * This class represents a simple Csma channel that can be used
@@ -90,11 +76,6 @@ enum WireState
 class CsmaChannel : public Channel 
 {
 public:
-
-  /**
-   * \brief Get the type ID.
-   * \return the object TypeId
-   */
   static TypeId GetTypeId (void);
 
   /**
@@ -184,7 +165,7 @@ public:
    * \return True if the channel is not busy and the transmitting net
    * device is currently active.
    */
-  bool TransmitStart (Ptr<const Packet> p, uint32_t srcId);
+  bool TransmitStart (Ptr<Packet> p, uint32_t srcId);
 
   /**
    * \brief Indicates that the net device has finished transmitting
@@ -256,7 +237,7 @@ public:
    * \return Returns the total number of devices including devices
    * that have been detached from the channel.
    */
-  virtual std::size_t GetNDevices (void) const;
+  virtual uint32_t GetNDevices (void) const;
 
   /**
    * \return Get a NetDevice pointer to a connected network device.
@@ -265,7 +246,7 @@ public:
    * \return Returns the pointer to the net device that is associated
    * with deviceId i.
    */
-  virtual Ptr<NetDevice> GetDevice (std::size_t i) const;
+  virtual Ptr<NetDevice> GetDevice (uint32_t i) const;
 
   /**
    * \return Get a CsmaNetDevice pointer to a connected network device.
@@ -275,7 +256,7 @@ public:
    * \return Returns the pointer to the net device that is associated
    * with deviceId i.
    */
-  Ptr<CsmaNetDevice> GetCsmaDevice (std::size_t i) const;
+  Ptr<CsmaNetDevice> GetCsmaDevice (uint32_t i) const;
 
   /**
    * Get the assigned data rate of the channel
@@ -293,20 +274,9 @@ public:
   Time GetDelay (void);
 
 private:
-  /**
-   * Copy constructor is declared but not implemented.  This disables the
-   * copy constructor for CsmaChannel objects.
-   * \param o object to copy
-   */
-  CsmaChannel (CsmaChannel const &o);
-
-  /**
-   * Operator = is declared but not implemented.  This disables the assignment
-   * operator for CsmaChannel objects.
-   * \param o object to copy
-   * \returns the copied object
-   */
-  CsmaChannel &operator = (CsmaChannel const &o);
+  // Avoid implicit copy constructor and assignment (python bindings issues)
+  CsmaChannel (CsmaChannel const &);
+  CsmaChannel &operator = (CsmaChannel const &);
 
   /**
    * The assigned data rate of the channel

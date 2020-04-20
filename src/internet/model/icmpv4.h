@@ -30,25 +30,14 @@ namespace ns3 {
 
 class Packet;
 
-/**
- * \ingroup icmp
- *
- * \brief Base class for all the ICMP packet headers.
- *
- * This header is the common part in all the ICMP packets.
- */
 class Icmpv4Header : public Header
 {
 public:
-
-  /**
-   * ICMP type code.
-   */
-  enum Type_e {
-    ICMPV4_ECHO_REPLY = 0,
-    ICMPV4_DEST_UNREACH = 3,
-    ICMPV4_ECHO = 8,
-    ICMPV4_TIME_EXCEEDED = 11
+  enum {
+    ECHO_REPLY = 0,
+    DEST_UNREACH = 3,
+    ECHO = 8,
+    TIME_EXCEEDED = 11
   };
 
   /**
@@ -99,11 +88,6 @@ private:
   bool m_calcChecksum;  //!< true if checksum is calculated
 };
 
-/**
- * \ingroup icmp
- *
- * \brief ICMP Echo header
- */
 class Icmpv4Echo : public Header
 {
 public:
@@ -164,24 +148,16 @@ private:
   uint32_t m_dataSize;   //!< data size
 };
 
-/**
- * \ingroup icmp
- *
- * \brief ICMP Destination Unreachable header
- */
 class Icmpv4DestinationUnreachable : public Header
 {
 public:
-  /**
-   * ICMP error code : Destination Unreachable
-   */
-  enum ErrorDestinationUnreachable_e {
-    ICMPV4_NET_UNREACHABLE = 0,
-    ICMPV4_HOST_UNREACHABLE = 1,
-    ICMPV4_PROTOCOL_UNREACHABLE = 2,
-    ICMPV4_PORT_UNREACHABLE = 3,
-    ICMPV4_FRAG_NEEDED = 4,
-    ICMPV4_SOURCE_ROUTE_FAILED = 5
+  enum {
+    NET_UNREACHABLE = 0,
+    HOST_UNREACHABLE = 1,
+    PROTOCOL_UNREACHABLE = 2,
+    PORT_UNREACHABLE = 3,
+    FRAG_NEEDED = 4,
+    SOURCE_ROUTE_FAILED = 5
   };
 
   /**
@@ -238,21 +214,12 @@ private:
 };
 
 
-/**
- * \ingroup icmp
- *
- * \brief ICMP Time Exceeded header
- */
 class Icmpv4TimeExceeded : public Header
 {
 public:
-  /**
-   * \brief ICMP error code : Time Exceeded
-   */
-  enum ErrorTimeExceeded_e
-  {
-    ICMPV4_TIME_TO_LIVE = 0,
-    ICMPV4_FRAGMENT_REASSEMBLY = 1
+  enum {
+    TIME_TO_LIVE = 0,
+    FRAGMENT_REASSEMBLY = 1
   };
 
   /**

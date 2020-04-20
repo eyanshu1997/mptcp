@@ -37,11 +37,12 @@
 #include "hybrid-buildings-propagation-loss-model.h"
 
 
-namespace ns3 {
-
 NS_LOG_COMPONENT_DEFINE ("HybridBuildingsPropagationLossModel");
 
-NS_OBJECT_ENSURE_REGISTERED (HybridBuildingsPropagationLossModel);
+namespace ns3 {
+
+NS_OBJECT_ENSURE_REGISTERED (HybridBuildingsPropagationLossModel)
+  ;
 
 
 
@@ -66,7 +67,6 @@ HybridBuildingsPropagationLossModel::GetTypeId (void)
     .SetParent<BuildingsPropagationLossModel> ()
     
     .AddConstructor<HybridBuildingsPropagationLossModel> ()
-    .SetGroupName ("Buildings")
     
     .AddAttribute ("Frequency",
                    "The Frequency  (default is 2.106 GHz).",

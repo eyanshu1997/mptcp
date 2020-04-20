@@ -30,7 +30,6 @@
 #include <ns3/spectrum-phy.h>
 #include <ns3/spectrum-channel.h>
 #include <ns3/trace-source-accessor.h>
-#include <ns3/event-id.h>
 
 namespace ns3 {
 
@@ -57,10 +56,6 @@ public:
   WaveformGenerator ();
   virtual ~WaveformGenerator ();
 
-  /**
-   * \brief Get the type ID.
-   * \return the object TypeId
-   */
   static TypeId GetTypeId (void);
 
   // inherited from SpectrumPhy
@@ -68,7 +63,7 @@ public:
   void SetMobility (Ptr<MobilityModel> m);
   void SetDevice (Ptr<NetDevice> d);
   Ptr<MobilityModel> GetMobility ();
-  Ptr<NetDevice> GetDevice () const;
+  Ptr<NetDevice> GetDevice ();
   Ptr<const SpectrumModel> GetRxSpectrumModel () const;
   Ptr<AntennaModel> GetRxAntenna ();
   void StartRx (Ptr<SpectrumSignalParameters> params);
@@ -110,9 +105,9 @@ public:
    */
   double GetDutyCycle () const;
 
-  /**
+  /** 
    * set the AntennaModel to be used
-   *
+   * 
    * \param a the Antenna Model
    */
   void SetAntenna (Ptr<AntennaModel> a);
@@ -133,24 +128,21 @@ public:
 private:
   virtual void DoDispose (void);
 
-  Ptr<MobilityModel> m_mobility;  //!< Mobility model
-  Ptr<AntennaModel> m_antenna;    //!< Antenna model
-  Ptr<NetDevice> m_netDevice;     //!< Owning NetDevice
-  Ptr<SpectrumChannel> m_channel; //!< Channel
+  Ptr<MobilityModel> m_mobility;
+  Ptr<AntennaModel> m_antenna;
+  Ptr<NetDevice> m_netDevice;
+  Ptr<SpectrumChannel> m_channel;
 
-  /**
-   * Generates a waveform
-   */
   virtual void GenerateWaveform ();
 
-  Ptr<SpectrumValue> m_txPowerSpectralDensity; //!< Tx PSD
-  Time   m_period;    //!< Period
-  double m_dutyCycle; //!< Duty Cycle (should be in [0,1])
-  Time m_startTime;   //!< Start time
-  EventId m_nextWave; //!< Next waveform generation event
+  Ptr<SpectrumValue> m_txPowerSpectralDensity;
+  Time   m_period;
+  double m_dutyCycle;
+  Time m_startTime;
+  bool m_active;
 
-  TracedCallback<Ptr<const Packet> > m_phyTxStartTrace; //!< TracedCallback: Tx start
-  TracedCallback<Ptr<const Packet> > m_phyTxEndTrace;   //!< TracedCallback: Tx end
+  TracedCallback<Ptr<const Packet> > m_phyTxStartTrace;
+  TracedCallback<Ptr<const Packet> > m_phyTxEndTrace;
 };
 
 

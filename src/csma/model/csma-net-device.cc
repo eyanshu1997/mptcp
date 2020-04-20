@@ -32,20 +32,19 @@
 #include "ns3/trace-source-accessor.h"
 #include "csma-net-device.h"
 #include "csma-channel.h"
-#include "ns3/net-device-queue-interface.h"
-
-namespace ns3 {
 
 NS_LOG_COMPONENT_DEFINE ("CsmaNetDevice");
 
-NS_OBJECT_ENSURE_REGISTERED (CsmaNetDevice);
+namespace ns3 {
+
+NS_OBJECT_ENSURE_REGISTERED (CsmaNetDevice)
+  ;
 
 TypeId
 CsmaNetDevice::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::CsmaNetDevice")
     .SetParent<NetDevice> ()
-    .SetGroupName ("Csma")
     .AddConstructor<CsmaNetDevice> ()
     .AddAttribute ("Address", 
                    "The MAC address of this device.",
@@ -87,99 +86,69 @@ CsmaNetDevice::GetTypeId (void)
                    "A queue to use as the transmit queue in the device.",
                    PointerValue (),
                    MakePointerAccessor (&CsmaNetDevice::m_queue),
-                   MakePointerChecker<Queue<Packet> > ())
+                   MakePointerChecker<Queue> ())
 
     //
     // Trace sources at the "top" of the net device, where packets transition
     // to/from higher layers.
     //
     .AddTraceSource ("MacTx", 
-                     "Trace source indicating a packet has "
-                     "arrived for transmission by this device",
-                     MakeTraceSourceAccessor (&CsmaNetDevice::m_macTxTrace),
-                     "ns3::Packet::TracedCallback")
+                     "Trace source indicating a packet has arrived for transmission by this device",
+                     MakeTraceSourceAccessor (&CsmaNetDevice::m_macTxTrace))
     .AddTraceSource ("MacTxDrop", 
-                     "Trace source indicating a packet has been "
-                     "dropped by the device before transmission",
-                     MakeTraceSourceAccessor (&CsmaNetDevice::m_macTxDropTrace),
-                     "ns3::Packet::TracedCallback")
+                     "Trace source indicating a packet has been dropped by the device before transmission",
+                     MakeTraceSourceAccessor (&CsmaNetDevice::m_macTxDropTrace))
     .AddTraceSource ("MacPromiscRx", 
-                     "A packet has been received by this device, "
-                     "has been passed up from the physical layer "
-                     "and is being forwarded up the local protocol stack.  "
-                     "This is a promiscuous trace,",
-                     MakeTraceSourceAccessor (&CsmaNetDevice::m_macPromiscRxTrace),
-                     "ns3::Packet::TracedCallback")
+                     "A packet has been received by this device, has been passed up from the physical layer "
+                     "and is being forwarded up the local protocol stack.  This is a promiscuous trace,",
+                     MakeTraceSourceAccessor (&CsmaNetDevice::m_macPromiscRxTrace))
     .AddTraceSource ("MacRx", 
-                     "A packet has been received by this device, "
-                     "has been passed up from the physical layer "
-                     "and is being forwarded up the local protocol stack.  "
-                     "This is a non-promiscuous trace,",
-                     MakeTraceSourceAccessor (&CsmaNetDevice::m_macRxTrace),
-                     "ns3::Packet::TracedCallback")
+                     "A packet has been received by this device, has been passed up from the physical layer "
+                     "and is being forwarded up the local protocol stack.  This is a non-promiscuous trace,",
+                     MakeTraceSourceAccessor (&CsmaNetDevice::m_macRxTrace))
 #if 0
     // Not currently implemented in this device
     .AddTraceSource ("MacRxDrop", 
-                     "Trace source indicating a packet was received, "
-                     "but dropped before being forwarded up the stack",
-                     MakeTraceSourceAccessor (&CsmaNetDevice::m_macRxDropTrace),
-                     "ns3::Packet::TracedCallback")
+                     "Trace source indicating a packet was received, but dropped before being forwarded up the stack",
+                     MakeTraceSourceAccessor (&CsmaNetDevice::m_macRxDropTrace))
 #endif
     .AddTraceSource ("MacTxBackoff", 
-                     "Trace source indicating a packet has been "
-                     "delayed by the CSMA backoff process",
-                     MakeTraceSourceAccessor (&CsmaNetDevice::m_macTxBackoffTrace),
-                     "ns3::Packet::TracedCallback")
+                     "Trace source indicating a packet has been delayed by the CSMA backoff process",
+                     MakeTraceSourceAccessor (&CsmaNetDevice::m_macTxBackoffTrace))
     //
-    // Trace sources at the "bottom" of the net device, where packets transition
+    // Trace souces at the "bottom" of the net device, where packets transition
     // to/from the channel.
     //
     .AddTraceSource ("PhyTxBegin", 
-                     "Trace source indicating a packet has "
-                     "begun transmitting over the channel",
-                     MakeTraceSourceAccessor (&CsmaNetDevice::m_phyTxBeginTrace),
-                     "ns3::Packet::TracedCallback")
+                     "Trace source indicating a packet has begun transmitting over the channel",
+                     MakeTraceSourceAccessor (&CsmaNetDevice::m_phyTxBeginTrace))
     .AddTraceSource ("PhyTxEnd", 
-                     "Trace source indicating a packet has been "
-                     "completely transmitted over the channel",
-                     MakeTraceSourceAccessor (&CsmaNetDevice::m_phyTxEndTrace),
-                     "ns3::Packet::TracedCallback")
+                     "Trace source indicating a packet has been completely transmitted over the channel",
+                     MakeTraceSourceAccessor (&CsmaNetDevice::m_phyTxEndTrace))
     .AddTraceSource ("PhyTxDrop", 
-                     "Trace source indicating a packet has been "
-                     "dropped by the device during transmission",
-                     MakeTraceSourceAccessor (&CsmaNetDevice::m_phyTxDropTrace),
-                     "ns3::Packet::TracedCallback")
+                     "Trace source indicating a packet has been dropped by the device during transmission",
+                     MakeTraceSourceAccessor (&CsmaNetDevice::m_phyTxDropTrace))
 #if 0
     // Not currently implemented in this device
     .AddTraceSource ("PhyRxBegin", 
-                     "Trace source indicating a packet has "
-                     "begun being received by the device",
-                     MakeTraceSourceAccessor (&CsmaNetDevice::m_phyRxBeginTrace),
-                     "ns3::Packet::TracedCallback")
+                     "Trace source indicating a packet has begun being received by the device",
+                     MakeTraceSourceAccessor (&CsmaNetDevice::m_phyRxBeginTrace))
 #endif
     .AddTraceSource ("PhyRxEnd", 
-                     "Trace source indicating a packet has been "
-                     "completely received by the device",
-                     MakeTraceSourceAccessor (&CsmaNetDevice::m_phyRxEndTrace),
-                     "ns3::Packet::TracedCallback")
+                     "Trace source indicating a packet has been completely received by the device",
+                     MakeTraceSourceAccessor (&CsmaNetDevice::m_phyRxEndTrace))
     .AddTraceSource ("PhyRxDrop", 
-                     "Trace source indicating a packet has been "
-                     "dropped by the device during reception",
-                     MakeTraceSourceAccessor (&CsmaNetDevice::m_phyRxDropTrace),
-                     "ns3::Packet::TracedCallback")
+                     "Trace source indicating a packet has been dropped by the device during reception",
+                     MakeTraceSourceAccessor (&CsmaNetDevice::m_phyRxDropTrace))
     //
     // Trace sources designed to simulate a packet sniffer facility (tcpdump). 
     //
     .AddTraceSource ("Sniffer", 
-                     "Trace source simulating a non-promiscuous "
-                     "packet sniffer attached to the device",
-                     MakeTraceSourceAccessor (&CsmaNetDevice::m_snifferTrace),
-                     "ns3::Packet::TracedCallback")
+                     "Trace source simulating a non-promiscuous packet sniffer attached to the device",
+                     MakeTraceSourceAccessor (&CsmaNetDevice::m_snifferTrace))
     .AddTraceSource ("PromiscSniffer", 
-                     "Trace source simulating a promiscuous "
-                     "packet sniffer attached to the device",
-                     MakeTraceSourceAccessor (&CsmaNetDevice::m_promiscSnifferTrace),
-                     "ns3::Packet::TracedCallback")
+                     "Trace source simulating a promiscuous packet sniffer attached to the device",
+                     MakeTraceSourceAccessor (&CsmaNetDevice::m_promiscSnifferTrace))
   ;
   return tid;
 }
@@ -190,7 +159,7 @@ CsmaNetDevice::CsmaNetDevice ()
   NS_LOG_FUNCTION (this);
   m_txMachineState = READY;
   m_tInterframeGap = Seconds (0);
-  m_channel = 0;
+  m_channel = 0; 
 
   // 
   // We would like to let the attribute system take care of initializing the 
@@ -218,43 +187,7 @@ CsmaNetDevice::DoDispose ()
   NS_LOG_FUNCTION_NOARGS ();
   m_channel = 0;
   m_node = 0;
-  m_queue = 0;
-  m_queueInterface = 0;
   NetDevice::DoDispose ();
-}
-
-void
-CsmaNetDevice::DoInitialize (void)
-{
-  if (m_queueInterface)
-    {
-      NS_ASSERT_MSG (m_queue != 0, "A Queue object has not been attached to the device");
-
-      // connect the traced callbacks of m_queue to the static methods provided by
-      // the NetDeviceQueue class to support flow control and dynamic queue limits.
-      // This could not be done in NotifyNewAggregate because at that time we are
-      // not guaranteed that a queue has been attached to the netdevice
-      m_queueInterface->ConnectQueueTraces (m_queue, 0);
-    }
-
-  NetDevice::DoInitialize ();
-}
-
-void
-CsmaNetDevice::NotifyNewAggregate (void)
-{
-  NS_LOG_FUNCTION (this);
-  if (m_queueInterface == 0)
-    {
-      Ptr<NetDeviceQueueInterface> ndqi = this->GetObject<NetDeviceQueueInterface> ();
-      //verify that it's a valid netdevice queue interface and that
-      //the netdevice queue interface was not set before
-      if (ndqi != 0)
-        {
-          m_queueInterface = ndqi;
-        }
-    }
-  NetDevice::NotifyNewAggregate ();
 }
 
 void
@@ -541,7 +474,6 @@ CsmaNetDevice::TransmitStart (void)
       //
       // The channel is free, transmit the packet
       //
-      m_phyTxBeginTrace (m_currentPkt);
       if (m_channel->TransmitStart (m_currentPkt, m_deviceId) == false)
         {
           NS_LOG_WARN ("Channel TransmitStart returns an error");
@@ -557,8 +489,9 @@ CsmaNetDevice::TransmitStart (void)
           //
           m_backoff.ResetBackoffTime ();
           m_txMachineState = BUSY;
+          m_phyTxBeginTrace (m_currentPkt);
 
-          Time tEvent = m_bps.CalculateBytesTxTime (m_currentPkt->GetSize ());
+          Time tEvent = Seconds (m_bps.CalculateTxTime (m_currentPkt->GetSize ()));
           NS_LOG_LOGIC ("Schedule TransmitCompleteEvent in " << tEvent.GetSeconds () << "sec");
           Simulator::Schedule (tEvent, &CsmaNetDevice::TransmitCompleteEvent, this);
         }
@@ -601,9 +534,8 @@ CsmaNetDevice::TransmitAbort (void)
     }
   else
     {
-      Ptr<Packet> packet = m_queue->Dequeue ();
-      NS_ASSERT_MSG (packet != 0, "CsmaNetDevice::TransmitAbort(): IsEmpty false but no Packet on queue?");
-      m_currentPkt = packet;
+      m_currentPkt = m_queue->Dequeue ();
+      NS_ASSERT_MSG (m_currentPkt != 0, "CsmaNetDevice::TransmitAbort(): IsEmpty false but no Packet on queue?");
       m_snifferTrace (m_currentPkt);
       m_promiscSnifferTrace (m_currentPkt);
       TransmitStart ();
@@ -670,9 +602,8 @@ CsmaNetDevice::TransmitReadyEvent (void)
     }
   else
     {
-      Ptr<Packet> packet = m_queue->Dequeue ();
-      NS_ASSERT_MSG (packet != 0, "CsmaNetDevice::TransmitReadyEvent(): IsEmpty false but no Packet on queue?");
-      m_currentPkt = packet;
+      m_currentPkt = m_queue->Dequeue ();
+      NS_ASSERT_MSG (m_currentPkt != 0, "CsmaNetDevice::TransmitReadyEvent(): IsEmpty false but no Packet on queue?");
       m_snifferTrace (m_currentPkt);
       m_promiscSnifferTrace (m_currentPkt);
       TransmitStart ();
@@ -696,7 +627,7 @@ CsmaNetDevice::Attach (Ptr<CsmaChannel> ch)
   //
   // We use the Ethernet interframe gap of 96 bit times.
   //
-  m_tInterframeGap = m_bps.CalculateBytesTxTime (96/8);
+  m_tInterframeGap = Seconds (m_bps.CalculateTxTime (96/8));
 
   //
   // This device is up whenever a channel is attached to it.
@@ -706,7 +637,7 @@ CsmaNetDevice::Attach (Ptr<CsmaChannel> ch)
 }
 
 void
-CsmaNetDevice::SetQueue (Ptr<Queue<Packet> > q)
+CsmaNetDevice::SetQueue (Ptr<Queue> q)
 {
   NS_LOG_FUNCTION (q);
   m_queue = q;
@@ -856,7 +787,7 @@ CsmaNetDevice::Receive (Ptr<Packet> packet, Ptr<CsmaNetDevice> senderDevice)
     }
 }
 
-Ptr<Queue<Packet> >
+Ptr<Queue>
 CsmaNetDevice::GetQueue (void) const 
 { 
   NS_LOG_FUNCTION_NOARGS ();
@@ -1022,9 +953,8 @@ CsmaNetDevice::SendFrom (Ptr<Packet> packet, const Address& src, const Address& 
     {
       if (m_queue->IsEmpty () == false)
         {
-          Ptr<Packet> packet = m_queue->Dequeue ();
-          NS_ASSERT_MSG (packet != 0, "CsmaNetDevice::SendFrom(): IsEmpty false but no Packet on queue?");
-          m_currentPkt = packet;
+          m_currentPkt = m_queue->Dequeue ();
+          NS_ASSERT_MSG (m_currentPkt != 0, "CsmaNetDevice::SendFrom(): IsEmpty false but no Packet on queue?");
           m_promiscSnifferTrace (m_currentPkt);
           m_snifferTrace (m_currentPkt);
           TransmitStart ();

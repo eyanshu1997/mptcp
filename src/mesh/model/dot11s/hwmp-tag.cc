@@ -23,7 +23,8 @@
 namespace ns3 {
 namespace dot11s {
 
-NS_OBJECT_ENSURE_REGISTERED (HwmpTag);
+NS_OBJECT_ENSURE_REGISTERED (HwmpTag)
+  ;
   
 //Class HwmpTag:
 HwmpTag::HwmpTag () :
@@ -83,18 +84,10 @@ HwmpTag::GetSeqno ()
   return m_seqno;
 }
 
-/**
- * \brief Get the type ID.
- * \return the object TypeId
- */
 TypeId
 HwmpTag::GetTypeId ()
 {
-  static TypeId tid = TypeId ("ns3::dot11s::HwmpTag")
-    .SetParent<Tag> ()
-    .SetGroupName ("Mesh")
-    .AddConstructor<HwmpTag> ()
-    ;
+  static TypeId tid = TypeId ("ns3::dot11s::HwmpTag").SetParent<Tag> ().AddConstructor<HwmpTag> ();
   return tid;
 }
 

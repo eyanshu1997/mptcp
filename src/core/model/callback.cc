@@ -1,35 +1,9 @@
-/* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
-/*
- * Copyright (c) 2005,2006 INRIA
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation;
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- *
- * Author: Mathieu Lacage <mathieu.lacage@sophia.inria.fr>
- */
-
 #include "callback.h"
 #include "log.h"
 
-/**
- * \file
- * \ingroup callback
- * ns3::CallbackValue implementation.
- */
+NS_LOG_COMPONENT_DEFINE ("Callback");
 
 namespace ns3 {
-
-NS_LOG_COMPONENT_DEFINE ("Callback");
 
 CallbackValue::CallbackValue ()
   : m_value ()
@@ -72,6 +46,7 @@ CallbackValue::DeserializeFromString (std::string value, Ptr<const AttributeChec
   return false;
 }
 
+/** Attribute checker */
 ATTRIBUTE_CHECKER_IMPLEMENT (Callback);
 
 } // namespace ns3
@@ -85,7 +60,7 @@ ATTRIBUTE_CHECKER_IMPLEMENT (Callback);
 namespace ns3 {
 
 std::string
-CallbackImplBase::Demangle (const std::string& mangled)
+CallbackBase::Demangle (const std::string& mangled)
 {
   NS_LOG_FUNCTION (mangled);
 
@@ -99,7 +74,7 @@ CallbackImplBase::Demangle (const std::string& mangled)
       ret = demangled;
     }
   else if (status == -1) {
-      NS_LOG_UNCOND ("Callback demangling failed: Memory allocation failure occurred.");
+      NS_LOG_UNCOND ("Callback demangling failed: Memory allocation failure occured.");
       ret = mangled;
     }
   else if (status == -2) {
@@ -126,7 +101,7 @@ CallbackImplBase::Demangle (const std::string& mangled)
 #else
 
 std::string
-ns3::CallbackImplBase::Demangle (const std::string& mangled)
+ns3::CallbackBase::Demangle (const std::string& mangled)
 {
   NS_LOG_FUNCTION (this << mangled);
   return mangled;

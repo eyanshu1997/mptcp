@@ -19,31 +19,24 @@
 #include "synchronizer.h"
 #include "log.h"
 
-/**
- * \file
- * \ingroup realtime
- * ns3::Synchronizer implementation.
- */
+NS_LOG_COMPONENT_DEFINE ("Synchronizer");
 
 namespace ns3 {
 
-NS_LOG_COMPONENT_DEFINE ("Synchronizer");
-
-NS_OBJECT_ENSURE_REGISTERED (Synchronizer);
+NS_OBJECT_ENSURE_REGISTERED (Synchronizer)
+  ;
 
 TypeId 
 Synchronizer::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::Synchronizer")
     .SetParent<Object> ()
-    .SetGroupName ("Core")
   ;
   return tid;
 }
 
 Synchronizer::Synchronizer ()
-  : m_realtimeOriginNano (0),
-    m_simOriginNano (0)
+  : m_realtimeOriginNano (0), m_simOriginNano (0)
 {
   NS_LOG_FUNCTION (this);
 }
@@ -90,9 +83,9 @@ Synchronizer::GetDrift (uint64_t ts)
 
   if (tDrift < 0) 
     {
-      return -static_cast<int64_t> (NanosecondToTimeStep (-tDrift));
+      return -NanosecondToTimeStep (-tDrift);
     } else {
-      return static_cast<int64_t> (NanosecondToTimeStep (tDrift));
+      return NanosecondToTimeStep (tDrift);
     }
 }
 

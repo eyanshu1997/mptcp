@@ -9,4 +9,3 @@ Network Module
     sockets-api
     simple
     queue
-    queue-limits

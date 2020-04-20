@@ -24,25 +24,23 @@
 #include "ns3/test.h"
 #include "ns3/nstime.h"
 #include "ns3/node-container.h"
-#include "ns3/socket.h"
 
-using namespace ns3;
+namespace ns3 {
+namespace aodv {
 
 /**
  * \ingroup aodv
- *
+ * 
  * \brief AODV deferred route lookup test case (see \bugid{772})
- *
- * UDP packet transfers are delayed while a route is found and then while
- * ARP completes.  Eight packets should be sent, queued until the path
- * becomes functional, and then delivered.
+ * 
+ * \todo describe expected packet trace 
  */
 class Bug772ChainTest : public TestCase
 {
 public:
   /**
    * Create test case
-   *
+   * 
    * \param prefix              Unique file names prefix
    * \param proto               ns3::UdpSocketFactory or ns3::TcpSocketFactory
    * \param size                Number of nodes in the chain
@@ -65,8 +63,6 @@ private:
   const uint32_t m_size;
   /// Chain step, meters
   const double m_step;
-  /// port number
-  const uint16_t m_port;
 
   /// Create test topology
   void CreateNodes ();
@@ -76,25 +72,9 @@ private:
   void CheckResults ();
   /// Go
   void DoRun ();
-  /**
-   * Receive data function
-   * \param socket the socket to receive from
-   */
-  void HandleRead (Ptr<Socket> socket);
-
-  /// Receiving socket
-  Ptr<Socket> m_recvSocket;
-  /// Transmitting socket
-  Ptr<Socket> m_sendSocket;
-
-  /// Received packet count
-  uint32_t m_receivedPackets;
-
-  /**
-   * Send data
-   * \param socket the sending socket
-   */
-  void SendData (Ptr<Socket> socket);
 };
+
+}
+}
 
 #endif /* BUG_772_H */

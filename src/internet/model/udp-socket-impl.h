@@ -38,32 +38,13 @@ class Ipv6EndPoint;
 class Node;
 class Packet;
 class UdpL4Protocol;
-class Ipv6Header;
-class Ipv6Interface;
 
 /**
- * \ingroup socket
  * \ingroup udp
- *
  * \brief A sockets interface to UDP
  * 
  * This class subclasses ns3::UdpSocket, and provides a socket interface
  * to ns3's implementation of UDP.
- *
- * For IPv4 packets, the TOS is set according to the following rules:
- * - if the socket is connected, the TOS set for the socket is used
- * - if the socket is not connected, the TOS specified in the destination address
- *   passed to SendTo is used, while the TOS set for the socket is ignored
- * In both cases, a SocketIpTos tag is only added to the packet if the resulting
- * TOS is non-null. The Bind and Connect operations set the TOS for the
- * socket to the value specified in the provided address.
- * If the TOS determined for a packet (as described above) is not null, the
- * packet is assigned a priority based on that TOS value (according to the
- * Socket::IpTos2Priority function). Otherwise, the priority set for the
- * socket is assigned to the packet. Setting a TOS for a socket also sets a
- * priority for the socket (according to the Socket::IpTos2Priority function).
- * A SocketPriority tag is only added to the packet if the resulting priority
- * is non-null.
  */
 
 class UdpSocketImpl : public UdpSocket
@@ -110,13 +91,11 @@ public:
   virtual Ptr<Packet> RecvFrom (uint32_t maxSize, uint32_t flags,
                                 Address &fromAddress);
   virtual int GetSockName (Address &address) const; 
-  virtual int GetPeerName (Address &address) const;
   virtual int MulticastJoinGroup (uint32_t interfaceIndex, const Address &groupAddress);
   virtual int MulticastLeaveGroup (uint32_t interfaceIndex, const Address &groupAddress);
   virtual void BindToNetDevice (Ptr<NetDevice> netdevice);
   virtual bool SetAllowBroadcast (bool allowBroadcast);
   virtual bool GetAllowBroadcast () const;
-  virtual void Ipv6JoinGroup (Ipv6Address address, Socket::Ipv6MulticastFilterMode filterMode, std::vector<Ipv6Address> sourceAddresses);
 
 private:
   // Attributes set through UdpSocket base class 
@@ -132,10 +111,6 @@ private:
   virtual bool GetMtuDiscover (void) const;
 
 
-  /**
-   * \brief UdpSocketFactory friend class.
-   * \relates UdpSocketFactory
-   */
   friend class UdpSocketFactory;
   // invoked by Udp class
 
@@ -150,7 +125,7 @@ private:
    *
    * \param packet the incoming packet
    * \param header the packet's IPv4 header
-   * \param port the remote port
+   * \param port the incoming port
    * \param incomingInterface the incoming interface
    */
   void ForwardUp (Ptr<Packet> packet, Ipv4Header header, uint16_t port, Ptr<Ipv4Interface> incomingInterface);
@@ -160,7 +135,7 @@ private:
    *
    * \param packet the incoming packet
    * \param header the packet's IPv6 header
-   * \param port the remote port
+   * \param port the incoming port
    * \param incomingInterface the incoming interface
    */
   void ForwardUp6 (Ptr<Packet> packet, Ipv6Header header, uint16_t port, Ptr<Ipv6Interface> incomingInterface);
@@ -182,25 +157,26 @@ private:
   void Destroy6 (void);
 
   /**
-   * \brief Deallocate m_endPoint and m_endPoint6
-   */
-  void DeallocateEndPoint (void);
-
-  /**
    * \brief Send a packet
    * \param p packet
    * \returns 0 on success, -1 on failure
    */
   int DoSend (Ptr<Packet> p);
   /**
+   * \brief Send a packet to a specific destination
+   * \param p packet
+   * \param daddr destination address
+   * \returns 0 on success, -1 on failure
+   */
+  int DoSendTo (Ptr<Packet> p, const Address &daddr);
+  /**
    * \brief Send a packet to a specific destination and port (IPv4)
    * \param p packet
    * \param daddr destination address
    * \param dport destination port
-   * \param tos ToS
    * \returns 0 on success, -1 on failure
    */
-  int DoSendTo (Ptr<Packet> p, Ipv4Address daddr, uint16_t dport, uint8_t tos);
+  int DoSendTo (Ptr<Packet> p, Ipv4Address daddr, uint16_t dport);
   /**
    * \brief Send a packet to a specific destination and port (IPv6)
    * \param p packet
@@ -244,13 +220,13 @@ private:
   uint16_t m_defaultPort;   //!< Default port
   TracedCallback<Ptr<const Packet> > m_dropTrace; //!< Trace for dropped packets
 
-  mutable enum SocketErrno m_errno;           //!< Socket error code
+  enum SocketErrno         m_errno;           //!< Socket error code
   bool                     m_shutdownSend;    //!< Send no longer allowed
   bool                     m_shutdownRecv;    //!< Receive no longer allowed
   bool                     m_connected;       //!< Connection established
   bool                     m_allowBroadcast;  //!< Allow send broadcast packets
 
-  std::queue<std::pair<Ptr<Packet>, Address> > m_deliveryQueue; //!< Queue for incoming packets
+  std::queue<Ptr<Packet> > m_deliveryQueue; //!< Queue for incoming packets
   uint32_t m_rxAvailable;                   //!< Number of available bytes to be received
 
   // Socket attributes

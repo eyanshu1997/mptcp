@@ -24,18 +24,18 @@
 #include "ns3/ipv4-static-routing.h"
 #include "ipv4-list-routing.h"
 
-namespace ns3 {
-
 NS_LOG_COMPONENT_DEFINE ("Ipv4ListRouting");
 
-NS_OBJECT_ENSURE_REGISTERED (Ipv4ListRouting);
+namespace ns3 {
+
+NS_OBJECT_ENSURE_REGISTERED (Ipv4ListRouting)
+  ;
 
 TypeId
 Ipv4ListRouting::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::Ipv4ListRouting")
     .SetParent<Ipv4RoutingProtocol> ()
-    .SetGroupName ("Internet")
     .AddConstructor<Ipv4ListRouting> ()
   ;
   return tid;
@@ -70,19 +70,19 @@ Ipv4ListRouting::DoDispose (void)
 }
 
 void
-Ipv4ListRouting::PrintRoutingTable (Ptr<OutputStreamWrapper> stream, Time::Unit unit) const
+Ipv4ListRouting::PrintRoutingTable (Ptr<OutputStreamWrapper> stream) const
 {
   NS_LOG_FUNCTION (this << stream);
   *stream->GetStream () << "Node: " << m_ipv4->GetObject<Node> ()->GetId () 
-                        << ", Time: " << Now().As (unit)
-                        << ", Local time: " << GetObject<Node> ()->GetLocalTime ().As (unit)
-                        << ", Ipv4ListRouting table" << std::endl;
+                        << " Time: " << Simulator::Now ().GetSeconds () << "s "
+                        << "Ipv4ListRouting table" << std::endl;
   for (Ipv4RoutingProtocolList::const_iterator i = m_routingProtocols.begin ();
        i != m_routingProtocols.end (); i++)
     {
       *stream->GetStream () << "  Priority: " << (*i).first << " Protocol: " << (*i).second->GetInstanceTypeId () << std::endl;
-      (*i).second->PrintRoutingTable (stream, unit);
+      (*i).second->PrintRoutingTable (stream);
     }
+  *stream->GetStream () << std::endl;
 }
 
 void
@@ -161,7 +161,7 @@ Ipv4ListRouting::RouteInput (Ptr<const Packet> p, const Ipv4Header &header, Ptr<
     {
       NS_LOG_LOGIC ("Forwarding disabled for this interface");
       ecb (p, header, Socket::ERROR_NOROUTETOHOST);
-      return true;
+      return false;
     }
   // Next, try to find a route
   // If we have already delivered a packet locally (e.g. multicast)

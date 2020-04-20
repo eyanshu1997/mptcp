@@ -29,11 +29,12 @@
 #include <ns3/log.h>
 #include <ns3/uinteger.h>
 
-namespace ns3 {
-
 NS_LOG_COMPONENT_DEFINE ("LteAnr");
 
-NS_OBJECT_ENSURE_REGISTERED (LteAnr);
+namespace ns3 {
+
+NS_OBJECT_ENSURE_REGISTERED (LteAnr)
+  ;
 
 
 LteAnr::LteAnr (uint16_t servingCellId)
@@ -58,7 +59,6 @@ LteAnr::GetTypeId ()
 {
   static TypeId tid = TypeId ("ns3::LteAnr")
     .SetParent<Object> ()
-    .SetGroupName("Lte")
     .AddAttribute ("Threshold",
                    "Minimum RSRQ range value required for detecting a neighbour cell",
                    UintegerValue (0),

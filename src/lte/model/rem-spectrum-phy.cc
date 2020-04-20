@@ -31,19 +31,18 @@
 
 #include "rem-spectrum-phy.h"
 
-namespace ns3 {
-
 NS_LOG_COMPONENT_DEFINE ("RemSpectrumPhy");
 
-NS_OBJECT_ENSURE_REGISTERED (RemSpectrumPhy);
+namespace ns3 {
+
+NS_OBJECT_ENSURE_REGISTERED (RemSpectrumPhy)
+  ;
 
 RemSpectrumPhy::RemSpectrumPhy ()
-  : m_mobility (0),
+  : m_mobility (0),    
     m_referenceSignalPower (0),
     m_sumPower (0),
-    m_active (true),
-    m_useDataChannel (false),
-    m_rbId (-1)
+    m_active (true)
 {
   NS_LOG_FUNCTION (this);
 }
@@ -68,9 +67,8 @@ RemSpectrumPhy::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::RemSpectrumPhy")
     .SetParent<SpectrumPhy> ()
-    .SetGroupName("Lte")
     .AddConstructor<RemSpectrumPhy> ()
-  ;
+    ;
   return tid;
 }
 
@@ -103,7 +101,7 @@ RemSpectrumPhy::GetMobility ()
 }
 
 Ptr<NetDevice>
-RemSpectrumPhy::GetDevice () const
+RemSpectrumPhy::GetDevice ()
 {
   return 0;
 }
@@ -128,50 +126,15 @@ RemSpectrumPhy::StartRx (Ptr<SpectrumSignalParameters> params)
 
   if (m_active)
     {
-      if (m_useDataChannel)
+      Ptr<LteSpectrumSignalParametersDlCtrlFrame> lteDlCtrlRxParams = DynamicCast<LteSpectrumSignalParametersDlCtrlFrame> (params);
+      if (lteDlCtrlRxParams!=0)
         {
-          Ptr<LteSpectrumSignalParametersDataFrame> lteDlDataRxParams = DynamicCast<LteSpectrumSignalParametersDataFrame> (params);
-          if (lteDlDataRxParams != 0)
+          double power = Integral (*(params->psd));
+                               
+          m_sumPower += power;
+          if (power > m_referenceSignalPower)
             {
-              NS_LOG_DEBUG ("StartRx data");
-              double power = 0;
-              if (m_rbId >= 0)
-                {
-                  power = (*(params->psd))[m_rbId] * 180000;
-                }
-              else
-                {
-                  power = Integral (*(params->psd));
-                }
-
-              m_sumPower += power;
-              if (power > m_referenceSignalPower)
-                {
-                  m_referenceSignalPower = power;
-                }
-            }
-        }
-      else
-        {
-          Ptr<LteSpectrumSignalParametersDlCtrlFrame> lteDlCtrlRxParams = DynamicCast<LteSpectrumSignalParametersDlCtrlFrame> (params);
-          if (lteDlCtrlRxParams != 0)
-            {
-              NS_LOG_DEBUG ("StartRx control");
-              double power = 0;
-              if (m_rbId >= 0)
-                {
-                  power = (*(params->psd))[m_rbId] * 180000;
-                }
-              else
-                {
-                  power = Integral (*(params->psd));
-                }
-
-              m_sumPower += power;
-              if (power > m_referenceSignalPower)
-                {
-                  m_referenceSignalPower = power;
-                }
+              m_referenceSignalPower = power;
             }
         }
     }
@@ -207,18 +170,6 @@ RemSpectrumPhy::Reset ()
 {
   m_referenceSignalPower = 0;
   m_sumPower = 0;
-}
-
-void
-RemSpectrumPhy::SetUseDataChannel (bool value)
-{
-  m_useDataChannel = value;
-}
-
-void
-RemSpectrumPhy::SetRbId (int32_t rbId)
-{
-  m_rbId = rbId;
 }
 
 

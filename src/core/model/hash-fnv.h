@@ -23,12 +23,6 @@
 
 #include "hash-function.h"
 
-/**
- * \file
- * \ingroup hash
- * \brief ns3::Hash::Function::Fnv1a declaration.
- */
-
 namespace ns3 {
 
 namespace Hash {
@@ -98,13 +92,15 @@ private:
    */
   enum seed
   {
-    SEED = 0x8BADF00D  /**< Ate bad food */
+    SEED = 0x8BADF00D  // Ate bad food
   };
-  /** Cache last hash value, for incremental hashing. */
-  /**@{*/
+  //@{
+  /**
+   * Cache last hash value, for incremental hashing.
+   */
   uint32_t m_hash32;
   uint64_t m_hash64;
-  /**@}*/
+  //@}
 
 };  // class Fnv1a
 

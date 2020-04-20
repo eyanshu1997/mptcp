@@ -18,7 +18,6 @@ Currently, only these Probes have been implemented in DCF:
 - Uinteger8Probe
 - Uinteger16Probe
 - Uinteger32Probe
-- TimeProbe
 - PacketProbe
 - ApplicationPacketProbe
 - Ipv4PacketProbe

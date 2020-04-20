@@ -31,14 +31,14 @@ namespace ns3
 {
 
 /**
- * \ingroup icmpv6
- *
+ * \class Icmpv6Header
  * \brief ICMPv6 header.
  */
 class Icmpv6Header : public Header
 {
 public:
   /**
+   * \enum Type_e
    * \brief ICMPv6 type code.
    */
   enum Type_e
@@ -72,6 +72,7 @@ public:
   };
 
   /**
+   * \enum OptionType_e
    * \brief ICMPv6 Option type code.
    */
   enum OptionType_e
@@ -84,6 +85,7 @@ public:
   };
 
   /**
+   * \enum ErrorDestinationUnreachable_e
    * \brief ICMPv6 error code : Destination Unreachable
    */
   enum ErrorDestinationUnreachable_e
@@ -96,6 +98,7 @@ public:
   };
 
   /**
+   * \enum ErrorTimeExceeded_e
    * \brief ICMPv6 error code : Time Exceeded
    */
   enum ErrorTimeExceeded_e
@@ -105,6 +108,7 @@ public:
   };
 
   /**
+   * \enum ErrorParameterError_e
    * \brief ICMPv6 error code : Parameter Error
    */
   enum ErrorParameterError_e
@@ -173,7 +177,7 @@ public:
   void SetChecksum (uint16_t checksum);
 
   /**
-   * \brief Print information.
+   * \brief Print informations.
    * \param os output stream
    */
   virtual void Print (std::ostream& os) const;
@@ -231,8 +235,7 @@ private:
 };
 
 /**
- * \ingroup icmpv6
- *
+ * \class Icmpv6OptionHeader
  * \brief ICMPv6 option header.
  */
 class Icmpv6OptionHeader : public Header
@@ -285,7 +288,7 @@ public:
   void SetLength (uint8_t len);
 
   /**
-   * \brief Print information.
+   * \brief Print informations.
    * \param os output stream
    */
   virtual void Print (std::ostream& os) const;
@@ -322,8 +325,7 @@ private:
 };
 
 /**
- * \ingroup icmpv6
- *
+ * \class Icmpv6NS
  * \brief ICMPv6 Neighbor Solicitation header.
  */
 class Icmpv6NS : public Icmpv6Header
@@ -382,7 +384,7 @@ public:
   void SetIpv6Target (Ipv6Address target);
 
   /**
-   * \brief Print information.
+   * \brief Print informations.
    * \param os output stream
    */
   virtual void Print (std::ostream& os) const;
@@ -420,8 +422,7 @@ private:
 };
 
 /**
- * \ingroup icmpv6
- *
+ * \class Icmpv6NA
  * \brief ICMPv6 Neighbor Advertisement header.
  */
 class Icmpv6NA : public Icmpv6Header
@@ -510,7 +511,7 @@ public:
   void SetFlagO (bool o);
 
   /**
-   * \brief Print information.
+   * \brief Print informations.
    * \param os output stream
    */
   virtual void Print (std::ostream& os) const;
@@ -562,8 +563,7 @@ private:
 };
 
 /**
- * \ingroup icmpv6
- *
+ * \class Icmpv6RA
  * \brief ICMPv6 Router Advertisement header.
  */
 class Icmpv6RA : public Icmpv6Header
@@ -676,7 +676,7 @@ public:
   void SetFlagH (bool h);
 
   /**
-   * \brief Print information.
+   * \brief Print informations.
    * \param os output stream
    */
   virtual void Print (std::ostream& os) const;
@@ -755,8 +755,7 @@ private:
 };
 
 /**
- * \ingroup icmpv6
- *
+ * \class Icmpv6RS
  * \brief ICMPv6 Router Solicitation header.
  */
 class Icmpv6RS : public Icmpv6Header
@@ -797,7 +796,7 @@ public:
   void SetReserved (uint32_t reserved);
 
   /**
-   * \brief Print information.
+   * \brief Print informations.
    * \param os output stream
    */
   virtual void Print (std::ostream& os) const;
@@ -829,8 +828,7 @@ private:
 };
 
 /**
- * \ingroup icmpv6
- *
+ * \class Icmpv6Redirection
  * \brief ICMPv6 Redirection header.
  */
 class Icmpv6Redirection : public Icmpv6Header
@@ -883,7 +881,7 @@ public:
   void SetDestination (Ipv6Address destination);
 
   /**
-   * \brief Print information.
+   * \brief Print informations.
    * \param os output stream
    */
   virtual void Print (std::ostream& os) const;
@@ -937,8 +935,7 @@ private:
 };
 
 /**
- * \ingroup icmpv6
- *
+ * \class Icmpv6Echo
  * \brief ICMPv6 Echo message.
  */
 class Icmpv6Echo : public Icmpv6Header
@@ -997,7 +994,7 @@ public:
   void SetSeq (uint16_t seq);
 
   /**
-   * \brief Print information.
+   * \brief Print informations.
    * \param os output stream
    */
   virtual void Print (std::ostream& os) const;
@@ -1034,8 +1031,7 @@ private:
 };
 
 /**
- * \ingroup icmpv6
- *
+ * \class Icmpv6DestinationUnreachable
  * \brief ICMPv6 Error Destination Unreachable header.
  */
 class Icmpv6DestinationUnreachable : public Icmpv6Header
@@ -1076,7 +1072,7 @@ public:
   void SetPacket (Ptr<Packet> p);
 
   /**
-   * \brief Print information.
+   * \brief Print informations.
    * \param os output stream
    */
   virtual void Print (std::ostream& os) const;
@@ -1108,8 +1104,7 @@ private:
 };
 
 /**
- * \ingroup icmpv6
- *
+ * \class Icmpv6TooBig
  * \brief ICMPv6 Error Too Big header.
  */
 class Icmpv6TooBig : public Icmpv6Header
@@ -1162,7 +1157,7 @@ public:
   void SetMtu (uint32_t mtu);
 
   /**
-   * \brief Print information.
+   * \brief Print informations.
    * \param os output stream
    */
   virtual void Print (std::ostream& os) const;
@@ -1200,8 +1195,7 @@ private:
 };
 
 /**
- * \ingroup icmpv6
- *
+ * \class Icmpv6TimeExceeded
  * \brief ICMPv6 Error Time Exceeded header.
  */
 class Icmpv6TimeExceeded : public Icmpv6Header
@@ -1242,7 +1236,7 @@ public:
   void SetPacket (Ptr<Packet> p);
 
   /**
-   * \brief Print information.
+   * \brief Print informations.
    * \param os output stream
    */
   virtual void Print (std::ostream& os) const;
@@ -1275,8 +1269,7 @@ private:
 };
 
 /**
- * \ingroup icmpv6
- *
+ * \class Icmpv6ParameterError
  * \brief ICMPv6 Error Parameter Error header.
  */
 class Icmpv6ParameterError : public Icmpv6Header
@@ -1329,7 +1322,7 @@ public:
   void SetPtr (uint32_t ptr);
 
   /**
-   * \brief Print information.
+   * \brief Print informations.
    * \param os output stream
    */
   virtual void Print (std::ostream& os) const;
@@ -1367,8 +1360,7 @@ private:
 };
 
 /**
- * \ingroup icmpv6
- *
+ * \class Icmpv6OptionMtu
  * \brief ICMPv6 MTU option.
  */
 class Icmpv6OptionMtu : public Icmpv6OptionHeader
@@ -1427,7 +1419,7 @@ public:
   void SetMtu (uint32_t mtu);
 
   /**
-   * \brief Print information.
+   * \brief Print informations.
    * \param os output stream
    */
   virtual void Print (std::ostream& os) const;
@@ -1464,8 +1456,7 @@ private:
 };
 
 /**
- * \ingroup icmpv6
- *
+ * \class Icmpv6OptionPrefixInformation
  * \brief ICMPv6 Option Prefix Information.
  */
 class Icmpv6OptionPrefixInformation : public Icmpv6OptionHeader
@@ -1573,7 +1564,7 @@ public:
   void SetPrefix (Ipv6Address prefix);
 
   /**
-   * \brief Print information.
+   * \brief Print informations.
    * \param os output stream
    */
   virtual void Print (std::ostream& os) const;
@@ -1630,8 +1621,7 @@ private:
 };
 
 /**
- * \ingroup icmpv6
- *
+ * \class Icmpv6OptionLinkLayerAddress
  * \brief ICMPv6 link-layer address option.
  */
 class Icmpv6OptionLinkLayerAddress : public Icmpv6OptionHeader
@@ -1685,7 +1675,7 @@ public:
   void SetAddress (Address addr);
 
   /**
-   * \brief Print information.
+   * \brief Print informations.
    * \param os output stream
    */
   virtual void Print (std::ostream& os) const;
@@ -1717,8 +1707,7 @@ private:
 };
 
 /**
- * \ingroup icmpv6
- *
+ * \class Icmpv6OptionRedirected
  * \brief ICMPv6 redirected option.
  */
 class Icmpv6OptionRedirected : public Icmpv6OptionHeader
@@ -1759,7 +1748,7 @@ public:
   void SetPacket (Ptr<Packet> packet);
 
   /**
-   * \brief Print information.
+   * \brief Print informations.
    * \param os output stream
    */
   virtual void Print (std::ostream& os) const;

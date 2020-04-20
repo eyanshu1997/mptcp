@@ -16,13 +16,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
  * Authors: Sidharth Nabar <snabar@uw.edu>, He Wu <mdzz@u.washington.edu>
- *
- * Copyright (c) 2014 Wireless Communications and Networking Group (WCNG),
- * University of Rochester, Rochester, NY, USA.
- *
- * Modifications made by: Cristiano Tapparello <cristiano.tapparello@rochester.edu>
  */
-
 
 #ifndef ENERGY_SOURCE_H
 #define ENERGY_SOURCE_H
@@ -32,10 +26,9 @@
 #include "ns3/type-id.h"
 #include "ns3/node.h"
 #include "device-energy-model-container.h"  // #include "device-energy-model.h"
-#include "ns3/energy-harvester.h"
 
 namespace ns3 {
-  
+
 /**
  * \defgroup energy Energy Models
  *
@@ -75,9 +68,6 @@ namespace ns3 {
  * energy in different units (eg. kWh), a simple converter function should
  * suffice.
  */
-  
-class EnergyHarvester;
-  
 class EnergySource : public Object
 {
 public:
@@ -168,17 +158,6 @@ public:
    * here. Called by EnergySourceContainer, which is aggregated to the node.
    */
   void DisposeDeviceModels (void);
-  
-  /**
-   * \param energyHarvesterPtr Pointer to energy harvester.
-   *
-   * This function connect an energy harvester to the energy source. After the
-   * execution of this method, the pointer to the energy harvester is appended
-   * to the end of a vector of EnergyHarvester pointer.
-   * Note that the order in which different energy harvester are added to the
-   * energy source does not impact the simulation results.
-   */
-  void ConnectEnergyHarvester (Ptr<EnergyHarvester> energyHarvesterPtr);
 
 
 private:
@@ -201,13 +180,6 @@ private:
    * sure device models are installed onto the corresponding node.
    */
   Ptr<Node> m_node;
-    
-  /**
-  * Vector of EnergyHarvester pointer connected to the same energy source.
-  * This vector is used by the CalculateTotalCurrent method to determine the
-  * total power provided by the energy harvesters connected to the energy source.
-  */
-  std::vector< Ptr<EnergyHarvester> > m_harvesters;
 
 
 protected:
@@ -221,18 +193,6 @@ protected:
    * is called by the child EnergySource class when energy depletion happens.
    */
   void NotifyEnergyDrained (void);
-
-  /**
-   * This function notifies all DeviceEnergyModel of energy recharged event. It
-   * is called by the child EnergySource class when energy source is recharged.
-   */
-  void NotifyEnergyRecharged (void);
-
-  /**
-   * This function notifies all DeviceEnergyModel of energy changed event. It
-   * is called by the child EnergySource class when energy source is changed.
-   */
-  void NotifyEnergyChanged (void);
 
   /**
    * This function is called to break reference cycle between EnergySource and

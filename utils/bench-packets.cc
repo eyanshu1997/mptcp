@@ -17,12 +17,6 @@
  *
  * Author: Mathieu Lacage <mathieu.lacage@sophia.inria.fr>
  */
-
-// This program can be used to benchmark packet serialization/deserialization
-// operations using Headers and Tags, for various numbers of packets 'n'
-// Sample usage:  ./waf --run 'bench-packets --n=10000'
-
-#include "ns3/command-line.h"
 #include "ns3/system-wall-clock-ms.h"
 #include "ns3/packet.h"
 #include "ns3/packet-metadata.h"
@@ -30,30 +24,16 @@
 #include <sstream>
 #include <string>
 #include <stdlib.h> // for exit ()
-#include <limits>
-#include <algorithm>
 
 using namespace ns3;
 
-/// BenchHeader class used for benchmarking packet serialization/deserialization
 template <int N>
 class BenchHeader : public Header
 {
 public:
   BenchHeader ();
-  /**
-   * Returns true if the header has been deserialized and the 
-   * deserialization was correct.  If Deserialize() has not yet been
-   * called on the header, will return false.
-   *
-   * \returns true if success, false if failed or if deserialization not tried
-   */
   bool IsOk (void) const;
 
-  /**
-   * Register this type.
-   * \return The TypeId.
-   */
   static TypeId GetTypeId (void);
   virtual TypeId GetInstanceTypeId (void) const;
   virtual void Print (std::ostream &os) const;
@@ -61,12 +41,8 @@ public:
   virtual void Serialize (Buffer::Iterator start) const;
   virtual uint32_t Deserialize (Buffer::Iterator start);
 private:
-  /**
-   * Get type name function
-   * \returns the type name string
-   */
   static std::string GetTypeName (void);
-  bool m_ok; ///< variable to track whether deserialization succeeded
+  bool m_ok;
 };
 
 template <int N>
@@ -96,9 +72,6 @@ BenchHeader<N>::GetTypeId (void)
 {
   static TypeId tid = TypeId (GetTypeName ().c_str ())
     .SetParent<Header> ()
-    .SetGroupName ("Utils")
-    .HideFromDocumentation ()
-    .AddConstructor<BenchHeader <N> > ()
     ;
   return tid;
 }
@@ -142,30 +115,20 @@ BenchHeader<N>::Deserialize (Buffer::Iterator start)
   return N;
 }
 
-/// BenchTag class used for benchmarking packet serialization/deserialization
 template <int N>
 class BenchTag : public Tag
 {
 public:
-  /**
-   * Get the bench tag name.
-   * \return the name.
-   */
   static std::string GetName (void) {
     std::ostringstream oss;
     oss << "anon::BenchTag<" << N << ">";
     return oss.str ();
   }
-  /**
-   * Register this type.
-   * \return The TypeId.
-   */
   static TypeId GetTypeId (void) {
     static TypeId tid = TypeId (GetName ().c_str ())
       .SetParent<Tag> ()
-      .SetGroupName ("Utils")
+      .AddConstructor<BenchTag > ()
       .HideFromDocumentation ()
-      .AddConstructor<BenchTag<N> > ()
       ;
     return tid;
   }
@@ -225,9 +188,6 @@ benchA (uint32_t n)
   BenchHeader<25> ipv4;
   BenchHeader<8> udp;
 
-  // The original version of this program did not use BenchHeader::IsOK ()
-  // Below are two asserts that suggest how it can be used.
-  NS_ASSERT_MSG (ipv4.IsOk () == false, "IsOk() should be false before deserialization");
   for (uint32_t i = 0; i < n; i++) {
     Ptr<Packet> p = Create<Packet> (2000);
     p->AddHeader (udp);
@@ -236,7 +196,6 @@ benchA (uint32_t n)
     o->RemoveHeader (ipv4);
     o->RemoveHeader (udp);
   }
-  NS_ASSERT_MSG (ipv4.IsOk () == true, "IsOk() should be true after deserialization");
 }
 
 static void 
@@ -282,77 +241,19 @@ benchC (uint32_t n)
   }
 }
 
-static void
-benchFragment (uint32_t n)
-{
-  BenchHeader<25> ipv4;
-  BenchHeader<8> udp;
-
-  for (uint32_t i= 0; i < n; i++) {
-    Ptr<Packet> p = Create<Packet> (2000);
-    p->AddHeader (udp);
-    p->AddHeader (ipv4);
-
-    Ptr<Packet> frag0 = p->CreateFragment (0, 250);
-    Ptr<Packet> frag1 = p->CreateFragment (250, 250);
-    Ptr<Packet> frag2 = p->CreateFragment (500, 500);
-    Ptr<Packet> frag3 = p->CreateFragment (1000, 500);
-    Ptr<Packet> frag4 = p->CreateFragment (1500, 500);
-
-    /* Mix fragments in different order */
-    frag2->AddAtEnd (frag3);
-    frag4->AddAtEnd (frag1);
-    frag2->AddAtEnd (frag4);
-    frag0->AddAtEnd (frag2);
-
-    frag0->RemoveHeader (ipv4);
-    frag0->RemoveHeader (udp);
-  }
-}
 
 static void
-benchByteTags (uint32_t n)
-{
-  for (uint32_t i = 0; i < n; i++)
-    {
-      Ptr<Packet> p = Create<Packet> (2000);
-      for (uint32_t j = 0; j < 100; j++)
-        {
-          BenchTag<0> tag;
-          p->AddByteTag (tag);
-        }
-      Ptr<Packet> q = Create<Packet> (1000);
-
-      // This should trigger adjustment of all byte tags
-      q->AddAtEnd (p);
-    }
-}
-
-static uint64_t
-runBenchOneIteration (void (*bench) (uint32_t), uint32_t n)
+runBench (void (*bench) (uint32_t), uint32_t n, char const *name)
 {
   SystemWallClockMs time;
   time.Start ();
   (*bench) (n);
   uint64_t deltaMs = time.End ();
-  return deltaMs;
-}
-
-
-static void
-runBench (void (*bench) (uint32_t), uint32_t n, uint32_t minIterations, char const *name)
-{
-  uint64_t minDelay = std::numeric_limits<uint64_t>::max();
-  for (uint32_t i = 0; i < minIterations; i++)
-    {
-      uint64_t delay = runBenchOneIteration(bench, n);
-      minDelay = std::min(minDelay, delay);
-    }
   double ps = n;
   ps *= 1000;
-  ps /= minDelay;
+  ps /= deltaMs;
   std::cout << ps << " packets/s"
-            << " (" << minDelay << " ms elapsed)\t"
+            << " (" << deltaMs << " ms elapsed)\t"
             << name
             << std::endl;
 }
@@ -360,16 +261,21 @@ runBench (void (*bench) (uint32_t), uint32_t n, uint32_t minIterations, char con
 int main (int argc, char *argv[])
 {
   uint32_t n = 0;
-  uint32_t minIterations = 1;
-  bool enablePrinting = false;
-
-  CommandLine cmd;
-  cmd.Usage ("Benchmark Packet class");
-  cmd.AddValue ("n", "number of iterations", n);
-  cmd.AddValue ("min-iterations", "number of subiterations to minimize iteration time over", minIterations);
-  cmd.AddValue ("enable-printing", "enable packet printing", enablePrinting);
-  cmd.Parse (argc, argv);
-
+  while (argc > 0) {
+      if (strncmp ("--n=", argv[0],strlen ("--n=")) == 0) 
+        {
+          char const *nAscii = argv[0] + strlen ("--n=");
+          std::istringstream iss;
+          iss.str (nAscii);
+          iss >> n;
+        }
+      if (strncmp ("--enable-printing", argv[0], strlen ("--enable-printing")) == 0)
+        {
+          Packet::EnablePrinting ();
+        }
+      argc--;
+      argv++;
+  }
   if (n == 0)
     {
       std::cerr << "Error-- number of packets must be specified " <<
@@ -379,12 +285,10 @@ int main (int argc, char *argv[])
   std::cout << "Running bench-packets with n=" << n << std::endl;
   std::cout << "All tests begin by adding UDP and IPv4 headers." << std::endl;
 
-  runBench (&benchA, n, minIterations, "Copy packet, remove headers");
-  runBench (&benchB, n, minIterations, "Just add headers");
-  runBench (&benchC, n, minIterations, "Remove by func call");
-  runBench (&benchD, n, minIterations, "Intermixed add/remove headers and tags");
-  runBench (&benchFragment, n, minIterations, "Fragmentation and concatenation");
-  runBench (&benchByteTags, n, minIterations, "Benchmark byte tags");
+  runBench (&benchA, n, "Copy packet, remove headers");
+  runBench (&benchB, n, "Just add headers");
+  runBench (&benchC, n, "Remove by func call");
+  runBench (&benchD, n, "Intermixed add/remove headers and tags");
 
   return 0;
 }

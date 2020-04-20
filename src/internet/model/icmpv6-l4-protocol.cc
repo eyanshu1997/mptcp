@@ -30,72 +30,58 @@
 #include "ns3/ipv6-route.h"
 #include "ns3/pointer.h"
 #include "ns3/string.h"
-#include "ns3/integer.h"
 
 #include "ipv6-raw-socket-factory-impl.h"
 #include "ipv6-l3-protocol.h"
 #include "ipv6-interface.h"
 #include "icmpv6-l4-protocol.h"
+#include "ndisc-cache.h"
 
 namespace ns3 {
 
-NS_LOG_COMPONENT_DEFINE ("Icmpv6L4Protocol");
+NS_OBJECT_ENSURE_REGISTERED (Icmpv6L4Protocol)
+  ;
 
-NS_OBJECT_ENSURE_REGISTERED (Icmpv6L4Protocol);
+NS_LOG_COMPONENT_DEFINE ("Icmpv6L4Protocol")
+  ;
 
 const uint8_t Icmpv6L4Protocol::PROT_NUMBER = 58;
 
-//const uint8_t Icmpv6L4Protocol::MAX_INITIAL_RTR_ADVERT_INTERVAL = 16; // max initial RA initial interval.
-//const uint8_t Icmpv6L4Protocol::MAX_INITIAL_RTR_ADVERTISEMENTS = 3;   // max initial RA transmission.
-//const uint8_t Icmpv6L4Protocol::MAX_FINAL_RTR_ADVERTISEMENTS = 3;     // max final RA transmission.
-//const uint8_t Icmpv6L4Protocol::MIN_DELAY_BETWEEN_RAS = 3;            // min delay between RA.
-//const uint32_t Icmpv6L4Protocol::MAX_RA_DELAY_TIME = 500;             // millisecond - max delay between RA.
+const uint8_t Icmpv6L4Protocol::MAX_INITIAL_RTR_ADVERT_INTERVAL = 16;
+const uint8_t Icmpv6L4Protocol::MAX_INITIAL_RTR_ADVERTISEMENTS = 3;
+const uint8_t Icmpv6L4Protocol::MAX_FINAL_RTR_ADVERTISEMENTS = 3;
+const uint8_t Icmpv6L4Protocol::MIN_DELAY_BETWEEN_RAS = 3;
+const uint32_t Icmpv6L4Protocol::MAX_RA_DELAY_TIME = 500; /* millisecond */
 
-//const uint8_t Icmpv6L4Protocol::MAX_RTR_SOLICITATION_DELAY = 1;       // max RS delay.
-//const uint8_t Icmpv6L4Protocol::RTR_SOLICITATION_INTERVAL = 4;        // RS interval.
-//const uint8_t Icmpv6L4Protocol::MAX_RTR_SOLICITATIONS = 3;            // max RS transmission.
+const uint8_t Icmpv6L4Protocol::MAX_RTR_SOLICITATION_DELAY = 1;
+const uint8_t Icmpv6L4Protocol::RTR_SOLICITATION_INTERVAL = 4;
+const uint8_t Icmpv6L4Protocol::MAX_RTR_SOLICITATIONS = 3;
 
-//const uint8_t Icmpv6L4Protocol::MAX_ANYCAST_DELAY_TIME = 1;           // max anycast delay.
-//const uint8_t Icmpv6L4Protocol::MAX_NEIGHBOR_ADVERTISEMENT = 3;       // max NA transmission.
-
-//const double Icmpv6L4Protocol::MIN_RANDOM_FACTOR = 0.5;               // min random factor.
-//const double Icmpv6L4Protocol::MAX_RANDOM_FACTOR = 1.5;               // max random factor.
+const uint8_t Icmpv6L4Protocol::MAX_MULTICAST_SOLICIT = 3;
+const uint8_t Icmpv6L4Protocol::MAX_UNICAST_SOLICIT = 3;
+const uint8_t Icmpv6L4Protocol::MAX_ANYCAST_DELAY_TIME = 1;
+const uint8_t Icmpv6L4Protocol::MAX_NEIGHBOR_ADVERTISEMENT = 3;
+const uint32_t Icmpv6L4Protocol::REACHABLE_TIME = 30000;
+const uint32_t Icmpv6L4Protocol::RETRANS_TIMER = 1000;
+const uint8_t Icmpv6L4Protocol::DELAY_FIRST_PROBE_TIME = 5;
+const double Icmpv6L4Protocol::MIN_RANDOM_FACTOR = 0.5;
+const double Icmpv6L4Protocol::MAX_RANDOM_FACTOR = 1.5;
 
 TypeId Icmpv6L4Protocol::GetTypeId ()
 {
   static TypeId tid = TypeId ("ns3::Icmpv6L4Protocol")
     .SetParent<IpL4Protocol> ()
-    .SetGroupName ("Internet")
     .AddConstructor<Icmpv6L4Protocol> ()
     .AddAttribute ("DAD", "Always do DAD check.",
                    BooleanValue (true),
                    MakeBooleanAccessor (&Icmpv6L4Protocol::m_alwaysDad),
                    MakeBooleanChecker ())
-    .AddAttribute ("SolicitationJitter", "The jitter in ms a node is allowed to wait before sending any solicitation. Some jitter aims to prevent collisions. By default, the model will wait for a duration in ms defined by a uniform random-variable between 0 and SolicitationJitter",
+    .AddAttribute ("SolicitationJitter", "The jitter in ms a node is allowed to wait before sending any solicitation . Some jitter aims to prevent collisions. By default, the model will wait for a duration in ms defined by a uniform random-variable between 0 and SolicitationJitter",
                    StringValue ("ns3::UniformRandomVariable[Min=0.0|Max=10.0]"),
                    MakePointerAccessor (&Icmpv6L4Protocol::m_solicitationJitter),
                    MakePointerChecker<RandomVariableStream> ())
-    .AddAttribute ("MaxMulticastSolicit", "Neighbor Discovery node constants: max multicast solicitations.",
-                   IntegerValue (3),
-                   MakeIntegerAccessor (&Icmpv6L4Protocol::m_maxMulticastSolicit),
-                   MakeIntegerChecker<uint8_t> ())
-    .AddAttribute ("MaxUnicastSolicit", "Neighbor Discovery node constants: max unicast solicitations.",
-                   IntegerValue (3),
-                   MakeIntegerAccessor (&Icmpv6L4Protocol::m_maxUnicastSolicit),
-                   MakeIntegerChecker<uint8_t> ())
-    .AddAttribute ("ReachableTime", "Neighbor Discovery node constants: reachable time.",
-                   TimeValue (Seconds (30)),
-                   MakeTimeAccessor (&Icmpv6L4Protocol::m_reachableTime),
-                   MakeTimeChecker ())
-    .AddAttribute ("RetransmissionTime", "Neighbor Discovery node constants: retransmission timer.",
-                   TimeValue (Seconds (1)),
-                   MakeTimeAccessor (&Icmpv6L4Protocol::m_retransmissionTime),
-                   MakeTimeChecker ())
-    .AddAttribute ("DelayFirstProbe", "Neighbor Discovery node constants: delay for the first probe.",
-                   TimeValue (Seconds (5)),
-                   MakeTimeAccessor (&Icmpv6L4Protocol::m_delayFirstProbe),
-                   MakeTimeChecker ())
-    ;
+
+  ;
   return tid;
 }
 
@@ -141,18 +127,18 @@ void Icmpv6L4Protocol::NotifyNewAggregate ()
       Ptr<Node> node = this->GetObject<Node> ();
       if (node != 0)
         {
-          Ptr<Ipv6> ipv6 = this->GetObject<Ipv6> ();
+          Ptr<Ipv6L3Protocol> ipv6 = this->GetObject<Ipv6L3Protocol> ();
           if (ipv6 != 0 && m_downTarget.IsNull ())
             {
               SetNode (node);
               ipv6->Insert (this);
               Ptr<Ipv6RawSocketFactoryImpl> rawFactory = CreateObject<Ipv6RawSocketFactoryImpl> ();
               ipv6->AggregateObject (rawFactory);
-              SetDownTarget6 (MakeCallback (&Ipv6::Send, ipv6));
+              SetDownTarget6 (MakeCallback (&Ipv6L3Protocol::Send, ipv6));
             }
         }
     }
-  IpL4Protocol::NotifyNewAggregate ();
+  Object::NotifyNewAggregate ();
 }
 
 void Icmpv6L4Protocol::SetNode (Ptr<Node> node)
@@ -200,11 +186,11 @@ void Icmpv6L4Protocol::DoDAD (Ipv6Address target, Ptr<Ipv6Interface> interface)
 
   /** \todo disable multicast loopback to prevent NS probing to be received by the sender */
 
-  NdiscCache::Ipv6PayloadHeaderPair p = ForgeNS ("::",Ipv6Address::MakeSolicitedAddress (target), target, interface->GetDevice ()->GetAddress ());
+  Ptr<Packet> p = ForgeNS ("::",Ipv6Address::MakeSolicitedAddress (target), target, interface->GetDevice ()->GetAddress ());
 
   /* update last packet UID */
-  interface->SetNsDadUid (target, p.first->GetUid ());
-  Simulator::Schedule (Time (MilliSeconds (m_solicitationJitter->GetValue ())), &Ipv6Interface::Send, interface, p.first, p.second, Ipv6Address::MakeSolicitedAddress (target));
+  interface->SetNsDadUid (target, p->GetUid ());
+  Simulator::Schedule (Time (MilliSeconds (m_solicitationJitter->GetValue ())), &Ipv6Interface::Send, interface, p, Ipv6Address::MakeSolicitedAddress (target));
 }
 
 enum IpL4Protocol::RxStatus Icmpv6L4Protocol::Receive (Ptr<Packet> packet, Ipv4Header const &header,  Ptr<Ipv4Interface> interface)
@@ -286,14 +272,11 @@ void Icmpv6L4Protocol::Forward (Ipv6Address source, Icmpv6Header icmp,
 
   uint8_t nextHeader = ipHeader.GetNextHeader ();
 
-  if (nextHeader != Icmpv6L4Protocol::PROT_NUMBER)
+  Ptr<IpL4Protocol> l4 = ipv6->GetProtocol (nextHeader);
+  if (l4 != 0)
     {
-      Ptr<IpL4Protocol> l4 = ipv6->GetProtocol (nextHeader);
-      if (l4 != 0)
-        {
-          l4->ReceiveIcmp (source, ipHeader.GetHopLimit (), icmp.GetType (), icmp.GetCode (),
-                           info, ipHeader.GetSourceAddress (), ipHeader.GetDestinationAddress (), payload);
-        }
+      l4->ReceiveIcmp (source, ipHeader.GetHopLimit (), icmp.GetType (), icmp.GetCode (),
+                       info, ipHeader.GetSourceAddress (), ipHeader.GetDestinationAddress (), payload);
     }
 }
 
@@ -366,7 +349,7 @@ void Icmpv6L4Protocol::HandleRA (Ptr<Packet> packet, Ipv6Address const &src, Ipv
             }
           break;
         default:
-          /* unknown option, quit */
+          /* unknow option, quit */
           next = false;
         }
     }
@@ -392,17 +375,18 @@ void Icmpv6L4Protocol::ReceiveLLA (Icmpv6OptionLinkLayerAddress lla, Ipv6Address
     }
   else
     {
-      std::list<NdiscCache::Ipv6PayloadHeaderPair> waiting;
+      std::list<Ptr<Packet> > waiting;
       if (entry->IsIncomplete ())
         {
-          entry->StopNudTimer ();
+          entry->StopRetransmitTimer ();
           // mark it to reachable
           waiting = entry->MarkReachable (lla.GetAddress ());
+          entry->StopReachableTimer ();
           entry->StartReachableTimer ();
           // send out waiting packet
-          for (std::list<NdiscCache::Ipv6PayloadHeaderPair>::const_iterator it = waiting.begin (); it != waiting.end (); it++)
+          for (std::list<Ptr<Packet> >::const_iterator it = waiting.begin (); it != waiting.end (); it++)
             {
-              cache->GetInterface ()->Send (it->first, it->second, src);
+              cache->GetInterface ()->Send (*it, src);
             }
           entry->ClearWaitingPacket ();
         }
@@ -416,21 +400,20 @@ void Icmpv6L4Protocol::ReceiveLLA (Icmpv6OptionLinkLayerAddress lla, Ipv6Address
             }
           else
             {
-              if (!entry->IsReachable () || !entry->IsPermanent ())
+              if (!entry->IsReachable ())
                 {
-                  entry->StopNudTimer ();
+                  entry->StopProbeTimer ();
+                  entry->StopDelayTimer ();
                   waiting = entry->MarkReachable (lla.GetAddress ());
                   if (entry->IsProbe ())
                     {
-                      for (std::list<NdiscCache::Ipv6PayloadHeaderPair>::const_iterator it = waiting.begin (); it != waiting.end (); it++)
+                      for (std::list<Ptr<Packet> >::const_iterator it = waiting.begin (); it != waiting.end (); it++)
                         {
-                          cache->GetInterface ()->Send (it->first, it->second, src);
+                          cache->GetInterface ()->Send (*it, src);
                         }
                     }
-                  if (!entry->IsPermanent ())
-                    {
-                      entry->StartReachableTimer ();
-                    }
+                  entry->StopReachableTimer ();
+                  entry->StartReachableTimer ();
                 }
             }
         }
@@ -563,13 +546,13 @@ void Icmpv6L4Protocol::HandleNS (Ptr<Packet> packet, Ipv6Address const &src, Ipv
     }
 
   hardwareAddress = interface->GetDevice ()->GetAddress ();
-  NdiscCache::Ipv6PayloadHeaderPair p = ForgeNA (target.IsLinkLocal () ? interface->GetLinkLocalAddress ().GetAddress () : ifaddr.GetAddress (), src.IsAny () ? Ipv6Address::GetAllNodesMulticast () : src, &hardwareAddress, flags );
-  interface->Send (p.first, p.second, src.IsAny () ? Ipv6Address::GetAllNodesMulticast () : src);
+  Ptr<Packet> p = ForgeNA (target.IsLinkLocal () ? interface->GetLinkLocalAddress ().GetAddress () : ifaddr.GetAddress (), src.IsAny () ? Ipv6Address::GetAllNodesMulticast () : src, &hardwareAddress, flags );
+  interface->Send (p,  src.IsAny () ? Ipv6Address::GetAllNodesMulticast () : src);
 
   /* not a NS for us discard it */
 }
 
-NdiscCache::Ipv6PayloadHeaderPair Icmpv6L4Protocol::ForgeRS (Ipv6Address src, Ipv6Address dst, Address hardwareAddress)
+Ptr<Packet> Icmpv6L4Protocol::ForgeRS (Ipv6Address src, Ipv6Address dst, Address hardwareAddress)
 {
   NS_LOG_FUNCTION (this << src << dst << hardwareAddress);
   Ptr<Packet> p = Create<Packet> ();
@@ -589,10 +572,12 @@ NdiscCache::Ipv6PayloadHeaderPair Icmpv6L4Protocol::ForgeRS (Ipv6Address src, Ip
   ipHeader.SetPayloadLength (p->GetSize ());
   ipHeader.SetHopLimit (255);
 
-  return NdiscCache::Ipv6PayloadHeaderPair (p, ipHeader);
+  p->AddHeader (ipHeader);
+
+  return p;
 }
 
-NdiscCache::Ipv6PayloadHeaderPair Icmpv6L4Protocol::ForgeEchoRequest (Ipv6Address src, Ipv6Address dst, uint16_t id, uint16_t seq, Ptr<Packet> data)
+Ptr<Packet> Icmpv6L4Protocol::ForgeEchoRequest (Ipv6Address src, Ipv6Address dst, uint16_t id, uint16_t seq, Ptr<Packet> data)
 {
   NS_LOG_FUNCTION (this << src << dst << id << seq << data);
   Ptr<Packet> p = data->Copy ();
@@ -602,16 +587,9 @@ NdiscCache::Ipv6PayloadHeaderPair Icmpv6L4Protocol::ForgeEchoRequest (Ipv6Addres
   req.SetId (id);
   req.SetSeq (seq);
 
-  req.CalculatePseudoHeaderChecksum (src, dst, p->GetSize () + req.GetSerializedSize (), PROT_NUMBER);
   p->AddHeader (req);
 
-  ipHeader.SetSourceAddress (src);
-  ipHeader.SetDestinationAddress (dst);
-  ipHeader.SetNextHeader (PROT_NUMBER);
-  ipHeader.SetPayloadLength (p->GetSize ());
-  ipHeader.SetHopLimit (255);
-
-  return NdiscCache::Ipv6PayloadHeaderPair (p, ipHeader);
+  return p;
 }
 
 void Icmpv6L4Protocol::HandleNA (Ptr<Packet> packet, Ipv6Address const &src, Ipv6Address const &dst, Ptr<Ipv6Interface> interface)
@@ -626,7 +604,7 @@ void Icmpv6L4Protocol::HandleNA (Ptr<Packet> packet, Ipv6Address const &src, Ipv
   Address hardwareAddress;
   NdiscCache::Entry* entry = 0;
   Ptr<NdiscCache> cache = FindCache (interface->GetDevice ());
-  std::list<NdiscCache::Ipv6PayloadHeaderPair> waiting;
+  std::list<Ptr<Packet> > waiting;
 
   /* check if we have something in our cache */
   entry = cache->Lookup (target);
@@ -676,17 +654,18 @@ void Icmpv6L4Protocol::HandleNA (Ptr<Packet> packet, Ipv6Address const &src, Ipv
   if (entry->IsIncomplete ())
     {
       /* we receive a NA so stop the retransmission timer */
-      entry->StopNudTimer ();
+      entry->StopRetransmitTimer ();
 
       if (naHeader.GetFlagS ())
         {
           /* mark it to reachable */
           waiting = entry->MarkReachable (lla.GetAddress ());
+          entry->StopReachableTimer ();
           entry->StartReachableTimer ();
           /* send out waiting packet */
-          for (std::list<NdiscCache::Ipv6PayloadHeaderPair>::const_iterator it = waiting.begin (); it != waiting.end (); it++)
+          for (std::list<Ptr<Packet> >::const_iterator it = waiting.begin (); it != waiting.end (); it++)
             {
-              cache->GetInterface ()->Send (it->first, it->second, src);
+              cache->GetInterface ()->Send (*it, src);
             }
           entry->ClearWaitingPacket ();
         }
@@ -703,7 +682,8 @@ void Icmpv6L4Protocol::HandleNA (Ptr<Packet> packet, Ipv6Address const &src, Ipv
   else
     {
       /* we receive a NA so stop the probe timer or delay timer if any */
-      entry->StopNudTimer ();
+      entry->StopProbeTimer ();
+      entry->StopDelayTimer ();
 
       /* if the Flag O is clear and mac address differs from the cache */
       if (!naHeader.GetFlagO () && lla.GetAddress () != entry->GetMacAddress ())
@@ -722,14 +702,14 @@ void Icmpv6L4Protocol::HandleNA (Ptr<Packet> packet, Ipv6Address const &src, Ipv
 
               if (naHeader.GetFlagS ())
                 {
-                  if (!entry->IsReachable () || !entry->IsPermanent ())
+                  if (!entry->IsReachable ())
                     {
                       if (entry->IsProbe ())
                         {
                           waiting = entry->MarkReachable (lla.GetAddress ());
-                          for (std::list<NdiscCache::Ipv6PayloadHeaderPair>::const_iterator it = waiting.begin (); it != waiting.end (); it++)
+                          for (std::list<Ptr<Packet> >::const_iterator it = waiting.begin (); it != waiting.end (); it++)
                             {
-                              cache->GetInterface ()->Send (it->first, it->second, src);
+                              cache->GetInterface ()->Send (*it, src);
                             }
                           entry->ClearWaitingPacket ();
                         }
@@ -738,10 +718,8 @@ void Icmpv6L4Protocol::HandleNA (Ptr<Packet> packet, Ipv6Address const &src, Ipv
                           entry->MarkReachable (lla.GetAddress ());
                         }
                     }
-                  if (!entry->IsPermanent ())
-                    {
-                      entry->StartReachableTimer ();
-                    }
+                  entry->StopReachableTimer ();
+                  entry->StartReachableTimer ();
                 }
               else if (lla.GetAddress () != entry->GetMacAddress ())
                 {
@@ -835,7 +813,7 @@ void Icmpv6L4Protocol::HandleDestinationUnreachable (Ptr<Packet> p, Ipv6Address 
   Ptr<Packet> origPkt = unreach.GetPacket ();
 
   Ipv6Header ipHeader;
-  if ( origPkt->GetSize () > ipHeader.GetSerializedSize () )
+  if ( origPkt->GetSerializedSize () > ipHeader.GetSerializedSize () )
     {
       origPkt->RemoveHeader (ipHeader);
       uint8_t payload[8];
@@ -1196,7 +1174,7 @@ void Icmpv6L4Protocol::SendRedirection (Ptr<Packet> redirectedPacket, Ipv6Addres
   SendMessage (p, src, dst, 64);
 }
 
-NdiscCache::Ipv6PayloadHeaderPair Icmpv6L4Protocol::ForgeNA (Ipv6Address src, Ipv6Address dst, Address* hardwareAddress, uint8_t flags)
+Ptr<Packet> Icmpv6L4Protocol::ForgeNA (Ipv6Address src, Ipv6Address dst, Address* hardwareAddress, uint8_t flags)
 {
   NS_LOG_FUNCTION (this << src << dst << hardwareAddress << (uint32_t)flags);
   Ptr<Packet> p = Create<Packet> ();
@@ -1233,10 +1211,12 @@ NdiscCache::Ipv6PayloadHeaderPair Icmpv6L4Protocol::ForgeNA (Ipv6Address src, Ip
   ipHeader.SetPayloadLength (p->GetSize ());
   ipHeader.SetHopLimit (255);
 
-  return NdiscCache::Ipv6PayloadHeaderPair (p, ipHeader);
+  p->AddHeader (ipHeader);
+
+  return p;
 }
 
-NdiscCache::Ipv6PayloadHeaderPair Icmpv6L4Protocol::ForgeNS (Ipv6Address src, Ipv6Address dst, Ipv6Address target, Address hardwareAddress)
+Ptr<Packet> Icmpv6L4Protocol::ForgeNS (Ipv6Address src, Ipv6Address dst, Ipv6Address target, Address hardwareAddress)
 {
   NS_LOG_FUNCTION (this << src << dst << target << hardwareAddress);
   Ptr<Packet> p = Create<Packet> ();
@@ -1262,7 +1242,9 @@ NdiscCache::Ipv6PayloadHeaderPair Icmpv6L4Protocol::ForgeNS (Ipv6Address src, Ip
   ipHeader.SetPayloadLength (p->GetSize ());
   ipHeader.SetHopLimit (255);
 
-  return NdiscCache::Ipv6PayloadHeaderPair (p, ipHeader);
+  p->AddHeader (ipHeader);
+
+  return p;
 }
 
 Ptr<NdiscCache> Icmpv6L4Protocol::FindCache (Ptr<NetDevice> device)
@@ -1288,7 +1270,7 @@ Ptr<NdiscCache> Icmpv6L4Protocol::CreateCache (Ptr<NetDevice> device, Ptr<Ipv6In
 
   Ptr<NdiscCache> cache = CreateObject<NdiscCache> ();
 
-  cache->SetDevice (device, interface, this);
+  cache->SetDevice (device, interface);
   device->AddLinkChangeCallback (MakeCallback (&NdiscCache::Flush, cache));
   m_cacheList.push_back (cache);
   return cache;
@@ -1308,7 +1290,7 @@ bool Icmpv6L4Protocol::Lookup (Ipv6Address dst, Ptr<NetDevice> device, Ptr<Ndisc
       NdiscCache::Entry* entry = cache->Lookup (dst);
       if (entry)
         {
-          if (entry->IsReachable () || entry->IsDelay () || entry->IsPermanent ())
+          if (entry->IsReachable () || entry->IsDelay ())
             {
               *hardwareDestination = entry->GetMacAddress ();
               return true;
@@ -1325,9 +1307,9 @@ bool Icmpv6L4Protocol::Lookup (Ipv6Address dst, Ptr<NetDevice> device, Ptr<Ndisc
   return false;
 }
 
-bool Icmpv6L4Protocol::Lookup (Ptr<Packet> p, const Ipv6Header & ipHeader, Ipv6Address dst, Ptr<NetDevice> device, Ptr<NdiscCache> cache, Address* hardwareDestination)
+bool Icmpv6L4Protocol::Lookup (Ptr<Packet> p, Ipv6Address dst, Ptr<NetDevice> device, Ptr<NdiscCache> cache, Address* hardwareDestination)
 {
-  NS_LOG_FUNCTION (this << p << ipHeader << dst << device << cache << hardwareDestination);
+  NS_LOG_FUNCTION (this << p << dst << device << cache << hardwareDestination);
 
   if (!cache)
     {
@@ -1342,7 +1324,7 @@ bool Icmpv6L4Protocol::Lookup (Ptr<Packet> p, const Ipv6Header & ipHeader, Ipv6A
   NdiscCache::Entry* entry = cache->Lookup (dst);
   if (entry)
     {
-      if (entry->IsReachable () || entry->IsDelay () || entry->IsPermanent ())
+      if (entry->IsReachable () || entry->IsDelay ())
         {
           /* XXX check reachability time */
           /* send packet */
@@ -1357,10 +1339,10 @@ bool Icmpv6L4Protocol::Lookup (Ptr<Packet> p, const Ipv6Header & ipHeader, Ipv6A
           *hardwareDestination = entry->GetMacAddress ();
           return true;
         }
-      else /* INCOMPLETE or PROBE */
+      else /* PROBE */
         {
           /* queue packet */
-          entry->AddWaitingPacket (NdiscCache::Ipv6PayloadHeaderPair (p, ipHeader));
+          entry->AddWaitingPacket (p);
           return false;
         }
     }
@@ -1371,7 +1353,7 @@ bool Icmpv6L4Protocol::Lookup (Ptr<Packet> p, const Ipv6Header & ipHeader, Ipv6A
        */
       Ipv6Address addr;
       NdiscCache::Entry* entry = cache->Add (dst);
-      entry->MarkIncomplete (NdiscCache::Ipv6PayloadHeaderPair (p, ipHeader));
+      entry->MarkIncomplete (p);
       entry->SetRouter (false);
 
       if (dst.IsLinkLocal ())
@@ -1436,7 +1418,7 @@ void Icmpv6L4Protocol::FunctionDadTimeout (Ptr<Icmpv6L4Protocol> icmpv6, Ipv6Int
       if (!ipv6->IsForwarding (ipv6->GetInterfaceForDevice (interface->GetDevice ())) && addr.IsLinkLocal ())
         {
           /* \todo Add random delays before sending RS
-           * because all nodes start at the same time, there will be many of RS around 1 second of simulation time
+           * because all nodes start at the same time, there will be many of RS arround 1 second of simulation time
            */
           Simulator::Schedule (Seconds (0.0), &Icmpv6L4Protocol::SendRS, PeekPointer (icmpv6), ifaddr.GetAddress (), Ipv6Address::GetAllRoutersMulticast (), interface->GetDevice ()->GetAddress ());
         }
@@ -1469,37 +1451,6 @@ Icmpv6L4Protocol::GetDownTarget6 (void) const
   NS_LOG_FUNCTION (this);
   return m_downTarget;
 }
-
-uint8_t
-Icmpv6L4Protocol::GetMaxMulticastSolicit () const
-{
-  return m_maxMulticastSolicit;
-}
-
-uint8_t
-Icmpv6L4Protocol::GetMaxUnicastSolicit () const
-{
-  return m_maxUnicastSolicit;
-}
-
-Time
-Icmpv6L4Protocol::GetReachableTime () const
-{
-  return m_reachableTime;
-}
-
-Time
-Icmpv6L4Protocol::GetRetransmissionTime () const
-{
-  return m_retransmissionTime;
-}
-
-Time
-Icmpv6L4Protocol::GetDelayFirstProbe () const
-{
-  return m_delayFirstProbe;
-}
-
 
 } /* namespace ns3 */
 

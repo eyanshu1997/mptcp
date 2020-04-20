@@ -24,71 +24,28 @@
 #include "ns3/test.h"
 #include "ns3/hash.h"
 
-/**
- * \file
- * \ingroup core-tests
- * \ingroup hash
- * \ingroup hash-tests
- * Hash test suite
- */
-
-/**
- * \ingroup core-tests
- * \ingroup hash
- * \defgroup hash-tests Hash test suite
- */
-
 namespace ns3 {
 
-  namespace tests {
-    
-
 /**
- * \ingroup hash-tests
- *  Base class for hash tests
+ * Base class for hash tests
  */
 class HashTestCase : public TestCase
 {
 public:
-  /**
-   * Constructor
-   *
-   * \param [in] name reference name
-   */ 
   HashTestCase (const std::string name);
-  /** Destructor. */
   virtual ~HashTestCase ();
 protected:
-  /**
-   * Check function
-   * \param [in] hashName the name of the hash
-   * \param [in] hash the hash value
-   */
   void Check ( const std::string hashName, const uint32_t hash);
-  /**
-   * Check function
-   * \param [in] hashName the name of the hash
-   * \param [in] hash the hash value
-   */
   void Check ( const std::string hashName, const uint64_t hash);
-  
-  std::string key;           //!< The reference value to hash.
-  uint32_t hash32Reference;  //!< The 32-bit hash of the reference.
-  uint64_t hash64Reference;  //!< The 64-bit hash of the reference.
-
+  std::string key;
+  uint32_t hash32Reference;
+  uint64_t hash64Reference;
 private:
-  /**
-   * Check function
-   * \param [in] hashName the name of the hash
-   * \param [in] bits the number of bits
-   * \param [in] hash the hash value
-   */
   void Check ( const std::string hashName, const int bits, const uint64_t hash);
   virtual void DoRun (void);
-
 };  // class HashTestCase
 
-HashTestCase::HashTestCase (const std::string name)
+HashTestCase::HashTestCase (const std:: string name)
   : TestCase (name),
     key ("The quick brown fox jumped over the lazy dogs.")
 {
@@ -149,16 +106,14 @@ HashTestCase::DoRun (void)
 }
 
 
-/**
- * \ingroup hash-tests
- * Test default hash on fixed string
- */
+//----------------------------
+//
+// Test default hash on fixed string
+
 class DefaultHashTestCase : public HashTestCase
 {
 public:
-  /** Constructor. */
   DefaultHashTestCase ();
-  /** Destructor. */
   virtual ~DefaultHashTestCase ();
 private:
   virtual void DoRun (void);
@@ -186,16 +141,14 @@ DefaultHashTestCase::DoRun (void)
   Check ( "default", Hash64 (key));
 }
 
-/**
- * \ingroup hash-tests
- * FNV hash on fixed string
- */
+//----------------------------
+//
+// Test FNV hash on fixed string
+
 class Fnv1aTestCase : public HashTestCase
 {
 public:
-  /** Constructor. */
   Fnv1aTestCase ();
-  /** Destructor. */
   virtual ~Fnv1aTestCase ();
 private:
   virtual void DoRun (void);
@@ -222,16 +175,14 @@ Fnv1aTestCase::DoRun (void)
 }
 
 
-/**
- * \ingroup hash-tests
- * Test Murmur3 hash on fixed string
- */
+//----------------------------
+//
+// Test Murmur3 hash on fixed string
+
 class Murmur3TestCase : public HashTestCase
 {
 public:
-  /** Constructor. */
   Murmur3TestCase ();
-  /** Destructor. */
   virtual ~Murmur3TestCase ();
 private:
   virtual void DoRun (void);
@@ -258,21 +209,16 @@ Murmur3TestCase::DoRun (void)
 }
 
 
-/**
- * \ingroup hash-tests
- * Simple hash function based on the GNU sum program.
- *
- * 16-bit checksum algorithm.  See
- * http://svnweb.freebsd.org/base/stable/9/usr.bin/cksum/sum1.c?view=markup
- *
- * Used to test Hash32Function_ptr/Hash64Function_ptr
- *
- * \param [in,out] buffer The data to hash.
- * \param [in] size The buffer size.
- * \returns The checksum of the buffer contents.
- */ 
+//----------------------------
+//
+// Test Hash32Function_ptr/Hash64Function_ptr
+//
+// Simple hash function based on the GNU sum program
+// 16-bit checksum algorithm.  See
+// http://svnweb.freebsd.org/base/stable/9/usr.bin/cksum/sum1.c?view=markup
+//
 uint16_t
-gnu_sum (const char * buffer, const std::size_t size)
+gnu_sum (const char * buffer, const size_t size)
 {
   const char * p = buffer;
   const char * const pend = p + size;
@@ -287,40 +233,29 @@ gnu_sum (const char * buffer, const std::size_t size)
   return checksum;
 }
 
-/**
- * \ingroup hash-tests
- * A 32-bit hash function, based on gnu_sum().
- * \copydetails gnu_sum()
- */
+// Hash32FunctionPtr
 uint32_t
-gnu_sum32 (const char * buffer, const std::size_t size)
+gnu_sum32 (const char * buffer, const size_t size)
 {
   uint32_t h = gnu_sum (buffer, size);
   return (uint32_t)( (h << 16) + h);
 }
 
-/**
- * \ingroup hash-tests
- * A 64-bit hash function, base on gnu_sum().
- * \copydetails gnu_sum()
- */
+// Hash64FunctionPtr
 uint64_t
-gnu_sum64 (const char * buffer, const std::size_t size)
+gnu_sum64 (const char * buffer, const size_t size)
 {
   uint64_t h = gnu_sum32 (buffer, size);
   return (uint64_t)( (h << 32) + h);
 }
 
 /**
- * \ingroup hash-tests
  * Test 32-bit function pointer
  */
 class Hash32FunctionPtrTestCase : public HashTestCase
 {
 public:
-  /** Constructor. */
   Hash32FunctionPtrTestCase ();
-  /** Destructor. */
   virtual ~Hash32FunctionPtrTestCase ();
 private:
   virtual void DoRun (void);
@@ -344,15 +279,12 @@ Hash32FunctionPtrTestCase::DoRun (void)
 }
 
 /**
- * \ingroup hash-tests
  * Test 64-bit function pointer
  */
 class Hash64FunctionPtrTestCase : public HashTestCase
 {
 public:
-  /** Constructor. */
   Hash64FunctionPtrTestCase ();
-  /** Destructor. */
   virtual ~Hash64FunctionPtrTestCase ();
 private:
   virtual void DoRun (void);
@@ -376,27 +308,20 @@ Hash64FunctionPtrTestCase::DoRun (void)
 }
 
 /**
- * \ingroup hash-tests
  * Test incremental hashing
  */  
 class IncrementalTestCase : public HashTestCase
 {
 public:
-  /** Constructor. */
   IncrementalTestCase ();
-  /** Destructor. */
   virtual ~IncrementalTestCase ();
 private:
   virtual void DoRun (void);
-  /**
-   * Complute the hash test function
-   * \param name the hash name
-   * \param hasher the hash function
-   */
   void DoHash (const std::string name, Hasher hasher);
-  std::string key1;  //!< test string
-  std::string key2;  //!< test string
-  std::string key12; //!< test string
+  // Test strings
+  std::string key1;
+  std::string key2;
+  std::string key12;
 };
 
 IncrementalTestCase::IncrementalTestCase ()
@@ -440,34 +365,25 @@ IncrementalTestCase::DoRun (void)
 
 
 /**
- * \ingroup hash-tests
  * Hash functions test suite
  */
 class HashTestSuite : public TestSuite
 {
 public:
-  /** Constructor. */
   HashTestSuite ();
 };
 
 HashTestSuite::HashTestSuite ()
-  : TestSuite ("hash")
+  : TestSuite ("hash", UNIT)
 {
-  AddTestCase (new DefaultHashTestCase);
-  AddTestCase (new Murmur3TestCase);
-  AddTestCase (new Fnv1aTestCase);
-  AddTestCase (new IncrementalTestCase);
-  AddTestCase (new Hash32FunctionPtrTestCase);
-  AddTestCase (new Hash64FunctionPtrTestCase);
+  AddTestCase (new DefaultHashTestCase, QUICK);
+  AddTestCase (new Murmur3TestCase, QUICK);
+  AddTestCase (new Fnv1aTestCase, QUICK);
+  AddTestCase (new IncrementalTestCase, QUICK);
+  AddTestCase (new Hash32FunctionPtrTestCase, QUICK);
+  AddTestCase (new Hash64FunctionPtrTestCase, QUICK);
 }
 
-/**
- * \ingroup hash-tests
- * HashTestSuite instance variable.
- */
 static HashTestSuite g_hashTestSuite;
-
-
-  }  // namespace tests
 
 }  // namespace ns3

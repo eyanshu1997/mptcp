@@ -38,7 +38,6 @@
 // Steps to run the experiment:
 //
 // $ ./waf --run="fd2fd-onoff"
-// $ ./waf --run="fd2fd-onoff --tcpMode=1"
 //
 
 #include <sys/socket.h>
@@ -57,24 +56,6 @@ NS_LOG_COMPONENT_DEFINE ("FdNetDeviceSaturationExample");
 int
 main (int argc, char *argv[])
 {
-
-  // Command-line arguments
-  //
-  bool tcpMode = false;
-  CommandLine cmd;
-  cmd.AddValue ("tcpMode", "1:true, 0:false, default mode UDP",tcpMode);
-  cmd.Parse (argc, argv);
-   
-  std::string factory;
-  if (tcpMode==1)
-    {
-      factory = "ns3::TcpSocketFactory";
-    }
-  else
-    {
-      factory = "ns3::UdpSocketFactory";
-    }
-
   GlobalValue::Bind ("ChecksumEnabled", BooleanValue (true));
 
   uint16_t sinkPort = 8000;
@@ -119,8 +100,7 @@ main (int argc, char *argv[])
 
   // server
   Address sinkLocalAddress (InetSocketAddress (serverIp, sinkPort));
-
-  PacketSinkHelper sinkHelper (factory, sinkLocalAddress);
+  PacketSinkHelper sinkHelper ("ns3::TcpSocketFactory", sinkLocalAddress);
   ApplicationContainer sinkApp = sinkHelper.Install (serverNode);
   sinkApp.Start (Seconds (0.0));
   sinkApp.Stop (Seconds (30.0));
@@ -128,7 +108,7 @@ main (int argc, char *argv[])
 
   // client
   AddressValue serverAddress (InetSocketAddress (serverIp, sinkPort));
-  OnOffHelper onoff (factory, Address ());
+  OnOffHelper onoff ("ns3::TcpSocketFactory", Address ());
   onoff.SetAttribute ("Remote", serverAddress);
   onoff.SetAttribute ("OnTime", StringValue ("ns3::ConstantRandomVariable[Constant=1]"));
   onoff.SetAttribute ("OffTime", StringValue ("ns3::ConstantRandomVariable[Constant=0]"));

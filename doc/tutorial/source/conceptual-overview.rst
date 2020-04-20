@@ -92,7 +92,7 @@ access* communication medium.  This gives us Ethernet-like functionality.
 
 Net Device
 ++++++++++
-It used to be the case that if you wanted to connect a computer to a network,
+It used to be the case that if you wanted to connect a computers to a network,
 you had to buy a specific kind of network cable and a hardware device called
 (in PC terminology) a *peripheral card* that needed to be installed in
 your computer.  If the peripheral card implemented some networking function,
@@ -308,14 +308,12 @@ Along the left side, you will find a graphical representation of the structure
 of the documentation.  A good place to start is the ``NS-3 Modules``
 "book" in the |ns3| navigation tree.  If you expand ``Modules`` 
 you will see a list of |ns3| module documentation.  The concept of 
-module here ties directly into the module include files discussed above.  The |ns3| logging subsystem is discussed in the :ref:`UsingLogging` section, so
-we'll get to it later in this tutorial, but you can find out about the above
-statement by looking at the ``Core`` module, then expanding the 
-``Debugging tools`` book, and then selecting the ``Logging`` page.  Click
-on ``Logging``.
+module here ties directly into the module include files discussed above.  The |ns3| logging subsystem is discussed in the ``C++ Constructs Used by All Modules`` 
+section, so go ahead and expand that documentation node.  Now, expand the 
+``Debugging`` book and then select the ``Logging`` page.
 
 You should now be looking at the Doxygen documentation for the Logging module.
-In the list of ``Macros``'s at the top of the page you will see the entry
+In the list of ``#define``'s at the top of the page you will see the entry
 for ``NS_LOG_COMPONENT_DEFINE``.  Before jumping in, it would probably be 
 good to look for the "Detailed Description" of the logging module to get a 
 feel for the overall operation.  You can either scroll down or select the
@@ -471,7 +469,7 @@ final line,
     pointToPoint.SetChannelAttribute ("Delay", StringValue ("2ms"));
 
 tells the ``PointToPointHelper`` to use the value "2ms" (two milliseconds)
-as the value of the propagation delay of every point to point channel it 
+as the value of the transmission delay of every point to point channel it 
 subsequently creates.
 
 NetDeviceContainer
@@ -744,69 +742,6 @@ took care of the hard part for you.  The remaining lines of our first
     Simulator::Destroy ();
     return 0;
   }
-
-When the simulator will stop?
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-|ns3| is a Discrete Event (DE) simulator. In such a simulator, each event is
-associated with its execution time, and the simulation proceeds by executing
-events in the temporal order of simulation time.  Events may cause future
-events to be scheduled (for example, a timer may reschedule itself to
-expire at the next interval).
-
-The initial events are usually triggered by each object, e.g., IPv6 will 
-schedule Router Advertisements, Neighbor Solicitations, etc., 
-an Application schedule the first packet sending event, etc.
-
-When an event is processed, it may generate zero, one or more events.
-As a simulation executes, events are consumed, but more events may (or may
-not) be generated.
-The simulation will stop automatically when no further events are in the 
-event queue, or when a special Stop event is found. The Stop event is 
-created through the 
-``Simulator::Stop (stopTime);`` function.
-
-There is a typical case where ``Simulator::Stop`` is absolutely necessary 
-to stop the simulation: when there is a self-sustaining event.
-Self-sustaining (or recurring) events are events that always reschedule 
-themselves. As a consequence, they always keep the event queue non-empty.
-
-There are many protocols and modules containing recurring events, e.g.:
-
-* FlowMonitor - periodic check for lost packets
-* RIPng - periodic broadcast of routing tables update
-* etc.
-
-In these cases, ``Simulator::Stop`` is necessary to gracefully stop the 
-simulation.  In addition, when |ns3| is in emulation mode, the 
-``RealtimeSimulator`` is used to keep the simulation clock aligned with 
-the machine clock, and ``Simulator::Stop`` is necessary to stop the 
-process.  
-
-Many of the simulation programs in the tutorial do not explicitly call
-``Simulator::Stop``, since the event queue will automatically run out
-of events.  However, these programs will also accept a call to 
-``Simulator::Stop``.  For example, the following additional statement
-in the first example program will schedule an explicit stop at 11 seconds: 
-
-::
-
-  +  Simulator::Stop (Seconds (11.0));
-     Simulator::Run ();
-     Simulator::Destroy ();
-     return 0;
-   }
-
-The above will not actually change the behavior of this program, since
-this particular simulation naturally ends after 10 seconds.  But if you 
-were to change the stop time in the above statement from 11 seconds to 1 
-second, you would notice that the simulation stops before any output is 
-printed to the screen (since the output occurs around time 2 seconds of 
-simulation time).
-
-It is important to call ``Simulator::Stop`` *before* calling 
-``Simulator::Run``; otherwise, ``Simulator::Run`` may never return control
-to the main program to execute the stop!
 
 Building Your Script
 ++++++++++++++++++++

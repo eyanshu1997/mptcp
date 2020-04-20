@@ -27,6 +27,7 @@
 #include "ns3/net-device-container.h"
 #include "ns3/node-container.h"
 #include "ns3/csma-channel.h"
+#include "ns3/deprecated.h"
 #include "ns3/trace-helper.h"
 
 namespace ns3 {
@@ -34,7 +35,6 @@ namespace ns3 {
 class Packet;
 
 /**
- * \ingroup csma
  * \brief build a set of CsmaNetDevice objects
  *
  * Normally we eschew multiple inheritance, however, the classes 
@@ -206,20 +206,14 @@ public:
   int64_t AssignStreams (NetDeviceContainer c, int64_t stream);
 
 private:
-
-  /**
-   * This method creates an ns3::CsmaNetDevice with the attributes configured by
-   * CsmaHelper::SetDeviceAttribute and then adds the device to the node and
-   * attaches the provided channel to the device.
-   *
-   * \param node The node to install the device in
-   * \param channel The channel to attach to the device.
-   * \returns A container holding the added net device.
+  /*
+   * \internal
    */
   Ptr<NetDevice> InstallPriv (Ptr<Node> node, Ptr<CsmaChannel> channel) const;
 
   /**
    * \brief Enable pcap output on the indicated net device.
+   * \internal
    *
    * NetDevice-specific implementation mechanism for hooking the trace and
    * writing to the trace file.
@@ -233,6 +227,7 @@ private:
 
   /**
    * \brief Enable ascii trace output on the indicated net device.
+   * \internal
    *
    * NetDevice-specific implementation mechanism for hooking the trace and
    * writing to the trace file.
@@ -247,9 +242,9 @@ private:
                                     Ptr<NetDevice> nd,
                                     bool explicitFilename);
 
-  ObjectFactory m_queueFactory;   //!< factory for the queues
-  ObjectFactory m_deviceFactory;  //!< factory for the NetDevices
-  ObjectFactory m_channelFactory; //!< factory for the channel
+  ObjectFactory m_queueFactory;
+  ObjectFactory m_deviceFactory;
+  ObjectFactory m_channelFactory;
 };
 
 } // namespace ns3

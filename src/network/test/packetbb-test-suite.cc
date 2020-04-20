@@ -29,22 +29,9 @@
 
 using namespace ns3;
 
-/**
- * \ingroup network-test
- * \ingroup tests
- *
- * \brief PacketBb TestCase
- */
 class PbbTestCase : public TestCase
 {
 public:
-  /**
-   * Constructor
-   * \param name Test name.
-   * \param packet Packet to test.
-   * \param buffer Buffer to test.
-   * \param size Buffer size.
-   */
   PbbTestCase (std::string name, Ptr<PbbPacket> packet,
                uint8_t * buffer, uint32_t size);
   virtual ~PbbTestCase (void);
@@ -53,13 +40,11 @@ protected:
   virtual void DoRun (void);
 
 private:
-  /// Serialization
   void TestSerialize (void);
-  /// Deserialization
   void TestDeserialize (void);
 
-  Ptr<PbbPacket> m_refPacket; //!< Reference packet
-  Buffer m_refBuffer; //!< Reference buffer
+  Ptr<PbbPacket> m_refPacket;
+  Buffer m_refBuffer;
 };
 
 PbbTestCase::PbbTestCase (std::string name, Ptr<PbbPacket> packet,
@@ -114,12 +99,6 @@ PbbTestCase::TestDeserialize (void)
                                       "deserialization failed, objects do not match");
 }
 
-/**
- * \ingroup network-test
- * \ingroup tests
- *
- * \brief PacketBb TestSuite
- */
 class PbbTestSuite : public TestSuite
 {
 public:
@@ -3841,4 +3820,4 @@ PbbTestSuite::PbbTestSuite ()
   }
 }
 
-static PbbTestSuite pbbTestSuite; //!< Static variable for test initialization
+static PbbTestSuite pbbTestSuite;
